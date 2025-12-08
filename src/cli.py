@@ -51,10 +51,9 @@ class CLI:
             else:
                 # User cancelled onboarding
                 self.clear_screen()
-                print("
-  You can complete setup anytime by running the app again.
-")
+                print("\n  You can complete setup anytime by running the app again.\n")
                 sys.exit(0)
+
 
     def clear_screen(self) -> None:
         """Clear the terminal screen."""
