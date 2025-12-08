@@ -1,0 +1,4 @@
+# Core dependencies
+cryptography==41.0.7
+pytest==7.4.3
+python-dotenv==1.0.0
