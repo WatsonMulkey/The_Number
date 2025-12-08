@@ -32,7 +32,7 @@ class Onboarding:
 
     def print_step(self, step_num: int, total_steps: int, title: str) -> None:
         """Print step progress."""
-        print(f"\n  📍 Step {step_num} of {total_steps}: {title}\n")
+        print(f"\n  > Step {step_num} of {total_steps}: {title}\n")
         print("-"*70 + "\n")
 
     def get_input(self, prompt: str, input_type: type = str,
@@ -98,31 +98,31 @@ class Onboarding:
 
     def welcome_screen(self) -> bool:
         """Display welcome screen and confirm user wants to continue."""
-        self.print_header("🎯 Welcome to The Number!", "Your Simple Daily Budget App")
+        self.print_header("[*] Welcome to The Number!", "Your Simple Daily Budget App")
 
         print("  The Number helps you answer one simple question:\n")
-        print("  💰 \"How much can I spend today?\"\n")
+        print("  [$] \"How much can I spend today?\"\n")
         print("-"*70 + "\n")
         print("  This quick setup will take about 2 minutes.\n")
         print("  We'll help you:\n")
-        print("    1️⃣  Choose your budgeting style")
-        print("    2️⃣  Add your income or available money")
-        print("    3️⃣  List your monthly expenses")
-        print("    4️⃣  Get your first daily budget number!\n")
+        print("    1.  Choose your budgeting style")
+        print("    2.  Add your income or available money")
+        print("    3.  List your monthly expenses")
+        print("    4.  Get your first daily budget number!\n")
         print("-"*70 + "\n")
 
         return self.get_yes_no("Ready to get started?")
 
     def choose_budget_mode(self) -> Optional[str]:
         """Step 1: Choose budget mode."""
-        self.print_header("🎯 The Number - Setup")
+        self.print_header("[*] The Number - Setup")
         self.print_step(1, 4, "Choose Your Budgeting Style")
 
         print("  Which situation describes you best?\n")
-        print("  1️⃣  I have regular income (job, salary, consistent paychecks)")
+        print("  1.  I have regular income (job, salary, consistent paychecks)")
         print("     → Choose PAYCHECK MODE")
         print("     → We'll calculate your daily budget based on your income\n")
-        print("  2️⃣  I have a fixed amount of money that needs to last")
+        print("  2.  I have a fixed amount of money that needs to last")
         print("     → Choose FIXED POOL MODE")
         print("     → We'll show you how long your money will last\n")
         print("-"*70 + "\n")
@@ -140,7 +140,7 @@ class Onboarding:
 
     def setup_paycheck_mode(self) -> Optional[Dict[str, Any]]:
         """Step 2a: Configure paycheck mode."""
-        self.print_header("🎯 The Number - Setup")
+        self.print_header("[*] The Number - Setup")
         self.print_step(2, 4, "Paycheck Mode Setup")
 
         print("  Let's set up your income and paycheck schedule.\n")
@@ -156,7 +156,7 @@ class Onboarding:
         if monthly_income is None:
             return None
 
-        print(f"\n  ✅ Monthly income: ${monthly_income:,.2f}\n")
+        print(f"\n  [OK] Monthly income: ${monthly_income:,.2f}\n")
 
         # Get days until paycheck
         print("  When is your next paycheck?\n")
@@ -169,7 +169,7 @@ class Onboarding:
         if days_until_paycheck is None:
             return None
 
-        print(f"\n  ✅ Next paycheck in: {days_until_paycheck} days\n")
+        print(f"\n  [OK] Next paycheck in: {days_until_paycheck} days\n")
 
         return {
             "mode": "paycheck",
@@ -179,7 +179,7 @@ class Onboarding:
 
     def setup_fixed_pool_mode(self) -> Optional[Dict[str, Any]]:
         """Step 2b: Configure fixed pool mode."""
-        self.print_header("🎯 The Number - Setup")
+        self.print_header("[*] The Number - Setup")
         self.print_step(2, 4, "Fixed Pool Mode Setup")
 
         print("  Let's set up your available money.\n")
@@ -194,7 +194,7 @@ class Onboarding:
         if total_money is None:
             return None
 
-        print(f"\n  ✅ Total money available: ${total_money:,.2f}\n")
+        print(f"\n  [OK] Total money available: ${total_money:,.2f}\n")
 
         return {
             "mode": "fixed_pool",
@@ -203,7 +203,7 @@ class Onboarding:
 
     def add_expenses(self) -> Optional[list]:
         """Step 3: Add monthly expenses."""
-        self.print_header("🎯 The Number - Setup")
+        self.print_header("[*] The Number - Setup")
         self.print_step(3, 4, "Add Your Monthly Expenses")
 
         print("  Now let's add your monthly expenses (rent, bills, etc.).\n")
@@ -264,7 +264,7 @@ class Onboarding:
 
             total += amount
             expense_type = "Fixed" if is_fixed else "Variable"
-            print(f"\n  ✅ Added: {name} - ${amount:,.2f} ({expense_type})\n")
+            print(f"\n  [OK] Added: {name} - ${amount:,.2f} ({expense_type})\n")
 
             # Ask to continue
             add_more = self.get_yes_no("Add another expense?")
@@ -273,7 +273,7 @@ class Onboarding:
 
         if expenses:
             print("\n" + "-"*70)
-            print(f"\n  📊 Total Monthly Expenses: ${total:,.2f}\n")
+            print(f"\n  [CHART] Total Monthly Expenses: ${total:,.2f}\n")
             print("  Breakdown:")
             for exp in expenses:
                 exp_type = "Fixed" if exp["is_fixed"] else "Variable"
@@ -287,7 +287,7 @@ class Onboarding:
         """Step 4: Calculate and show the user's first number."""
         from .calculator import BudgetCalculator
 
-        self.print_header("🎯 The Number - Your Daily Budget", "Setup Complete!")
+        self.print_header("[*] The Number - Your Daily Budget", "Setup Complete!")
         self.print_step(4, 4, "Here's Your Number!")
 
         # Calculate the number
@@ -304,7 +304,7 @@ class Onboarding:
                 days_until_paycheck=config["days_until_paycheck"]
             )
 
-            print("  💰 Your Budget Summary:\n")
+            print("  [$] Your Budget Summary:\n")
             print(f"    Monthly Income:        ${result['total_income']:>10,.2f}")
             print(f"    Total Expenses:        ${result['total_expenses']:>10,.2f}")
             print(f"    ─────────────────────────────────────────")
@@ -313,19 +313,19 @@ class Onboarding:
             print()
             print("="*70)
             print()
-            print(f"         🎯 THE NUMBER: ${result['daily_limit']:>10,.2f} per day")
+            print(f"         [*] THE NUMBER: ${result['daily_limit']:>10,.2f} per day")
             print()
             print("="*70)
             print()
 
             if result['daily_limit'] <= 0:
-                print("  ⚠️  Warning: Your expenses exceed your income!")
+                print("  [!]  Warning: Your expenses exceed your income!")
                 print("     Consider reducing expenses or increasing income.\n")
             elif result['daily_limit'] < 20:
-                print("  ⚠️  Your daily budget is quite tight.")
+                print("  [!]  Your daily budget is quite tight.")
                 print("     Track your spending carefully!\n")
             else:
-                print("  ✅ Your budget looks good!")
+                print("  [OK] Your budget looks good!")
                 print("     Stick to your daily limit and you'll stay on track.\n")
 
         else:  # fixed_pool mode
@@ -336,7 +336,7 @@ class Onboarding:
             months = result['months_remaining']
             days = result['days_remaining']
 
-            print("  💰 Your Budget Summary:\n")
+            print("  [$] Your Budget Summary:\n")
             print(f"    Total Money:           ${result['total_money']:>10,.2f}")
             print(f"    Monthly Expenses:      ${result['monthly_expenses']:>10,.2f}")
             print(f"    ─────────────────────────────────────────")
@@ -348,26 +348,26 @@ class Onboarding:
             print()
             print("="*70)
             print()
-            print(f"         🎯 THE NUMBER: ${result['daily_limit']:>10,.2f} per day")
+            print(f"         [*] THE NUMBER: ${result['daily_limit']:>10,.2f} per day")
             print()
             print("="*70)
             print()
 
             if result['daily_limit'] <= 0:
-                print("  ⚠️  Warning: You have no money left after expenses!")
+                print("  [!]  Warning: You have no money left after expenses!")
                 print("     You need to reduce expenses or find additional funds.\n")
             elif days < 30:
-                print("  ⚠️  Your money will run out in less than a month!")
+                print("  [!]  Your money will run out in less than a month!")
                 print("     Consider reducing expenses or finding income.\n")
             elif days < 90:
-                print("  ⚠️  Your money will last about 1-3 months.")
+                print("  [!]  Your money will last about 1-3 months.")
                 print("     Start planning for additional income.\n")
             else:
-                print("  ✅ Your money will last for a while!")
+                print("  [OK] Your money will last for a while!")
                 print("     Stick to your daily limit to stay on track.\n")
 
         print("-"*70 + "\n")
-        print("  💡 Tips for Success:\n")
+        print("  [TIP] Tips for Success:\n")
         print("    • Check 'The Number' every morning")
         print("    • Record your spending throughout the day")
         print("    • Stay under your daily limit to stay on budget")
