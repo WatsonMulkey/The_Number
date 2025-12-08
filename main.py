@@ -14,30 +14,23 @@ from dotenv import load_dotenv
 sys.path.insert(0, str(Path(__file__).parent))
 
 from src.cli import CLI
+from src.utils import configure_console_encoding, check_database_health, ensure_env_file
 
 
 def main():
     """Main entry point for The Number app."""
+    # Configure console for cross-platform compatibility
+    configure_console_encoding()
+
+    # Ensure .env file exists
+    ensure_env_file()
+
     # Load environment variables
     env_path = Path(__file__).parent / ".env"
-    if env_path.exists():
-        load_dotenv(env_path)
-    else:
-        print("\n⚠️  Warning: No .env file found.")
-        print("Creating .env file with new encryption key...\n")
+    load_dotenv(env_path)
 
-        # Generate new encryption key
-        from cryptography.fernet import Fernet
-        key = Fernet.generate_key().decode()
-
-        # Create .env file
-        with open(env_path, 'w') as f:
-            f.write(f"DB_ENCRYPTION_KEY={key}\n")
-
-        # Load the new .env file
-        load_dotenv(env_path)
-
-        print("✅ Created .env file with encryption key.\n")
+    # Validate database health before starting
+    check_database_health()
 
     # Start CLI
     cli = CLI()
