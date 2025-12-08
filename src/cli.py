@@ -12,6 +12,7 @@ from pathlib import Path
 
 from .database import EncryptedDatabase
 from .calculator import BudgetCalculator, Expense
+from .onboarding import Onboarding
 
 
 class CLI:
@@ -25,6 +26,7 @@ class CLI:
         self.db = EncryptedDatabase(db_path=db_path, encryption_key=encryption_key)
         self.calculator = BudgetCalculator()
         self._load_expenses()
+        self._check_onboarding()
 
     def _load_expenses(self) -> None:
         """Load expenses from database into calculator."""
@@ -35,6 +37,24 @@ class CLI:
                 amount=exp["amount"],
                 is_fixed=exp["is_fixed"]
             )
+
+    def _check_onboarding(self) -> None:
+        """Check if user needs to go through onboarding."""
+        if not self.db.get_setting("onboarded"):
+            onboarding = Onboarding(self.db)
+            success = onboarding.run()
+
+            if success:
+                # Reload expenses after onboarding
+                self.calculator.expenses = []
+                self._load_expenses()
+            else:
+                # User cancelled onboarding
+                self.clear_screen()
+                print("
+  You can complete setup anytime by running the app again.
+")
+                sys.exit(0)
 
     def clear_screen(self) -> None:
         """Clear the terminal screen."""
