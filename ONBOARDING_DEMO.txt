@@ -1,0 +1,216 @@
+======================================================================
+  ONBOARDING FLOW DEMONSTRATION
+======================================================================
+
+This shows the complete 4-step onboarding process that new users see
+when they first run The Number app.
+
+======================================================================
+
+STEP 0: WELCOME SCREEN
+======================================================================
+
+  Welcome to The Number!
+  Your Simple Daily Budget App
+
+======================================================================
+
+  The Number helps you answer one simple question:
+
+  "How much can I spend today?"
+
+----------------------------------------------------------------------
+
+  This quick setup will take about 2 minutes.
+
+  We'll help you:
+
+    1. Choose your budgeting style
+    2. Add your income or available money
+    3. List your monthly expenses
+    4. Get your first daily budget number!
+
+----------------------------------------------------------------------
+
+  Ready to get started? (y/n): y
+
+
+======================================================================
+
+STEP 1 of 4: CHOOSE YOUR BUDGETING STYLE
+======================================================================
+
+  Which situation describes you best?
+
+  1. I have regular income (job, salary, consistent paychecks)
+     -> Choose PAYCHECK MODE
+     -> We'll calculate your daily budget based on your income
+
+  2. I have a fixed amount of money that needs to last
+     -> Choose FIXED POOL MODE
+     -> We'll show you how long your money will last
+
+----------------------------------------------------------------------
+
+  Select your mode (1 or 2): 1
+
+  [User selected: PAYCHECK MODE]
+
+
+======================================================================
+
+STEP 2 of 4: PAYCHECK MODE SETUP
+======================================================================
+
+  Let's set up your income and paycheck schedule.
+
+----------------------------------------------------------------------
+
+  What is your total monthly income? $: 3000
+
+  [OK] Monthly income: $3,000.00
+
+  When is your next paycheck?
+
+  Days until next paycheck: 15
+
+  [OK] Next paycheck in: 15 days
+
+
+======================================================================
+
+STEP 3 of 4: ADD YOUR MONTHLY EXPENSES
+======================================================================
+
+  Now let's add your monthly expenses (rent, bills, etc.).
+
+  These are costs you MUST pay each month.
+  Your daily budget will be what's LEFT OVER after these.
+
+----------------------------------------------------------------------
+
+  Common expenses: Rent, Utilities, Phone, Internet, Insurance,
+                   Groceries, Transportation, Subscriptions
+
+----------------------------------------------------------------------
+
+  Do you have monthly expenses to add? (y/n): y
+
+  Current total expenses: $0.00
+
+  Expense name: Rent
+  Monthly amount for Rent $: 1500
+  Is this a fixed monthly expense? (y/n): y
+
+  [OK] Added: Rent - $1,500.00 (Fixed)
+
+  Add another expense? (y/n): y
+
+  ---
+
+  Current total expenses: $1,500.00
+
+  Expense name: Utilities
+  Monthly amount for Utilities $: 200
+  Is this a fixed monthly expense? (y/n): y
+
+  [OK] Added: Utilities - $200.00 (Fixed)
+
+  Add another expense? (y/n): y
+
+  ---
+
+  Current total expenses: $1,700.00
+
+  Expense name: Groceries
+  Monthly amount for Groceries $: 300
+  Is this a fixed monthly expense? (y/n): n
+
+  [OK] Added: Groceries - $300.00 (Variable)
+
+  Add another expense? (y/n): n
+
+----------------------------------------------------------------------
+
+  Total Monthly Expenses: $2,000.00
+
+  Breakdown:
+    • Rent                  $1,500.00  (Fixed)
+    • Utilities             $  200.00  (Fixed)
+    • Groceries             $  300.00  (Variable)
+
+
+======================================================================
+
+STEP 4 of 4: HERE'S YOUR NUMBER!
+======================================================================
+
+  Your Budget Summary:
+
+    Monthly Income:        $  3,000.00
+    Total Expenses:        $  2,000.00
+    ─────────────────────────────────────────
+    Money After Expenses:  $  1,000.00
+    Days Until Paycheck:            15
+
+======================================================================
+
+         THE NUMBER: $66.67 per day
+
+======================================================================
+
+  [OK] Your budget looks good!
+     Stick to your daily limit and you'll stay on track.
+
+----------------------------------------------------------------------
+
+  Tips for Success:
+
+    • Check 'The Number' every morning
+    • Record your spending throughout the day
+    • Stay under your daily limit to stay on budget
+    • Update your expenses if anything changes
+
+----------------------------------------------------------------------
+
+
+======================================================================
+  ONBOARDING COMPLETE!
+======================================================================
+
+  You're now ready to use The Number app!
+
+  The app will now show the main menu where you can:
+
+    1. Get The Number (Daily Budget)
+    2. Record Spending
+    3. Manage Expenses
+    4. View Transactions
+    5. Setup Budget Mode
+    6. Exit
+
+======================================================================
+
+WHAT HAPPENS BEHIND THE SCENES:
+======================================================================
+
+During onboarding, the following data is saved to the database:
+
+SETTINGS TABLE (encrypted):
+  - onboarded: true
+  - budget_mode: "paycheck"
+  - monthly_income: 3000.0
+  - days_until_paycheck: 15
+
+EXPENSES TABLE:
+  - Rent: $1,500.00 (fixed)
+  - Utilities: $200.00 (fixed)
+  - Groceries: $300.00 (variable)
+
+CALCULATION:
+  Remaining = $3,000 (income) - $2,000 (expenses) = $1,000
+  Daily Limit = $1,000 / 15 days = $66.67
+
+THE NUMBER = $66.67
+
+======================================================================
