@@ -187,6 +187,7 @@ class CLI:
 
             options = [
                 "Add Expense",
+                "Import from CSV/Excel",
                 "Remove Expense",
                 "Back to Main Menu"
             ]
@@ -197,8 +198,10 @@ class CLI:
             if choice == 1:
                 self._add_expense()
             elif choice == 2:
-                self._remove_expense()
+                self._import_expenses()
             elif choice == 3:
+                self._remove_expense()
+            elif choice == 4:
                 break
 
     def _add_expense(self) -> None:
@@ -225,6 +228,134 @@ class CLI:
 
         print(f"\n  ✅ Added expense: {name} - ${amount:.2f}\n")
         input("  Press Enter to continue...")
+
+    def _import_expenses(self) -> None:
+        """Import expenses from CSV or Excel file."""
+        from .import_expenses import import_expenses_from_file, validate_expenses, create_sample_csv
+
+        self.clear_screen()
+        self.print_header("IMPORT EXPENSES FROM FILE")
+
+        print("  Import expenses from a CSV or Excel file.\n")
+        print("  Expected file format:\n")
+        print("    Column 1: name (or expense, description)")
+        print("    Column 2: amount (or cost, price)")
+        print("    Column 3: is_fixed (optional: yes/no, defaults to yes)\n")
+        print("  Example:")
+        print("    name,amount,is_fixed")
+        print("    Rent,1500,yes")
+        print("    Groceries,300,no\n")
+        print("-"*60 + "\n")
+
+        # Option to create sample file
+        create_sample = self.get_input(
+            "Create a sample CSV file for reference? (y/n)",
+            str
+        )
+        if create_sample and create_sample.lower() in ['y', 'yes']:
+            create_sample_csv("sample_expenses.csv")
+            print(f"\n  Created: sample_expenses.csv")
+            print("  You can edit this file and import it.\n")
+
+        # Get file path
+        print()
+        file_path = self.get_input(
+            "Enter file path (or press Enter to cancel)",
+            str,
+            allow_empty=True
+        )
+
+        if not file_path:
+            return
+
+        print(f"\n  Importing from: {file_path}\n")
+
+        # Import expenses
+        expenses, errors = import_expenses_from_file(file_path)
+
+        # Show errors if any
+        if errors:
+            print("  Errors found:\n")
+            for error in errors:
+                print(f"    - {error}")
+            print()
+
+            if not expenses:
+                print("  Import failed. No valid expenses found.\n")
+                input("  Press Enter to continue...")
+                return
+
+        # Validate expenses
+        is_valid, warnings = validate_expenses(expenses)
+        if warnings:
+            print("  Warnings:\n")
+            for warning in warnings:
+                print(f"    - {warning}")
+            print()
+
+        if not expenses:
+            print("  No expenses to import.\n")
+            input("  Press Enter to continue...")
+            return
+
+        # Show preview
+        print("  Preview of expenses to import:\n")
+        total = sum(exp['amount'] for exp in expenses)
+        for exp in expenses:
+            exp_type = "Fixed" if exp['is_fixed'] else "Variable"
+            print(f"    {exp['name']:<30} ${exp['amount']:>8,.2f}  ({exp_type})")
+        print(f"\n  Total: ${total:,.2f}")
+        print(f"  Count: {len(expenses)} expenses\n")
+
+        # Confirm import
+        confirm = self.get_input(
+            "Import these expenses? (y/n)",
+            str
+        )
+
+        if confirm and confirm.lower() not in ['y', 'yes']:
+            print("\n  Import cancelled.\n")
+            input("  Press Enter to continue...")
+            return
+
+        # Ask if should replace or add
+        print()
+        print("  Import mode:")
+        print("    1. Add to existing expenses (keep current expenses)")
+        print("    2. Replace all expenses (clear current expenses first)\n")
+
+        mode = self.get_input(
+            "Select mode (1 or 2)",
+            int
+        )
+
+        # Clear existing if replace mode
+        if mode == 2:
+            existing = self.db.get_expenses()
+            for exp in existing:
+                self.db.delete_expense(exp['id'])
+            print("\n  Cleared existing expenses.")
+
+        # Import expenses
+        imported_count = 0
+        for exp in expenses:
+            try:
+                self.db.add_expense(
+                    name=exp['name'],
+                    amount=exp['amount'],
+                    is_fixed=exp['is_fixed']
+                )
+                imported_count += 1
+            except Exception as e:
+                print(f"  Error importing {exp['name']}: {e}")
+
+        # Reload expenses in calculator
+        self.calculator.expenses = []
+        self._load_expenses()
+
+        print(f"\n  Successfully imported {imported_count} expenses!\n")
+        input("  Press Enter to continue...")
+
 
     def _remove_expense(self) -> None:
         """Remove an expense."""

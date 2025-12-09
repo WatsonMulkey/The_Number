@@ -1,0 +1,10 @@
+name,amount,is_fixed
+Rent,1500,yes
+Utilities,200,yes
+Phone Bill,80,yes
+Internet,60,yes
+Car Insurance,120,yes
+Groceries,400,no
+Transportation,150,no
+Entertainment,100,no
+Dining Out,200,no
