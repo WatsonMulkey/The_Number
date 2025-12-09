@@ -188,6 +188,7 @@ class CLI:
             options = [
                 "Add Expense",
                 "Import from CSV/Excel",
+                "Export to CSV/Excel",
                 "Remove Expense",
                 "Back to Main Menu"
             ]
@@ -200,8 +201,10 @@ class CLI:
             elif choice == 2:
                 self._import_expenses()
             elif choice == 3:
-                self._remove_expense()
+                self._export_expenses()
             elif choice == 4:
+                self._remove_expense()
+            elif choice == 5:
                 break
 
     def _add_expense(self) -> None:
@@ -354,6 +357,91 @@ class CLI:
         self._load_expenses()
 
         print(f"\n  Successfully imported {imported_count} expenses!\n")
+        input("  Press Enter to continue...")
+
+
+    def _export_expenses(self) -> None:
+        """Export expenses to CSV or Excel file."""
+        from .export_expenses import export_to_csv, export_to_excel, export_budget_summary
+
+        self.clear_screen()
+        self.print_header("EXPORT BUDGET DATA")
+
+        expenses = self.db.get_expenses()
+
+        if not expenses:
+            print("  No expenses to export.\n")
+            input("  Press Enter to continue...")
+            return
+
+        # Show preview
+        total = sum(exp["amount"] for exp in expenses)
+        print("  Current Expenses:\n")
+        for exp in expenses:
+            exp_type = "Fixed" if exp["is_fixed"] else "Variable"
+            print(f"    {exp['name']:<30} ${exp['amount']:>8,.2f}  ({exp_type})")
+        print(f"\n  Total: ${total:,.2f}")
+        print(f"  Count: {len(expenses)} expenses\n")
+        print("-"*60 + "\n")
+
+        # Choose export type
+        print("  Export Options:\n")
+        print("    1. Expenses only (CSV)")
+        print("    2. Expenses only (Excel)")
+        print("    3. Full budget summary (CSV)")
+        print("    4. Full budget summary (Excel)\n")
+
+        export_choice = self.get_input(
+            "Select export type (1-4)",
+            int
+        )
+
+        if export_choice is None or export_choice not in [1, 2, 3, 4]:
+            print("\n  Export cancelled.\n")
+            input("  Press Enter to continue...")
+            return
+
+        try:
+            if export_choice == 1:
+                # CSV expenses only
+                output_path = export_to_csv(expenses)
+                export_type = "CSV"
+            elif export_choice == 2:
+                # Excel expenses only
+                output_path = export_to_excel(expenses)
+                export_type = "Excel"
+            elif export_choice == 3:
+                # CSV full summary
+                settings = {
+                    'budget_mode': self.db.get_setting('budget_mode'),
+                    'monthly_income': self.db.get_setting('monthly_income'),
+                    'days_until_paycheck': self.db.get_setting('days_until_paycheck'),
+                    'total_money': self.db.get_setting('total_money')
+                }
+                output_path = export_budget_summary(expenses, settings, format='csv')
+                export_type = "CSV summary"
+            else:
+                # Excel full summary
+                settings = {
+                    'budget_mode': self.db.get_setting('budget_mode'),
+                    'monthly_income': self.db.get_setting('monthly_income'),
+                    'days_until_paycheck': self.db.get_setting('days_until_paycheck'),
+                    'total_money': self.db.get_setting('total_money')
+                }
+                output_path = export_budget_summary(expenses, settings, format='excel')
+                export_type = "Excel summary"
+
+            print(f"\n  Success! Exported as {export_type}")
+            print(f"  File: {output_path}")
+            print(f"  Location: {os.path.abspath(output_path)}\n")
+            print("  You can now:")
+            print("    • Keep this as a backup")
+            print("    • Re-import it if you reset your budget")
+            print("    • Edit it and import the updated version\n")
+
+        except Exception as e:
+            print(f"\n  Export failed: {e}\n")
+
         input("  Press Enter to continue...")
 
 
