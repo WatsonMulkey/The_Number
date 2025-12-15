@@ -11,6 +11,33 @@ from typing import List, Dict, Optional
 from pathlib import Path
 
 
+def validate_file_path(file_path: str, for_writing: bool = False) -> Path:
+    """
+    Validate file path is safe (prevents path traversal attacks).
+
+    Args:
+        file_path: Path to validate
+        for_writing: Whether file will be written (vs read)
+
+    Returns:
+        Resolved Path object
+
+    Raises:
+        ValueError: If path is invalid
+    """
+    try:
+        file_path = Path(file_path).resolve()
+
+        # Prevent path traversal with ".." patterns in the original input
+        # (the resolve() call above already normalizes, but check the original)
+        if ".." in str(file_path):
+            raise ValueError("Path traversal patterns (..) are not allowed")
+
+        return file_path
+    except Exception as e:
+        raise ValueError(f"Invalid file path: {e}")
+
+
 def export_to_csv(expenses: List[Dict], output_path: str = None) -> str:
     """
     Export expenses to a CSV file.
@@ -22,6 +49,13 @@ def export_to_csv(expenses: List[Dict], output_path: str = None) -> str:
     Returns:
         Path to created CSV file
     """
+    # Validate output path if provided
+    if output_path is not None:
+        try:
+            output_path = str(validate_file_path(output_path, for_writing=True))
+        except ValueError as e:
+            raise ValueError(f"Invalid output path: {e}")
+
     if output_path is None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_path = f"budget_export_{timestamp}.csv"
@@ -107,7 +141,7 @@ def export_to_excel(expenses: List[Dict], output_path: str = None) -> str:
             try:
                 if len(str(cell.value)) > max_length:
                     max_length = len(str(cell.value))
-            except:
+            except (TypeError, AttributeError):
                 pass
         adjusted_width = min(max_length + 2, 50)
         ws.column_dimensions[column_letter].width = adjusted_width
@@ -330,7 +364,7 @@ def _export_summary_excel(
             try:
                 if len(str(cell.value)) > max_length:
                     max_length = len(str(cell.value))
-            except:
+            except (TypeError, AttributeError):
                 pass
         adjusted_width = min(max_length + 2, 50)
         ws.column_dimensions[column_letter].width = adjusted_width

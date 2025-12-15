@@ -41,12 +41,18 @@ class EncryptedDatabase:
 
     def _save_key_warning(self, key: bytes) -> None:
         """Warn user to save their encryption key."""
+        key_str = key.decode()
+        # Mask key for security (show first/last 4 chars only)
+        masked_key = f"{key_str[:4]}...{key_str[-4:]}"
+
         print("\n" + "="*60)
         print("IMPORTANT: Save this encryption key securely!")
         print("You will need it to access your data.")
         print("="*60)
-        print(f"\nEncryption Key: {key.decode()}\n")
-        print("Add this to your .env file as DB_ENCRYPTION_KEY")
+        print(f"\nEncryption Key (masked): {masked_key}")
+        print("\nFull key saved to: .env file")
+        print("\nWARNING: Without this key, you cannot access your data!")
+        print("Keep the .env file secure and backed up!")
         print("="*60 + "\n")
 
     def _init_database(self) -> None:
@@ -195,13 +201,22 @@ class EncryptedDatabase:
     def update_expense(self, expense_id: int, name: Optional[str] = None,
                       amount: Optional[float] = None, is_fixed: Optional[bool] = None) -> None:
         """Update an expense."""
+        # Whitelist of allowed columns (security: prevent SQL injection pattern)
+        ALLOWED_COLUMNS = {'name', 'amount', 'is_fixed', 'updated_at'}
+
         updates = []
         params = []
 
         if name is not None:
+            if len(name) > 200:
+                raise ValueError("Expense name too long (max 200 characters)")
             updates.append("name = ?")
-            params.append(name)
+            params.append(name.strip())
         if amount is not None:
+            if amount < 0:
+                raise ValueError("Amount cannot be negative")
+            if amount > 10_000_000:
+                raise ValueError("Amount exceeds maximum ($10,000,000)")
             updates.append("amount = ?")
             params.append(amount)
         if is_fixed is not None:
@@ -214,6 +229,11 @@ class EncryptedDatabase:
         updates.append("updated_at = ?")
         params.append(datetime.now().isoformat())
         params.append(expense_id)
+
+        # Validate all update columns are in whitelist (prevent SQL injection)
+        update_cols = {u.split('=')[0].strip() for u in updates}
+        if not update_cols.issubset(ALLOWED_COLUMNS):
+            raise ValueError("Invalid column names in update")
 
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
@@ -245,6 +265,18 @@ class EncryptedDatabase:
         Returns:
             ID of created transaction
         """
+        # Validate transaction data
+        if amount <= 0:
+            raise ValueError("Transaction amount must be positive")
+        if amount > 10_000_000:
+            raise ValueError("Amount exceeds maximum ($10,000,000)")
+        if not description or not description.strip():
+            raise ValueError("Transaction description is required")
+        if len(description) > 200:
+            raise ValueError("Description too long (max 200 characters)")
+
+        description = description.strip()
+
         if date is None:
             date = datetime.now()
 

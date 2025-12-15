@@ -10,6 +10,11 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 from dataclasses import dataclass
 
+# Security and validation constants
+MAX_STRING_LENGTH = 200  # Maximum length for user input strings
+MAX_AMOUNT = 10_000_000  # Maximum dollar amount ($10 million)
+MAX_DAYS_UNTIL_PAYCHECK = 365  # Maximum days (1 year)
+
 
 @dataclass
 class Expense:
@@ -21,6 +26,8 @@ class Expense:
     def __post_init__(self):
         if self.amount < 0:
             raise ValueError(f"Expense amount cannot be negative: {self.amount}")
+        if self.amount > MAX_AMOUNT:
+            raise ValueError(f"Expense amount exceeds maximum (${MAX_AMOUNT:,}): {self.amount}")
 
 
 @dataclass
@@ -34,6 +41,8 @@ class Transaction:
     def __post_init__(self):
         if self.amount < 0:
             raise ValueError(f"Transaction amount cannot be negative: {self.amount}")
+        if self.amount > MAX_AMOUNT:
+            raise ValueError(f"Transaction amount exceeds maximum (${MAX_AMOUNT:,}): {self.amount}")
 
 
 class BudgetCalculator:
@@ -95,10 +104,13 @@ class BudgetCalculator:
             raise ValueError("Monthly income cannot be negative")
         if days_until_paycheck <= 0:
             raise ValueError("Days until paycheck must be positive")
+        if days_until_paycheck > MAX_DAYS_UNTIL_PAYCHECK:
+            raise ValueError(f"Days until paycheck cannot exceed {MAX_DAYS_UNTIL_PAYCHECK}")
 
         total_expenses = self.get_total_expenses()
         remaining_money = monthly_income - total_expenses
-        daily_limit = remaining_money / days_until_paycheck
+        is_deficit = remaining_money < 0
+        daily_limit = max(0, remaining_money / days_until_paycheck)
 
         return {
             "total_income": monthly_income,
@@ -106,6 +118,8 @@ class BudgetCalculator:
             "remaining_money": remaining_money,
             "days_remaining": days_until_paycheck,
             "daily_limit": daily_limit,
+            "is_deficit": is_deficit,
+            "deficit_amount": abs(min(0, remaining_money)),
             "mode": "paycheck"
         }
 
@@ -128,6 +142,18 @@ class BudgetCalculator:
             raise ValueError("Total money cannot be negative")
 
         total_expenses = self.get_total_expenses()
+
+        # Handle zero money case
+        if total_money <= 0:
+            return {
+                "total_money": total_money,
+                "monthly_expenses": total_expenses,
+                "months_remaining": 0,
+                "days_remaining": 0,
+                "daily_limit": 0,
+                "out_of_money": True,
+                "mode": "fixed_pool"
+            }
 
         # Calculate how long the money will last
         if total_expenses > 0:

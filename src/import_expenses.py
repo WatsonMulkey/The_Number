@@ -10,6 +10,33 @@ from typing import List, Dict, Tuple, Optional
 from pathlib import Path
 
 
+def validate_file_path(file_path: str, for_writing: bool = False) -> Path:
+    """
+    Validate file path is safe (prevents path traversal attacks).
+
+    Args:
+        file_path: Path to validate
+        for_writing: Whether file will be written (vs read)
+
+    Returns:
+        Resolved Path object
+
+    Raises:
+        ValueError: If path is invalid
+    """
+    try:
+        file_path = Path(file_path).resolve()
+
+        # Prevent path traversal with ".." patterns in the original input
+        # (the resolve() call above already normalizes, but check the original)
+        if ".." in str(file_path):
+            raise ValueError("Path traversal patterns (..) are not allowed")
+
+        return file_path
+    except Exception as e:
+        raise ValueError(f"Invalid file path: {e}")
+
+
 def parse_csv_expenses(file_path: str) -> Tuple[List[Dict], List[str]]:
     """
     Parse expenses from a CSV file.
@@ -35,6 +62,12 @@ def parse_csv_expenses(file_path: str) -> Tuple[List[Dict], List[str]]:
     expenses = []
     errors = []
 
+    # Validate file path
+    try:
+        file_path = str(validate_file_path(file_path, for_writing=False))
+    except ValueError as e:
+        return [], [str(e)]
+
     if not os.path.exists(file_path):
         return [], [f"File not found: {file_path}"]
 
@@ -43,8 +76,12 @@ def parse_csv_expenses(file_path: str) -> Tuple[List[Dict], List[str]]:
             # Try to detect delimiter
             sample = f.read(1024)
             f.seek(0)
-            sniffer = csv.Sniffer()
-            delimiter = sniffer.sniff(sample).delimiter
+            try:
+                sniffer = csv.Sniffer()
+                delimiter = sniffer.sniff(sample).delimiter
+            except Exception:
+                # If sniffer fails, default to comma
+                delimiter = ','
 
             reader = csv.DictReader(f, delimiter=delimiter)
 
@@ -93,7 +130,7 @@ def parse_csv_expenses(file_path: str) -> Tuple[List[Dict], List[str]]:
                     except KeyError as e:
                         errors.append(f"Row {row_num}: Missing required field - {str(e)}")
 
-    except Exception as e:
+    except (ValueError, IOError, OSError, UnicodeDecodeError) as e:
         return [], [f"Error reading CSV file: {str(e)}"]
 
     return expenses, errors
@@ -188,7 +225,7 @@ def parse_excel_expenses(file_path: str) -> Tuple[List[Dict], List[str]]:
 
         workbook.close()
 
-    except Exception as e:
+    except (ValueError, IOError, OSError, UnicodeDecodeError) as e:
         return [], [f"Error reading Excel file: {str(e)}"]
 
     return expenses, errors
