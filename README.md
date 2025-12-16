@@ -14,13 +14,20 @@ Perfect for people with planning challenges who want a straightforward, gamified
   - **Paycheck Mode**: Calculate daily spending based on your income and days until next paycheck
   - **Fixed Pool Mode**: Calculate how long your current money will last with your expenses
 
-- **Expense Management**: Track fixed and variable monthly expenses
+- **Expense Management**:
+  - Track fixed and variable monthly expenses
+  - Import expenses from CSV or Excel files
+  - Export budget data for backup or sharing
 
 - **Transaction Logging**: Record daily spending and see how much you have left
+
+- **Guided Onboarding**: First-time setup wizard walks you through configuration
 
 - **Secure Local Storage**: All data encrypted at rest with Fernet encryption
 
 - **Simple CLI**: Clean, intuitive command-line interface
+
+- **Comprehensive Testing**: 236 passing tests covering security, error handling, and functionality
 
 ## Installation
 
@@ -47,11 +54,13 @@ Perfect for people with planning challenges who want a straightforward, gamified
 ### First Time Setup
 
 1. Run `python main.py`
-2. Select **"Setup Budget Mode"** from the main menu
-3. Choose your budgeting mode:
-   - **Paycheck Mode**: Enter your monthly income and days until next paycheck
-   - **Fixed Pool Mode**: Enter the total amount of money you have available
-4. Add your monthly expenses (rent, utilities, groceries, etc.)
+2. The guided onboarding wizard will walk you through:
+   - Choosing your budgeting mode (Paycheck or Fixed Pool)
+   - Entering your income or available money
+   - Adding your monthly expenses
+   - Getting your first daily budget number!
+
+Alternatively, you can manually configure later via **"Setup Budget Mode"** from the main menu.
 
 ### Daily Usage
 
@@ -65,15 +74,26 @@ Perfect for people with planning challenges who want a straightforward, gamified
 ```
 The_Number/
 ├── src/
-│   ├── calculator.py      # Budget calculation engine
-│   ├── database.py        # Encrypted SQLite database
-│   └── cli.py             # Command-line interface
-├── tests/                 # Unit tests
-├── main.py               # Application entry point
-├── requirements.txt      # Python dependencies
-├── .env                  # Encryption key (auto-generated, git-ignored)
-├── .env.example          # Example environment file
-└── README.md            # This file
+│   ├── calculator.py       # Budget calculation engine
+│   ├── database.py         # Encrypted SQLite database
+│   ├── cli.py              # Command-line interface
+│   ├── onboarding.py       # First-time setup wizard
+│   ├── import_expenses.py  # CSV/Excel import functionality
+│   ├── export_expenses.py  # Data export functionality
+│   └── utils.py            # Utility functions
+├── tests/                  # Comprehensive test suite (236 tests)
+│   ├── test_calculator.py
+│   ├── test_database.py
+│   ├── test_database_errors.py
+│   ├── test_cli.py
+│   ├── test_import_expenses.py
+│   ├── test_export_expenses.py
+│   ├── test_integration.py
+│   └── test_security.py
+├── main.py                 # Application entry point
+├── requirements.txt        # Python dependencies
+├── .env                    # Encryption key (auto-generated, git-ignored)
+└── README.md              # This file
 ```
 
 ## Security
