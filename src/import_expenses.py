@@ -73,9 +73,15 @@ def parse_csv_expenses(file_path: str) -> Tuple[List[Dict], List[str]]:
 
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
-            # Try to detect delimiter
-            sample = f.read(1024)
+            # Check if file is empty
+            content = f.read()
+            if not content.strip():
+                return [], ["File is empty"]
+
             f.seek(0)
+
+            # Try to detect delimiter
+            sample = content[:1024] if len(content) > 1024 else content
             try:
                 sniffer = csv.Sniffer()
                 delimiter = sniffer.sniff(sample).delimiter
@@ -83,6 +89,7 @@ def parse_csv_expenses(file_path: str) -> Tuple[List[Dict], List[str]]:
                 # If sniffer fails, default to comma
                 delimiter = ','
 
+            f.seek(0)
             reader = csv.DictReader(f, delimiter=delimiter)
 
             # Normalize header names (case-insensitive, flexible matching)
@@ -100,17 +107,43 @@ def parse_csv_expenses(file_path: str) -> Tuple[List[Dict], List[str]]:
                 if 'name' not in normalized_headers or 'amount' not in normalized_headers:
                     return [], ["CSV must have 'name' and 'amount' columns (or similar)"]
 
+                row_count = 0
                 for row_num, row in enumerate(reader, start=2):  # Start at 2 (header is row 1)
+                    row_count += 1
                     try:
-                        name = row[normalized_headers['name']].strip()
-                        amount_str = row[normalized_headers['amount']].strip()
+                        # Get values, handling None for missing columns
+                        name_value = row[normalized_headers['name']]
+                        amount_value = row[normalized_headers['amount']]
+
+                        # Check for malformed rows (missing columns)
+                        if name_value is None or amount_value is None:
+                            errors.append(f"Row {row_num}: Missing required columns")
+                            continue
+
+                        name = name_value.strip()
+                        amount_str = amount_value.strip()
+
+                        # Skip empty rows
+                        if not name and not amount_str:
+                            continue
+
+                        # Validate name length (must match database constraint)
+                        if len(name) > 200:
+                            errors.append(f"Row {row_num}: Name too long (max 200 characters)")
+                            continue
 
                         # Parse amount (remove currency symbols, commas)
                         amount_str = amount_str.replace('$', '').replace(',', '').strip()
                         amount = float(amount_str)
 
+                        # Validate amount
                         if amount < 0:
                             errors.append(f"Row {row_num}: Amount cannot be negative ({name})")
+                            continue
+
+                        # Check for excessive amounts (must match database MAX_AMOUNT)
+                        if amount > 10_000_000:
+                            errors.append(f"Row {row_num}: Amount exceeds maximum ($10,000,000) for '{name}'")
                             continue
 
                         # Parse is_fixed
@@ -129,6 +162,10 @@ def parse_csv_expenses(file_path: str) -> Tuple[List[Dict], List[str]]:
                         errors.append(f"Row {row_num}: Invalid amount format - {str(e)}")
                     except KeyError as e:
                         errors.append(f"Row {row_num}: Missing required field - {str(e)}")
+
+                # Check if we processed any rows (only report if we truly found no data)
+                if row_count == 0:
+                    errors.append("No data rows found in CSV file")
 
     except (ValueError, IOError, OSError, UnicodeDecodeError) as e:
         return [], [f"Error reading CSV file: {str(e)}"]

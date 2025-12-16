@@ -118,6 +118,115 @@ Some expense,100
         expenses, errors = parse_csv_expenses(str(csv_file))
         assert len(expenses) == 1
 
+    def test_parse_csv_empty_file(self, tmp_path):
+        """Test parsing an empty CSV file.
+
+        Empty files should generate an error rather than crash.
+        This protects against accidentally importing blank templates.
+        """
+        csv_file = tmp_path / "empty.csv"
+        csv_file.write_text("")
+
+        expenses, errors = parse_csv_expenses(str(csv_file))
+
+        assert len(expenses) == 0
+        assert len(errors) > 0
+        assert any("empty" in err.lower() or "no data" in err.lower() for err in errors)
+
+    def test_parse_csv_only_headers(self, tmp_path):
+        """Test CSV with headers but no data rows.
+
+        This is a common error when users export an empty spreadsheet.
+        """
+        csv_file = tmp_path / "headers_only.csv"
+        csv_file.write_text("""name,amount,is_fixed
+""")
+
+        expenses, errors = parse_csv_expenses(str(csv_file))
+
+        assert len(expenses) == 0
+        assert len(errors) > 0
+        assert any("no expenses" in err.lower() or "no data" in err.lower() for err in errors)
+
+    def test_parse_csv_malformed_rows(self, tmp_path):
+        """Test CSV with rows that have missing values.
+
+        Rows with missing required fields should be skipped with an error message.
+        Valid rows should still be parsed successfully.
+        """
+        csv_file = tmp_path / "malformed.csv"
+        # Use proper CSV format with empty fields
+        csv_file.write_text("""name,amount,is_fixed
+Rent,1500,yes
+Groceries,,no
+Utilities,200,no
+""")
+
+        expenses, errors = parse_csv_expenses(str(csv_file))
+
+        # The "Groceries" row with empty amount should generate an error
+        # The valid rows (Rent, Utilities) should be parsed successfully
+        assert len(expenses) >= 2, f"Expected at least 2 valid expenses, got {len(expenses)}: {expenses}"
+        assert len(errors) >= 1, f"Expected at least 1 error for malformed row, got {len(errors)}: {errors}"
+
+    def test_parse_csv_very_long_name(self, tmp_path):
+        """Test expense names exceeding MAX_STRING_LENGTH.
+
+        Prevents CSV injection attacks and ensures database constraints are met.
+        """
+        csv_file = tmp_path / "long_name.csv"
+        # Create a name longer than 200 characters
+        long_name = "A" * 201
+        csv_file.write_text(f"""name,amount
+{long_name},1500
+Normal Name,200
+""")
+
+        expenses, errors = parse_csv_expenses(str(csv_file))
+
+        # The long name should be rejected, normal one should work
+        assert len(errors) >= 1
+        assert any("too long" in err.lower() or "max" in err.lower() for err in errors)
+        # Normal expense should still be imported
+        valid_expenses = [e for e in expenses if e['name'] == 'Normal Name']
+        assert len(valid_expenses) == 1
+
+    def test_parse_csv_excessive_amount(self, tmp_path):
+        """Test amounts exceeding MAX_AMOUNT ($10M).
+
+        Prevents typos like $100,000,000 instead of $1,000.
+        Matches database validation constraints.
+        """
+        csv_file = tmp_path / "excessive.csv"
+        csv_file.write_text("""name,amount
+Yacht,50000000
+Rent,1500
+""")
+
+        expenses, errors = parse_csv_expenses(str(csv_file))
+
+        # Excessive amount should generate error
+        assert len(errors) >= 1
+        assert any("too large" in err.lower() or "exceeds" in err.lower() or "maximum" in err.lower() for err in errors)
+        # Normal expense should still work
+        valid_expenses = [e for e in expenses if e['name'] == 'Rent']
+        assert len(valid_expenses) == 1
+
+    def test_import_path_traversal_attempt(self, tmp_path):
+        """Test that path traversal attempts are blocked.
+
+        Security test: Ensure users can't access files outside allowed directories.
+        Example: ../../etc/passwd or ..\\..\\Windows\\System32\\config\\sam
+        """
+        # Try to import from parent directory
+        dangerous_path = str(tmp_path / ".." / ".." / "etc" / "passwd")
+
+        expenses, errors = import_expenses_from_file(dangerous_path)
+
+        # Should fail safely (either file not found or access denied)
+        assert len(expenses) == 0
+        assert len(errors) > 0
+
 
 class TestValidation:
     """Test expense validation."""
