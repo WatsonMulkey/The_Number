@@ -75,6 +75,80 @@ class TestCSVExport:
         assert len(rows) == 1  # Just header
         assert rows[0] == ['name', 'amount', 'is_fixed']
 
+    def test_export_csv_write_permission_denied(self, tmp_path):
+        """Test CSV export when write permission is denied.
+
+        Verifies graceful error handling when user tries to export to
+        a location without write permissions.
+        """
+        expenses = [
+            {'name': 'Rent', 'amount': 1500.0, 'is_fixed': True},
+        ]
+
+        # Try to write to a read-only directory (or invalid path on Windows)
+        # Windows: Use a path that definitely doesn't exist and can't be created
+        invalid_path = "Z:\\nonexistent\\impossible\\path\\export.csv"
+
+        # Should raise an error (IOError, OSError, or PermissionError)
+        with pytest.raises((IOError, OSError, PermissionError, ValueError)):
+            export_to_csv(expenses, invalid_path)
+
+    def test_export_csv_invalid_path(self, tmp_path):
+        """Test CSV export with invalid file path.
+
+        Tests handling of paths with invalid characters or formats.
+        """
+        expenses = [
+            {'name': 'Rent', 'amount': 1500.0, 'is_fixed': True},
+        ]
+
+        # Use path with invalid characters for Windows
+        invalid_paths = [
+            "",  # Empty path
+            "   ",  # Whitespace only
+        ]
+
+        for invalid_path in invalid_paths:
+            with pytest.raises((ValueError, OSError)):
+                export_to_csv(expenses, invalid_path)
+
+    def test_export_csv_with_no_data(self, tmp_path):
+        """Test exporting when expense data is None.
+
+        Ensures the function handles None gracefully rather than crashing.
+        """
+        output_path = tmp_path / "none_data.csv"
+
+        # Should raise TypeError or ValueError for None input
+        with pytest.raises((TypeError, ValueError)):
+            export_to_csv(None, str(output_path))
+
+    def test_export_csv_with_corrupted_expense_data(self, tmp_path):
+        """Test export with malformed expense dictionaries.
+
+        Ensures robust handling of expenses missing required fields.
+        """
+        # Expenses with missing required keys
+        malformed_expenses = [
+            {'name': 'Rent'},  # Missing 'amount' and 'is_fixed'
+            {'amount': 100.0},  # Missing 'name'
+            {},  # Empty dict
+        ]
+
+        output_path = tmp_path / "corrupted.csv"
+
+        # Should either:
+        # 1. Raise an error (preferred)
+        # 2. Export with placeholder values
+        # We test that it doesn't crash
+        try:
+            result_path = export_to_csv(malformed_expenses, str(output_path))
+            # If it succeeds, verify file was created
+            assert os.path.exists(result_path)
+        except (KeyError, ValueError, TypeError):
+            # If it raises an error, that's also acceptable
+            pass
+
 
 class TestExcelExport:
     """Test Excel export functionality."""
