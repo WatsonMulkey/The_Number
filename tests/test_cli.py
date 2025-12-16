@@ -184,3 +184,73 @@ class TestCLIEdgeCases:
     def test_unicode_input(self):
         """Test handling of Unicode characters."""
         pass
+
+
+class TestCLIErrorHandling:
+    """Test error handling in CLI operations.
+
+    These tests ensure the CLI handles invalid user input gracefully
+    and provides helpful error messages without crashing.
+    """
+
+    def test_invalid_menu_choice_rejected(self):
+        """Test that invalid menu choices are rejected with clear error.
+
+        Users often mistype menu options. The CLI should:
+        - Reject invalid choices (letters, out-of-range numbers)
+        - Display a helpful error message
+        - Re-prompt for valid input
+        """
+        # This test will be implemented when CLI module exists
+        # Expected behavior: ValueError or custom InvalidMenuChoice exception
+        pass
+
+    def test_non_numeric_amount_rejected(self):
+        """Test that non-numeric amounts are rejected.
+
+        Common user errors like "fifty dollars" or "abc" should be caught.
+        """
+        # Expected: ValueError with message about numeric input required
+        pass
+
+    def test_empty_description_rejected(self):
+        """Test that empty transaction descriptions are rejected.
+
+        Transactions need descriptions to be useful.
+        Empty or whitespace-only descriptions should be rejected.
+        """
+        # Expected: ValueError with message about description required
+        pass
+
+    def test_invalid_date_format_rejected(self):
+        """Test that invalid date formats are rejected.
+
+        Dates in wrong format (MM/DD/YYYY instead of YYYY-MM-DD) should error.
+        """
+        # Expected: ValueError with message showing correct format
+        pass
+
+    def test_expense_name_too_long_rejected(self):
+        """Test that expense names exceeding 200 chars are rejected.
+
+        Must match database constraint of MAX_STRING_LENGTH (200).
+        """
+        # Expected: ValueError mentioning 200 character limit
+        pass
+
+    def test_amount_exceeds_maximum_rejected(self):
+        """Test that amounts exceeding $10M are rejected.
+
+        Must match database constraint of MAX_AMOUNT ($10,000,000).
+        Prevents typos like $100,000,000 instead of $1,000.
+        """
+        # Expected: ValueError mentioning maximum amount
+        pass
+
+    def test_invalid_budget_mode_rejected(self):
+        """Test that invalid budget mode selections are rejected.
+
+        Only 'paycheck' and 'fixed_pool' modes should be allowed.
+        """
+        # Expected: ValueError listing valid modes
+        pass

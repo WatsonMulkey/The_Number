@@ -171,3 +171,96 @@ class TestRealWorldScenarios:
     def test_vacation_scenario(self, temp_db_path):
         """Test budget adjustment for vacation period."""
         pass
+
+
+class TestIntegrationErrorHandling:
+    """Test error handling in integrated system components.
+
+    These tests verify that errors in one component don't crash
+    the entire system and that data integrity is maintained.
+    """
+
+    def test_database_unavailable_error(self, temp_db_path):
+        """Test handling when database is unavailable.
+
+        Simulates database connection failure or file permission issues.
+        System should handle gracefully and inform user.
+        """
+        # This will be implemented once database module exists
+        pass
+
+    def test_partial_transaction_rollback(self, temp_db_path):
+        """Test rollback when transaction partially fails.
+
+        If part of a transaction fails (e.g., adding multiple expenses),
+        ensure no partial data is committed to maintain consistency.
+        """
+        pass
+
+    def test_expense_update_during_calculation(self, temp_db_path):
+        """Test concurrent modification handling.
+
+        What happens if an expense is updated while budget is being calculated?
+        Ensure calculations use consistent snapshot of data.
+        """
+        pass
+
+    def test_concurrent_budget_calculations(self, temp_db_path):
+        """Test multiple budget calculations simultaneously.
+
+        Verify no race conditions when multiple calculations run at once.
+        Each should get correct, independent results.
+        """
+        pass
+
+    def test_import_with_database_locked(self, temp_db_path):
+        """Test import when database is locked by another process.
+
+        Importing large CSV while database is in use should either:
+        - Wait for lock to release
+        - Fail gracefully with retry option
+        """
+        pass
+
+    def test_export_with_database_error(self, temp_db_path):
+        """Test export when database has errors.
+
+        If database is corrupted or has missing data, export should:
+        - Export what it can
+        - Clearly report what failed
+        - Not crash
+        """
+        pass
+
+    def test_onboarding_with_invalid_inputs(self, temp_db_path):
+        """Test first-time setup with invalid user inputs.
+
+        New users may enter invalid data during onboarding:
+        - Negative income
+        - Invalid date formats
+        - Missing required fields
+
+        Onboarding should guide them to correct inputs.
+        """
+        pass
+
+    def test_cli_with_corrupted_database(self, temp_db_path):
+        """Test CLI behavior with corrupted database.
+
+        If database file is corrupted, CLI should:
+        - Detect corruption early
+        - Offer backup restoration if available
+        - Prevent data loss
+        - Not crash with cryptic error
+        """
+        pass
+
+    def test_budget_calculation_with_deleted_expenses(self, temp_db_path):
+        """Test budget calculation after expenses are deleted.
+
+        When user deletes expenses, budget calculations should:
+        - Immediately reflect changes
+        - Not reference deleted data
+        - Maintain historical accuracy for past periods
+        """
+        pass

@@ -78,6 +78,70 @@ class TestEncryption:
 
         assert decrypted == original_data
 
+    def test_decryption_with_wrong_key_fails(self):
+        """Test that decryption with wrong key raises an error.
+
+        Security requirement: Data encrypted with one key cannot be
+        decrypted with a different key. This prevents unauthorized access.
+        """
+        from cryptography.fernet import Fernet
+
+        # Create two different keys
+        key1 = Fernet.generate_key()
+        key2 = Fernet.generate_key()
+
+        cipher1 = Fernet(key1)
+        cipher2 = Fernet(key2)
+
+        # Encrypt with key1
+        data = b"Sensitive expense data"
+        encrypted = cipher1.encrypt(data)
+
+        # Try to decrypt with key2 (should fail)
+        with pytest.raises(Exception):  # Fernet raises InvalidToken
+            cipher2.decrypt(encrypted)
+
+    def test_decrypt_tampered_data_fails(self, mock_encryption_key):
+        """Test that tampered encrypted data cannot be decrypted.
+
+        Security requirement: Any modification to encrypted data should
+        be detected and rejected. This protects data integrity.
+        """
+        cipher = Fernet(mock_encryption_key)
+
+        # Encrypt some data
+        data = b"Monthly budget: $2000"
+        encrypted = cipher.encrypt(data)
+
+        # Tamper with the encrypted data (change one byte)
+        tampered = bytearray(encrypted)
+        tampered[10] = (tampered[10] + 1) % 256  # Modify one byte
+        tampered = bytes(tampered)
+
+        # Decryption should fail for tampered data
+        with pytest.raises(Exception):  # Fernet raises InvalidToken
+            cipher.decrypt(tampered)
+
+    def test_invalid_encryption_key_format_rejected(self):
+        """Test that invalid encryption key formats are rejected.
+
+        Security requirement: Only properly formatted Fernet keys should
+        be accepted. Invalid keys should raise clear errors.
+        """
+        from cryptography.fernet import Fernet
+
+        invalid_keys = [
+            b"too_short",  # Too short
+            b"not-base64-encoded-key-but-32bytes!!",  # Not base64
+            "not-bytes-but-string",  # Wrong type (string instead of bytes)
+            "",  # Empty
+            None,  # None
+        ]
+
+        for invalid_key in invalid_keys:
+            with pytest.raises((ValueError, TypeError, Exception)):
+                Fernet(invalid_key)
+
 
 class TestInputValidation:
     """Test suite for input validation and sanitization."""
