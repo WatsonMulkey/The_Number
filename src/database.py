@@ -362,3 +362,7 @@ class EncryptedDatabase:
         """Close database connection (cleanup)."""
         # SQLite connections are closed automatically with context managers
         pass
+
+
+# Alias for backwards compatibility and clearer naming
+BudgetDatabase = EncryptedDatabase
