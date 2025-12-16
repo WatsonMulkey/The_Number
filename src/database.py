@@ -162,6 +162,17 @@ class EncryptedDatabase:
         Returns:
             ID of created expense
         """
+        # Validate expense data
+        if amount < 0:
+            raise ValueError("Expense amount cannot be negative")
+        if amount > 10_000_000:
+            raise ValueError("Amount exceeds maximum ($10,000,000)")
+        if not name or not name.strip():
+            raise ValueError("Expense name is required")
+        if len(name) > 200:
+            raise ValueError("Expense name too long (max 200 characters)")
+
+        name = name.strip()
         now = datetime.now().isoformat()
 
         with sqlite3.connect(self.db_path) as conn:
@@ -197,6 +208,34 @@ class EncryptedDatabase:
                 }
                 for row in rows
             ]
+
+    def get_expense_by_id(self, expense_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Get a single expense by ID.
+
+        Args:
+            expense_id: The expense ID to retrieve
+
+        Returns:
+            Expense dictionary or None if not found
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM expenses WHERE id = ?", (expense_id,))
+            row = cursor.fetchone()
+
+            if row is None:
+                return None
+
+            return {
+                "id": row["id"],
+                "name": row["name"],
+                "amount": row["amount"],
+                "is_fixed": bool(row["is_fixed"]),
+                "created_at": row["created_at"],
+                "updated_at": row["updated_at"]
+            }
 
     def update_expense(self, expense_id: int, name: Optional[str] = None,
                       amount: Optional[float] = None, is_fixed: Optional[bool] = None) -> None:
