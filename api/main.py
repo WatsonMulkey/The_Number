@@ -39,16 +39,11 @@ app = FastAPI(
     redoc_url="/api/redoc"
 )
 
-# Configure CORS for Vue.js frontend
+# Configure CORS - Allow all localhost ports for development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",  # Vite dev server (Vue)
-        "http://localhost:3000",  # Alternative port
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:3000",
-    ],
-    allow_credentials=True,
+    allow_origin_regex=r"http://localhost:\d+",
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -120,7 +115,6 @@ async def get_the_number(db: EncryptedDatabase = Depends(get_db)):
         if budget_mode == "paycheck":
             monthly_income = db.get_setting("monthly_income")
             days_until_paycheck = db.get_setting("days_until_paycheck")
-
             result = calc.calculate_paycheck_mode(
                 monthly_income=monthly_income,
                 days_until_paycheck=days_until_paycheck
@@ -137,7 +131,7 @@ async def get_the_number(db: EncryptedDatabase = Depends(get_db)):
             the_number=result["daily_limit"],
             mode=budget_mode,
             total_income=result.get("total_income"),
-            total_expenses=result["total_expenses"],
+            total_expenses=result.get("total_expenses", result.get("monthly_expenses", 0)),
             remaining_money=result.get("remaining_money"),
             days_remaining=result.get("days_remaining"),
             today_spending=today_spending,
@@ -146,6 +140,8 @@ async def get_the_number(db: EncryptedDatabase = Depends(get_db)):
         )
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error calculating budget: {str(e)}"
@@ -264,6 +260,18 @@ async def delete_expense(
         )
 
 
+# SECURITY: File upload validation constants
+MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10MB max file size
+ALLOWED_EXTENSIONS = {'.csv', '.xlsx'}
+ALLOWED_CONTENT_TYPES = {
+    'text/csv',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/csv',
+    'text/plain',  # Some systems send CSV as text/plain
+}
+
+
 @app.post("/api/expenses/import", response_model=ImportExpensesResponse)
 async def import_expenses(
     file: UploadFile = File(...),
@@ -273,12 +281,53 @@ async def import_expenses(
     """
     Import expenses from CSV or Excel file.
 
-    - **file**: CSV or Excel file containing expenses
+    - **file**: CSV or Excel file containing expenses (max 10MB, .csv or .xlsx only)
     - **replace**: If True, replaces all existing expenses. If False, adds to existing.
     """
     try:
+        # SECURITY FIX: Validate file before processing
+        # 1. Validate file extension
+        if file.filename:
+            file_ext = Path(file.filename).suffix.lower()
+            if file_ext not in ALLOWED_EXTENSIONS:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Invalid file type. Allowed types: {', '.join(ALLOWED_EXTENSIONS)}"
+                )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Filename is required"
+            )
+
+        # 2. Validate content type
+        if file.content_type and file.content_type not in ALLOWED_CONTENT_TYPES:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid content type: {file.content_type}. Expected CSV or Excel file."
+            )
+
+        # 3. Validate file size by reading content
+        # Read file content to check size (also needed for processing)
+        content = await file.read()
+        if len(content) > MAX_FILE_SIZE_BYTES:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"File too large. Maximum size is {MAX_FILE_SIZE_BYTES // (1024 * 1024)}MB"
+            )
+
+        if len(content) == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File is empty"
+            )
+
+        # Reset file position for processing (create a BytesIO object)
+        from io import BytesIO
+        file_obj = BytesIO(content)
+
         # Import expenses using existing backend
-        expenses, errors = import_expenses_from_file(file.file)
+        expenses, errors = import_expenses_from_file(file_obj)
 
         # Replace existing expenses if requested
         if replace:
@@ -300,6 +349,8 @@ async def import_expenses(
             errors=errors
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

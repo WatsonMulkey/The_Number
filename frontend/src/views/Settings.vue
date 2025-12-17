@@ -42,7 +42,6 @@
               v-model.number="config.monthly_income"
               type="number"
               label="Monthly Income"
-              prefix="$"
               variant="outlined"
               required
               class="mb-4"
@@ -63,7 +62,6 @@
               v-model.number="config.total_money"
               type="number"
               label="Total Money Available"
-              prefix="$"
               variant="outlined"
               required
               class="mb-4"
@@ -96,7 +94,7 @@
           <v-list-item v-if="currentConfig.monthly_income">
             <v-list-item-title>Monthly Income</v-list-item-title>
             <v-list-item-subtitle>
-              ${{ currentConfig.monthly_income.toFixed(2) }}
+              {{ currentConfig.monthly_income.toFixed(2) }}
             </v-list-item-subtitle>
           </v-list-item>
           <v-list-item v-if="currentConfig.days_until_paycheck">
@@ -108,7 +106,7 @@
           <v-list-item v-if="currentConfig.total_money !== undefined">
             <v-list-item-title>Total Money</v-list-item-title>
             <v-list-item-subtitle>
-              ${{ currentConfig.total_money.toFixed(2) }}
+              {{ currentConfig.total_money.toFixed(2) }}
             </v-list-item-subtitle>
           </v-list-item>
         </v-list>

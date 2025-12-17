@@ -7,7 +7,18 @@ export const useBudgetStore = defineStore('budget', () => {
   const budgetNumber = ref<BudgetNumber | null>(null)
   const expenses = ref<Expense[]>([])
   const transactions = ref<Transaction[]>([])
-  const loading = ref(false)
+
+  // RACE CONDITION FIX: Separate loading states for different operations
+  // This prevents UI flickering and incorrect loading indicators when
+  // multiple API calls happen concurrently (e.g., fetching number while recording transaction)
+  const loadingNumber = ref(false)
+  const loadingExpenses = ref(false)
+  const loadingTransactions = ref(false)
+
+  // Legacy loading computed property for backward compatibility
+  // Returns true if ANY operation is in progress
+  const loading = computed(() => loadingNumber.value || loadingExpenses.value || loadingTransactions.value)
+
   const error = ref<string | null>(null)
 
   // Computed
@@ -17,7 +28,7 @@ export const useBudgetStore = defineStore('budget', () => {
 
   // Actions
   async function fetchNumber() {
-    loading.value = true
+    loadingNumber.value = true
     error.value = null
     try {
       const response = await budgetApi.getNumber()
@@ -26,12 +37,12 @@ export const useBudgetStore = defineStore('budget', () => {
       error.value = e.response?.data?.detail || 'Failed to fetch budget number'
       throw e
     } finally {
-      loading.value = false
+      loadingNumber.value = false
     }
   }
 
   async function fetchExpenses() {
-    loading.value = true
+    loadingExpenses.value = true
     error.value = null
     try {
       const response = await budgetApi.getExpenses()
@@ -40,12 +51,12 @@ export const useBudgetStore = defineStore('budget', () => {
       error.value = e.response?.data?.detail || 'Failed to fetch expenses'
       throw e
     } finally {
-      loading.value = false
+      loadingExpenses.value = false
     }
   }
 
   async function addExpense(expense: Omit<Expense, 'id' | 'created_at' | 'updated_at'>) {
-    loading.value = true
+    loadingExpenses.value = true
     error.value = null
     try {
       await budgetApi.createExpense(expense)
@@ -55,12 +66,12 @@ export const useBudgetStore = defineStore('budget', () => {
       error.value = e.response?.data?.detail || 'Failed to add expense'
       throw e
     } finally {
-      loading.value = false
+      loadingExpenses.value = false
     }
   }
 
   async function removeExpense(id: number) {
-    loading.value = true
+    loadingExpenses.value = true
     error.value = null
     try {
       await budgetApi.deleteExpense(id)
@@ -70,12 +81,12 @@ export const useBudgetStore = defineStore('budget', () => {
       error.value = e.response?.data?.detail || 'Failed to delete expense'
       throw e
     } finally {
-      loading.value = false
+      loadingExpenses.value = false
     }
   }
 
   async function fetchTransactions(limit = 20) {
-    loading.value = true
+    loadingTransactions.value = true
     error.value = null
     try {
       const response = await budgetApi.getTransactions(limit)
@@ -84,12 +95,12 @@ export const useBudgetStore = defineStore('budget', () => {
       error.value = e.response?.data?.detail || 'Failed to fetch transactions'
       throw e
     } finally {
-      loading.value = false
+      loadingTransactions.value = false
     }
   }
 
   async function recordTransaction(transaction: Omit<Transaction, 'id' | 'date' | 'created_at'>) {
-    loading.value = true
+    loadingTransactions.value = true
     error.value = null
     try {
       await budgetApi.createTransaction(transaction)
@@ -99,7 +110,7 @@ export const useBudgetStore = defineStore('budget', () => {
       error.value = e.response?.data?.detail || 'Failed to record transaction'
       throw e
     } finally {
-      loading.value = false
+      loadingTransactions.value = false
     }
   }
 
@@ -108,8 +119,13 @@ export const useBudgetStore = defineStore('budget', () => {
     budgetNumber,
     expenses,
     transactions,
-    loading,
     error,
+
+    // Loading states (granular for race condition prevention)
+    loadingNumber,
+    loadingExpenses,
+    loadingTransactions,
+    loading, // Computed: true if any operation is loading (backward compatible)
 
     // Computed
     isConfigured,

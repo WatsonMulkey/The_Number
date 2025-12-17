@@ -21,7 +21,6 @@
                 v-model.number="newExpense.amount"
                 type="number"
                 label="Monthly Amount"
-                prefix="$"
                 variant="outlined"
                 required
               />
@@ -39,7 +38,7 @@
                 color="primary"
                 block
                 height="56"
-                :loading="budgetStore.loading"
+                :loading="budgetStore.loadingExpenses"
               >
                 Add
               </v-btn>
@@ -56,7 +55,7 @@
           <span>Current Expenses</span>
           <div>
             <v-chip color="primary" class="mr-2">
-              Total: ${{ totalExpenses.toFixed(2) }}/mo
+              Total: {{ totalExpenses.toFixed(2) }}/mo
             </v-chip>
           </div>
         </div>
@@ -65,11 +64,11 @@
         <v-data-table
           :headers="headers"
           :items="budgetStore.expenses"
-          :loading="budgetStore.loading"
+          :loading="budgetStore.loadingExpenses"
           items-per-page="10"
         >
           <template v-slot:item.amount="{ item }">
-            ${{ item.amount.toFixed(2) }}
+            {{ item.amount.toFixed(2) }}
           </template>
           <template v-slot:item.is_fixed="{ item }">
             <v-chip
@@ -118,17 +117,27 @@ const totalExpenses = computed(() => {
 })
 
 async function addExpense() {
-  if (!newExpense.value.name || newExpense.value.amount <= 0) return
+  console.log('💰 addExpense called')
+  console.log('💰 newExpense:', newExpense.value)
+
+  if (!newExpense.value.name || newExpense.value.amount <= 0) {
+    console.log('❌ Validation failed - name or amount invalid')
+    console.log('  Name:', newExpense.value.name)
+    console.log('  Amount:', newExpense.value.amount)
+    return
+  }
 
   try {
+    console.log('💰 Calling budgetStore.addExpense...')
     await budgetStore.addExpense({ ...newExpense.value })
+    console.log('✅ Expense added successfully')
     newExpense.value = {
       name: '',
       amount: 0,
       is_fixed: true,
     }
   } catch (e) {
-    console.error('Failed to add expense:', e)
+    console.error('❌ Failed to add expense:', e)
   }
 }
 

@@ -1,5 +1,11 @@
 <template>
   <div class="dashboard">
+    <!-- Hero Section (only show during onboarding) -->
+    <div v-if="!budgetStore.budgetNumber && !budgetStore.loadingNumber" class="hero-section">
+      <h1 class="hero-title">The Number</h1>
+      <p class="hero-subtitle">A different way to budget</p>
+    </div>
+
     <!-- Error Alert (only show when not in onboarding) -->
     <v-alert
       v-if="budgetStore.error && budgetStore.budgetNumber"
@@ -13,7 +19,7 @@
 
     <!-- Loading State -->
     <v-progress-circular
-      v-if="budgetStore.loading && !budgetStore.budgetNumber"
+      v-if="budgetStore.loadingNumber && !budgetStore.budgetNumber"
       indeterminate
       color="primary"
       size="64"
@@ -49,7 +55,6 @@
                   v-model.number="spendingAmount"
                   type="number"
                   label="Amount"
-                  prefix="$"
                   variant="outlined"
                   :rules="[v => v > 0 || 'Amount must be positive']"
                   class="mb-2"
@@ -64,7 +69,7 @@
                   type="submit"
                   color="primary"
                   block
-                  :loading="budgetStore.loading"
+                  :loading="budgetStore.loadingTransactions"
                 >
                   Record
                 </v-btn>
@@ -81,13 +86,13 @@
                 <strong>Mode:</strong> {{ budgetStore.budgetNumber.mode === 'paycheck' ? 'Paycheck' : 'Fixed Pool' }}
               </div>
               <div v-if="budgetStore.budgetNumber.total_income" class="mb-2">
-                <strong>Monthly Income:</strong> ${{ budgetStore.budgetNumber.total_income.toFixed(2) }}
+                <strong>Monthly Income:</strong> {{ budgetStore.budgetNumber.total_income.toFixed(2) }}
               </div>
               <div class="mb-2">
-                <strong>Total Expenses:</strong> ${{ budgetStore.budgetNumber.total_expenses.toFixed(2) }}
+                <strong>Total Expenses:</strong> {{ budgetStore.budgetNumber.total_expenses.toFixed(2) }}
               </div>
               <div v-if="budgetStore.budgetNumber.remaining_money" class="mb-2">
-                <strong>Remaining:</strong> ${{ budgetStore.budgetNumber.remaining_money.toFixed(2) }}
+                <strong>Remaining:</strong> {{ budgetStore.budgetNumber.remaining_money.toFixed(2) }}
               </div>
             </v-card-text>
           </v-card>
@@ -146,19 +151,27 @@ const recentTransactions = computed(() =>
 )
 
 async function loadDashboard() {
+  console.log('📊 loadDashboard called')
   try {
     // Try to fetch the budget number
+    console.log('📊 Fetching budget number...')
     await budgetStore.fetchNumber()
+    console.log('📊 Budget number fetched:', budgetStore.budgetNumber)
     // Only fetch transactions if we have a configured budget
     if (budgetStore.budgetNumber) {
+      console.log('📊 Fetching transactions...')
       await budgetStore.fetchTransactions(5)
+      console.log('📊 Transactions fetched')
+    } else {
+      console.log('⚠️ No budget number - onboarding should show')
     }
   } catch (e: any) {
     // If not configured, clear the error so onboarding shows
     if (e.response?.status === 400 || e.response?.status === 500) {
       budgetStore.error = null
+      console.log('⚠️ Cleared error to show onboarding')
     }
-    console.error('Failed to load dashboard:', e)
+    console.error('❌ Failed to load dashboard:', e)
   }
 }
 
@@ -178,8 +191,10 @@ async function recordSpending() {
 }
 
 async function onOnboardingComplete() {
+  console.log('🎉 onOnboardingComplete called - reloading dashboard...')
   // Reload dashboard data after onboarding
   await loadDashboard()
+  console.log('🎉 Dashboard reloaded after onboarding')
 }
 
 onMounted(() => {
@@ -192,5 +207,28 @@ onMounted(() => {
   max-width: 1400px;
   margin: 0 auto;
   padding: 24px;
+}
+
+.hero-section {
+  text-align: center;
+  padding: 60px 20px 40px;
+  margin-bottom: 40px;
+}
+
+.hero-title {
+  font-size: 4rem;
+  font-weight: bold;
+  color: white;
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
+  margin-bottom: 16px;
+  font-family: 'Scope One', serif;
+}
+
+.hero-subtitle {
+  font-size: 2rem;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  font-family: 'Scope One', serif;
+  font-style: italic;
 }
 </style>

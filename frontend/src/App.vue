@@ -14,13 +14,13 @@ import NavigationRail from './components/NavigationRail.vue'
 </script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Roboto:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Scope+One&display=swap');
 
 * {
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Scope One', serif;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Libre Baskerville', serif !important;
+  font-family: 'Scope One', serif !important;
 }
 </style>

@@ -97,7 +97,7 @@ class BudgetNumberResponse(BaseModel):
     the_number: float = Field(..., description="Daily spending limit")
     mode: str = Field(..., description="Current budget mode")
     total_income: Optional[float] = Field(None, description="Total monthly income (paycheck mode)")
-    total_expenses: float = Field(..., description="Total monthly expenses")
+    total_expenses: Optional[float] = Field(None, description="Total monthly expenses")
     remaining_money: Optional[float] = Field(None, description="Money remaining after expenses")
     days_remaining: Optional[float] = Field(None, description="Days remaining in budget period")
     today_spending: float = Field(..., description="Amount spent today")

@@ -133,7 +133,7 @@ class BudgetCalculator:
         Returns:
             Dictionary with:
                 - total_money: Total money available
-                - monthly_expenses: Sum of monthly expenses
+                - total_expenses: Sum of monthly expenses
                 - months_remaining: How many months the money will last
                 - days_remaining: How many days the money will last
                 - daily_limit: Recommended daily spending limit
@@ -147,7 +147,7 @@ class BudgetCalculator:
         if total_money <= 0:
             return {
                 "total_money": total_money,
-                "monthly_expenses": total_expenses,
+                "total_expenses": total_expenses,
                 "months_remaining": 0,
                 "days_remaining": 0,
                 "daily_limit": 0,
@@ -168,7 +168,7 @@ class BudgetCalculator:
 
         return {
             "total_money": total_money,
-            "monthly_expenses": total_expenses,
+            "total_expenses": total_expenses,
             "months_remaining": months_remaining,
             "days_remaining": days_remaining,
             "daily_limit": daily_limit,

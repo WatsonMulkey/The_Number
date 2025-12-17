@@ -11,7 +11,7 @@
         class="the-number"
         :class="{ 'over-budget': isOverBudget }"
       >
-        ${{ formattedNumber }}
+        {{ formattedNumber }}
       </div>
 
       <div class="subtitle-text mt-4">
@@ -25,9 +25,9 @@
         elevation="2"
         color="surface"
       >
-        <div class="text-body-1">Today's Spending: ${{ todaySpending.toFixed(2) }}</div>
+        <div class="text-body-1">Today's Spending: {{ todaySpending.toFixed(2) }}</div>
         <div class="text-body-2 text-medium-emphasis">
-          Remaining: ${{ remainingToday.toFixed(2) }}
+          Remaining: {{ remainingToday.toFixed(2) }}
         </div>
         <v-progress-linear
           :model-value="spendingPercentage"
@@ -79,14 +79,14 @@ const spendingPercentage = computed(() => {
 }
 
 .display-text {
-  font-family: 'Libre Baskerville', serif;
+  font-family: 'Scope One', serif;
   font-size: 2.5rem;
   color: white;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .the-number {
-  font-family: 'Libre Baskerville', serif;
+  font-family: 'Scope One', serif;
   font-size: 150px;
   font-weight: bold;
   color: white;
@@ -100,7 +100,7 @@ const spendingPercentage = computed(() => {
 }
 
 .subtitle-text {
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Scope One', serif;
   font-size: 1.5rem;
   color: white;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);

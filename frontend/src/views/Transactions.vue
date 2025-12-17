@@ -6,7 +6,7 @@
     <v-row class="mb-6">
       <v-col cols="12" md="4">
         <v-card elevation="2" class="pa-4 text-center">
-          <div class="text-h4">${{ todayTotal.toFixed(2) }}</div>
+          <div class="text-h4">{{ todayTotal.toFixed(2) }}</div>
           <div class="text-body-2 text-medium-emphasis">Today</div>
         </v-card>
       </v-col>
@@ -18,7 +18,7 @@
       </v-col>
       <v-col cols="12" md="4">
         <v-card elevation="2" class="pa-4 text-center">
-          <div class="text-h4">${{ allTimeTotal.toFixed(2) }}</div>
+          <div class="text-h4">{{ allTimeTotal.toFixed(2) }}</div>
           <div class="text-body-2 text-medium-emphasis">All Time</div>
         </v-card>
       </v-col>
@@ -42,14 +42,14 @@
         <v-data-table
           :headers="headers"
           :items="budgetStore.transactions"
-          :loading="budgetStore.loading"
+          :loading="budgetStore.loadingTransactions"
           items-per-page="20"
         >
           <template v-slot:item.date="{ item }">
             {{ formatDate(item.date) }}
           </template>
           <template v-slot:item.amount="{ item }">
-            ${{ item.amount.toFixed(2) }}
+            {{ item.amount.toFixed(2) }}
           </template>
           <template v-slot:item.actions="{ item }">
             <v-btn
@@ -74,7 +74,6 @@
               v-model.number="newTransaction.amount"
               type="number"
               label="Amount"
-              prefix="$"
               variant="outlined"
               required
               class="mb-4"
@@ -97,7 +96,7 @@
               <v-btn
                 type="submit"
                 color="primary"
-                :loading="budgetStore.loading"
+                :loading="budgetStore.loadingTransactions"
               >
                 Add
               </v-btn>
@@ -112,6 +111,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useBudgetStore } from '@/stores/budget'
+import { budgetApi } from '@/services/api'
 import { format } from 'date-fns'
 
 const budgetStore = useBudgetStore()

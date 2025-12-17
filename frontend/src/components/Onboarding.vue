@@ -1,26 +1,26 @@
 <template>
-  <v-card class="onboarding-card mx-auto" elevation="4" max-width="900">
-    <v-card-title class="text-h4 pa-6 text-center bg-primary">
-      <div class="text-white">
-        <div class="text-h3 mb-2">The Number</div>
-        <div class="text-subtitle-1">Your Simple Daily Budget App</div>
+  <v-card class="onboarding-card mx-auto" elevation="4" max-width="900" color="#E9F5DB">
+    <v-card-title class="text-h4 pa-6 text-center" style="background-color: #E9F5DB;">
+      <div>
+        <div class="text-h3 mb-2" style="color: #2d5016;">The Number</div>
+        <div class="text-subtitle-1" style="color: #4a7c2f;">Your Simple Daily Budget App</div>
       </div>
     </v-card-title>
 
     <!-- Progress Indicator -->
-    <v-card-text class="text-center py-2" v-if="currentStep > 0">
+    <v-card-text class="text-center py-1" v-if="currentStep > 0">
       <v-chip size="small" color="primary">
         Step {{ currentStep }} of 4
       </v-chip>
     </v-card-text>
 
-    <v-card-text class="pa-8">
+    <v-card-text class="pa-6">
       <!-- Step 0: Welcome Screen -->
       <div v-if="currentStep === 0">
         <div class="text-center">
-          <v-icon size="80" color="primary" class="mb-4">mdi-currency-usd</v-icon>
-          <h2 class="text-h4 mb-4">Welcome to The Number!</h2>
-          <p class="text-h6 text-medium-emphasis mb-6">
+          <v-icon size="100" color="primary" class="mb-3">mdi-currency-usd</v-icon>
+          <h2 class="text-h3 mb-3">Welcome to The Number!</h2>
+          <p class="text-h5 text-medium-emphasis mb-4">
             Let's set up your daily budget in just 4 quick steps
           </p>
 
@@ -57,8 +57,8 @@
 
       <!-- Step 1: Choose Budget Mode -->
       <div v-else-if="currentStep === 1">
-        <h2 class="text-h5 mb-6 text-center">Choose Your Budgeting Style</h2>
-        <p class="text-center text-medium-emphasis mb-6">Which situation describes you best?</p>
+        <h2 class="text-h4 mb-4 text-center">Choose Your Budgeting Style</h2>
+        <p class="text-h6 text-center text-medium-emphasis mb-4">Which situation describes you best?</p>
 
         <v-radio-group v-model="budgetMode">
           <v-card
@@ -113,18 +113,17 @@
 
       <!-- Step 2: Enter Details -->
       <div v-else-if="currentStep === 2">
-        <h2 class="text-h5 mb-6 text-center">
+        <h2 class="text-h4 mb-4 text-center">
           {{ budgetMode === 'paycheck' ? 'Paycheck Mode Setup' : 'Fixed Pool Setup' }}
         </h2>
 
-        <v-form ref="detailsForm" class="max-w-500 mx-auto">
+        <v-form ref="detailsForm" class="max-w-500 mx-auto" @submit.prevent="nextStep">
           <!-- Paycheck Mode Fields -->
           <div v-if="budgetMode === 'paycheck'">
             <v-text-field
               v-model.number="monthlyIncome"
               type="number"
               label="What is your total monthly income?"
-              prefix="$"
               variant="outlined"
               :rules="[v => v > 0 || 'Income must be greater than 0']"
               class="mb-4"
@@ -146,7 +145,6 @@
               v-model.number="totalMoney"
               type="number"
               label="How much total money do you have available?"
-              prefix="$"
               variant="outlined"
               :rules="[v => v > 0 || 'Amount must be greater than 0']"
               hint="Enter the total amount you have to work with"
@@ -157,8 +155,8 @@
 
       <!-- Step 3: Add Expenses -->
       <div v-else-if="currentStep === 3">
-        <h2 class="text-h5 mb-4 text-center">Add Your Monthly Expenses</h2>
-        <p class="text-center text-medium-emphasis mb-6">
+        <h2 class="text-h4 mb-3 text-center">Add Your Monthly Expenses</h2>
+        <p class="text-h6 text-center text-medium-emphasis mb-4">
           Add expenses that you MUST pay each month (rent, utilities, bills, etc.)
         </p>
 
@@ -180,7 +178,6 @@
                   v-model.number="newExpense.amount"
                   type="number"
                   label="Amount"
-                  prefix="$"
                   variant="outlined"
                   density="compact"
                 />
@@ -216,7 +213,7 @@
                 <v-icon>mdi-receipt</v-icon>
               </template>
               <v-list-item-title>{{ expense.name }}</v-list-item-title>
-              <v-list-item-subtitle>${{ expense.amount.toFixed(2) }}</v-list-item-subtitle>
+              <v-list-item-subtitle>{{ expense.amount.toFixed(2) }}</v-list-item-subtitle>
               <template v-slot:append>
                 <v-btn
                   icon
@@ -236,7 +233,7 @@
                 Total Monthly Expenses
               </v-list-item-title>
               <v-list-item-subtitle class="text-h6">
-                ${{ totalExpenses.toFixed(2) }}
+                {{ totalExpenses.toFixed(2) }}
               </v-list-item-subtitle>
             </v-list-item>
           </v-list>
@@ -246,24 +243,24 @@
       <!-- Step 4: Show The Number -->
       <div v-else-if="currentStep === 4">
         <div class="text-center">
-          <v-icon size="80" color="success" class="mb-4">mdi-check-circle</v-icon>
-          <h2 class="text-h4 mb-6">Here's Your Number!</h2>
+          <v-icon size="100" color="success" class="mb-3">mdi-check-circle</v-icon>
+          <h2 class="text-h3 mb-4">Here's Your Number!</h2>
 
-          <v-card class="mb-6 pa-6 max-w-600 mx-auto" elevation="2">
+          <v-card class="mb-4 pa-6 max-w-600 mx-auto" elevation="2">
             <!-- Mode-specific summary -->
             <div v-if="budgetMode === 'paycheck'" class="mb-4">
               <div class="d-flex justify-space-between mb-2">
                 <span>Monthly Income:</span>
-                <span class="font-weight-bold">${{ monthlyIncome.toFixed(2) }}</span>
+                <span class="font-weight-bold">{{ monthlyIncome.toFixed(2) }}</span>
               </div>
               <div class="d-flex justify-space-between mb-2">
                 <span>Total Expenses:</span>
-                <span class="font-weight-bold">${{ totalExpenses.toFixed(2) }}</span>
+                <span class="font-weight-bold">{{ totalExpenses.toFixed(2) }}</span>
               </div>
               <v-divider class="my-3" />
               <div class="d-flex justify-space-between mb-2">
                 <span>After Expenses:</span>
-                <span class="font-weight-bold">${{ (monthlyIncome - totalExpenses).toFixed(2) }}</span>
+                <span class="font-weight-bold">{{ (monthlyIncome - totalExpenses).toFixed(2) }}</span>
               </div>
               <div class="d-flex justify-space-between mb-4">
                 <span>Days to Paycheck:</span>
@@ -274,11 +271,11 @@
             <div v-if="budgetMode === 'fixed_pool'" class="mb-4">
               <div class="d-flex justify-space-between mb-2">
                 <span>Total Money:</span>
-                <span class="font-weight-bold">${{ totalMoney.toFixed(2) }}</span>
+                <span class="font-weight-bold">{{ totalMoney.toFixed(2) }}</span>
               </div>
               <div class="d-flex justify-space-between mb-2">
                 <span>Monthly Expenses:</span>
-                <span class="font-weight-bold">${{ totalExpenses.toFixed(2) }}</span>
+                <span class="font-weight-bold">{{ totalExpenses.toFixed(2) }}</span>
               </div>
               <v-divider class="my-3" />
               <div class="d-flex justify-space-between mb-4">
@@ -295,7 +292,7 @@
             <div class="text-center py-4 bg-success-lighten rounded">
               <div class="text-h6 mb-2">THE NUMBER</div>
               <div class="text-h2 font-weight-bold text-success">
-                ${{ calculatedNumber.toFixed(2) }}<span class="text-h5">/day</span>
+                {{ calculatedNumber.toFixed(2) }}<span class="text-h5">/day</span>
               </div>
             </div>
           </v-card>
@@ -455,21 +452,41 @@ function removeExpense(index: number) {
 function prevStep() {
   if (currentStep.value > 0) {
     currentStep.value--
-    console.log('Previous step:', currentStep.value)
+    console.log('📍 Previous step:', currentStep.value)
   }
 }
 
-function nextStep() {
+async function nextStep() {
+  console.log('🔍 nextStep called, current:', currentStep.value)
+  console.log('🔍 canProceed:', canProceed.value)
+  console.log('🔍 budgetMode:', budgetMode.value)
+  console.log('🔍 monthlyIncome:', monthlyIncome.value)
+  console.log('🔍 daysUntilPaycheck:', daysUntilPaycheck.value)
+  console.log('🔍 totalMoney:', totalMoney.value)
+
   if (canProceed.value && currentStep.value < 4) {
     currentStep.value++
-    console.log('Next step:', currentStep.value)
+    console.log('✅ Moved to step:', currentStep.value)
+  } else {
+    console.log('❌ Cannot proceed. Validation failed.')
   }
 }
 
 async function completeOnboarding() {
-  console.log('🎉 Completing onboarding...')
+  console.log('🎯 completeOnboarding called')
+  console.log('🎯 Budget mode:', budgetMode.value)
+  console.log('🎯 Monthly income:', monthlyIncome.value)
+  console.log('🎯 Days until paycheck:', daysUntilPaycheck.value)
+  console.log('🎯 Total money:', totalMoney.value)
+  console.log('🎯 Expenses:', expenses.value)
+
   loading.value = true
   showError.value = false
+
+  // ROLLBACK FIX: Track created resources for cleanup on failure
+  // This prevents orphaned budget configs when expense creation fails mid-way
+  let budgetConfigSaved = false
+  const createdExpenseIds: number[] = []
 
   try {
     // 1. Save budget configuration
@@ -481,24 +498,54 @@ async function completeOnboarding() {
       budgetConfig.total_money = totalMoney.value
     }
 
-    console.log('Saving budget config:', budgetConfig)
-    await budgetApi.configureBudget(budgetConfig)
-    console.log('✅ Budget config saved')
+    console.log('💾 Saving budget config:', budgetConfig)
+    const configResponse = await budgetApi.configureBudget(budgetConfig)
+    budgetConfigSaved = true
+    console.log('✅ Budget config saved successfully:', configResponse)
 
-    // 2. Save all expenses
+    // 2. Save all expenses with rollback capability
     for (const expense of expenses.value) {
-      console.log('Saving expense:', expense)
-      await budgetApi.createExpense(expense)
+      console.log('💾 Saving expense:', expense)
+      const response = await budgetApi.createExpense(expense)
+      // Track created expense ID for potential rollback
+      if (response.data?.id) {
+        createdExpenseIds.push(response.data.id)
+        console.log('✅ Expense saved with ID:', response.data.id)
+      }
     }
     console.log('✅ All expenses saved')
 
     // 3. Emit completion event
-    console.log('✅ Onboarding complete!')
+    console.log('🎉 Onboarding complete! Emitting complete event...')
     emit('complete')
   } catch (e: any) {
-    console.error('❌ Onboarding error:', e)
+    console.error('Onboarding error:', e)
     showError.value = true
     errorMessage.value = e.response?.data?.detail || 'Failed to complete onboarding'
+
+    // ROLLBACK: Clean up any partially created data
+    // This ensures we don't leave the database in an inconsistent state
+    if (createdExpenseIds.length > 0 || budgetConfigSaved) {
+      console.log('Rolling back partially created data...')
+      try {
+        // Delete any expenses that were created before the failure
+        for (const expenseId of createdExpenseIds) {
+          try {
+            await budgetApi.deleteExpense(expenseId)
+            console.log(`Rolled back expense ID: ${expenseId}`)
+          } catch (rollbackError) {
+            console.error(`Failed to rollback expense ${expenseId}:`, rollbackError)
+          }
+        }
+        // Note: Budget config cannot be "deleted", but the user can retry
+        // and it will be overwritten. The important thing is to not have
+        // a budget config pointing to non-existent or partial expenses.
+        console.log('Rollback completed')
+      } catch (rollbackError) {
+        console.error('Rollback failed:', rollbackError)
+        errorMessage.value += ' Some data may need to be manually cleaned up.'
+      }
+    }
   } finally {
     loading.value = false
   }
