@@ -34,7 +34,7 @@ load_dotenv(env_path)
 app = FastAPI(
     title="The Number API",
     description="REST API for The Number budgeting app",
-    version="1.0.0",
+    version="0.9.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc"
 )
@@ -76,7 +76,7 @@ async def root():
     """Root endpoint - API info."""
     return {
         "app": "The Number API",
-        "version": "1.0.0",
+        "version": "0.9.0",
         "docs": "/api/docs",
         "status": "running"
     }
