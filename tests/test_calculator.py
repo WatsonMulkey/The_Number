@@ -114,7 +114,7 @@ class TestBudgetCalculator:
         result = calc.calculate_fixed_pool_mode(total_money=6000.0)
 
         assert result["total_money"] == 6000.0
-        assert result["monthly_expenses"] == 2000.0
+        assert result["total_expenses"] == 2000.0
         assert result["months_remaining"] == 3.0
         assert result["days_remaining"] == 90.0
         assert result["daily_limit"] == pytest.approx(66.67, rel=0.01)
@@ -125,7 +125,7 @@ class TestBudgetCalculator:
         calc = BudgetCalculator()
         result = calc.calculate_fixed_pool_mode(total_money=5000.0)
 
-        assert result["monthly_expenses"] == 0.0
+        assert result["total_expenses"] == 0.0
         assert result["months_remaining"] == float('inf')
         assert result["days_remaining"] == float('inf')
         assert result["daily_limit"] == 0.0
