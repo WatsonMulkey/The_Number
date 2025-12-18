@@ -1,3 +1,8 @@
+---
+name: retro
+description: Review past sessions and learnings to improve current task execution. Use before creating implementation plans, orchestrating agents, or making architectural decisions.
+---
+
 # Retrospective Learning
 
 Before creating plans or orchestrating agents, review past sessions to learn from missteps, errors, and what worked well. This ensures continuous improvement and better collaboration.

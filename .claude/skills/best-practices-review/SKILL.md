@@ -1,3 +1,8 @@
+---
+name: best-practices-review
+description: Review project best practices guidelines before starting or resuming work. Use when starting new features, making architectural decisions, or validating work against established patterns.
+---
+
 # Best Practices Review
 
 Before beginning or resuming work on this project, review the comprehensive best practices guidelines to ensure alignment with established patterns and avoid known pitfalls.
