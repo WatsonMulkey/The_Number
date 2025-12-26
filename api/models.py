@@ -75,6 +75,8 @@ class BudgetModeConfig(BaseModel):
     monthly_income: Optional[float] = Field(None, gt=0, description="Monthly income (paycheck mode only)")
     days_until_paycheck: Optional[int] = Field(None, gt=0, le=365, description="Days until next paycheck (paycheck mode only)")
     total_money: Optional[float] = Field(None, ge=0, description="Total money available (fixed_pool mode only)")
+    target_end_date: Optional[datetime] = Field(None, description="Target end date for fixed pool (Option B)")
+    daily_spending_limit: Optional[float] = Field(None, gt=0, description="Daily spending limit for fixed pool (Option C)")
 
     class Config:
         json_schema_extra = {
@@ -130,3 +132,62 @@ class ErrorResponse(BaseModel):
     """Standard error response."""
     detail: str = Field(..., description="Error message")
     error_type: Optional[str] = Field(None, description="Error type classification")
+
+
+# ============================================================================
+# AUTHENTICATION MODELS
+# ============================================================================
+
+class UserRegister(BaseModel):
+    """Request model for user registration."""
+    username: str = Field(..., min_length=3, max_length=50, description="Username")
+    password: str = Field(..., min_length=6, description="Password (minimum 6 characters)")
+    email: Optional[str] = Field(None, max_length=100, description="Email (optional)")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "username": "john_doe",
+                "password": "secure_password123",
+                "email": "john@example.com"
+            }
+        }
+
+
+class UserLogin(BaseModel):
+    """Request model for user login."""
+    username: str = Field(..., description="Username")
+    password: str = Field(..., description="Password")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "username": "john_doe",
+                "password": "secure_password123"
+            }
+        }
+
+
+class UserResponse(BaseModel):
+    """Response model for user data."""
+    id: int
+    username: str
+    email: Optional[str]
+    created_at: str
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "id": 1,
+                "username": "john_doe",
+                "email": "john@example.com",
+                "created_at": "2024-01-15T10:30:00"
+            }
+        }
+
+
+class TokenResponse(BaseModel):
+    """Response model for authentication token."""
+    access_token: str = Field(..., description="JWT access token")
+    token_type: str = Field(default="bearer", description="Token type")
+    user: UserResponse = Field(..., description="User information")

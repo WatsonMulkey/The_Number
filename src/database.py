@@ -60,14 +60,28 @@ class EncryptedDatabase:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
 
+            # Users table - must be created first for foreign keys
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    email TEXT,
+                    created_at TEXT NOT NULL
+                )
+            """)
+
             # User settings table
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS settings (
                     id INTEGER PRIMARY KEY,
-                    key TEXT UNIQUE NOT NULL,
+                    user_id INTEGER NOT NULL,
+                    key TEXT NOT NULL,
                     value TEXT NOT NULL,
                     created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
+                    updated_at TEXT NOT NULL,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                    UNIQUE(user_id, key)
                 )
             """)
 
@@ -75,11 +89,13 @@ class EncryptedDatabase:
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS expenses (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
                     name TEXT NOT NULL,
                     amount REAL NOT NULL,
                     is_fixed INTEGER NOT NULL,
                     created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
+                    updated_at TEXT NOT NULL,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
                 )
             """)
 
@@ -87,15 +103,45 @@ class EncryptedDatabase:
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS transactions (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
                     date TEXT NOT NULL,
                     amount REAL NOT NULL,
                     description TEXT NOT NULL,
                     category TEXT,
-                    created_at TEXT NOT NULL
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
                 )
             """)
 
+            # Migration: Add user_id to existing tables if they don't have it
+            self._migrate_add_user_id(cursor)
+
             conn.commit()
+
+    def _migrate_add_user_id(self, cursor) -> None:
+        """Add user_id column to existing tables that don't have it."""
+        # Check and add user_id to settings
+        cursor.execute("PRAGMA table_info(settings)")
+        settings_cols = [col[1] for col in cursor.fetchall()]
+        if 'user_id' not in settings_cols:
+            # Add column (SQLite doesn't support adding foreign keys to existing tables easily)
+            cursor.execute("ALTER TABLE settings ADD COLUMN user_id INTEGER")
+            # Set default user_id to 1 for existing data (if any users exist)
+            cursor.execute("UPDATE settings SET user_id = 1 WHERE user_id IS NULL")
+
+        # Check and add user_id to expenses
+        cursor.execute("PRAGMA table_info(expenses)")
+        expenses_cols = [col[1] for col in cursor.fetchall()]
+        if 'user_id' not in expenses_cols:
+            cursor.execute("ALTER TABLE expenses ADD COLUMN user_id INTEGER")
+            cursor.execute("UPDATE expenses SET user_id = 1 WHERE user_id IS NULL")
+
+        # Check and add user_id to transactions
+        cursor.execute("PRAGMA table_info(transactions)")
+        transactions_cols = [col[1] for col in cursor.fetchall()]
+        if 'user_id' not in transactions_cols:
+            cursor.execute("ALTER TABLE transactions ADD COLUMN user_id INTEGER")
+            cursor.execute("UPDATE transactions SET user_id = 1 WHERE user_id IS NULL")
 
     def _encrypt(self, data: str) -> str:
         """Encrypt a string."""
@@ -106,13 +152,14 @@ class EncryptedDatabase:
         return self.cipher.decrypt(encrypted_data.encode()).decode()
 
     # Settings operations
-    def set_setting(self, key: str, value: Any) -> None:
+    def set_setting(self, key: str, value: Any, user_id: int) -> None:
         """
-        Store an encrypted setting.
+        Store an encrypted setting for a specific user.
 
         Args:
             key: Setting key (not encrypted)
             value: Setting value (will be encrypted)
+            user_id: User ID this setting belongs to
         """
         encrypted_value = self._encrypt(json.dumps(value))
         now = datetime.now().isoformat()
@@ -120,20 +167,21 @@ class EncryptedDatabase:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO settings (key, value, created_at, updated_at)
-                VALUES (?, ?, ?, ?)
-                ON CONFLICT(key) DO UPDATE SET
+                INSERT INTO settings (user_id, key, value, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(user_id, key) DO UPDATE SET
                     value = excluded.value,
                     updated_at = excluded.updated_at
-            """, (key, encrypted_value, now, now))
+            """, (user_id, key, encrypted_value, now, now))
             conn.commit()
 
-    def get_setting(self, key: str, default: Any = None) -> Any:
+    def get_setting(self, key: str, user_id: int, default: Any = None) -> Any:
         """
-        Retrieve and decrypt a setting.
+        Retrieve and decrypt a setting for a specific user.
 
         Args:
             key: Setting key
+            user_id: User ID to fetch setting for
             default: Default value if setting doesn't exist
 
         Returns:
@@ -141,7 +189,7 @@ class EncryptedDatabase:
         """
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT value FROM settings WHERE key = ?", (key,))
+            cursor.execute("SELECT value FROM settings WHERE key = ? AND user_id = ?", (key, user_id))
             row = cursor.fetchone()
 
             if row:
@@ -150,13 +198,14 @@ class EncryptedDatabase:
             return default
 
     # Expense operations
-    def add_expense(self, name: str, amount: float, is_fixed: bool = True) -> int:
+    def add_expense(self, name: str, amount: float, user_id: int, is_fixed: bool = True) -> int:
         """
-        Add an expense to the database.
+        Add an expense to the database for a specific user.
 
         Args:
             name: Expense name
             amount: Expense amount
+            user_id: User ID this expense belongs to
             is_fixed: Whether this is a fixed monthly expense
 
         Returns:
@@ -178,15 +227,18 @@ class EncryptedDatabase:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO expenses (name, amount, is_fixed, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?)
-            """, (name, amount, 1 if is_fixed else 0, now, now))
+                INSERT INTO expenses (user_id, name, amount, is_fixed, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (user_id, name, amount, 1 if is_fixed else 0, now, now))
             conn.commit()
             return cursor.lastrowid
 
-    def get_expenses(self) -> List[Dict[str, Any]]:
+    def get_expenses(self, user_id: int) -> List[Dict[str, Any]]:
         """
-        Get all expenses.
+        Get all expenses for a specific user.
+
+        Args:
+            user_id: User ID to fetch expenses for
 
         Returns:
             List of expense dictionaries
@@ -194,7 +246,7 @@ class EncryptedDatabase:
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM expenses ORDER BY created_at DESC")
+            cursor.execute("SELECT * FROM expenses WHERE user_id = ? ORDER BY created_at DESC", (user_id,))
             rows = cursor.fetchall()
 
             return [
@@ -209,12 +261,13 @@ class EncryptedDatabase:
                 for row in rows
             ]
 
-    def get_expense_by_id(self, expense_id: int) -> Optional[Dict[str, Any]]:
+    def get_expense_by_id(self, expense_id: int, user_id: int) -> Optional[Dict[str, Any]]:
         """
-        Get a single expense by ID.
+        Get a single expense by ID for a specific user.
 
         Args:
             expense_id: The expense ID to retrieve
+            user_id: User ID (for access control)
 
         Returns:
             Expense dictionary or None if not found
@@ -222,7 +275,7 @@ class EncryptedDatabase:
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM expenses WHERE id = ?", (expense_id,))
+            cursor.execute("SELECT * FROM expenses WHERE id = ? AND user_id = ?", (expense_id, user_id))
             row = cursor.fetchone()
 
             if row is None:
@@ -237,9 +290,9 @@ class EncryptedDatabase:
                 "updated_at": row["updated_at"]
             }
 
-    def update_expense(self, expense_id: int, name: Optional[str] = None,
+    def update_expense(self, expense_id: int, user_id: int, name: Optional[str] = None,
                       amount: Optional[float] = None, is_fixed: Optional[bool] = None) -> None:
-        """Update an expense."""
+        """Update an expense for a specific user."""
         # Whitelist of allowed columns (security: prevent SQL injection pattern)
         ALLOWED_COLUMNS = {'name', 'amount', 'is_fixed', 'updated_at'}
 
@@ -268,6 +321,7 @@ class EncryptedDatabase:
         updates.append("updated_at = ?")
         params.append(datetime.now().isoformat())
         params.append(expense_id)
+        params.append(user_id)
 
         # Validate all update columns are in whitelist (prevent SQL injection)
         update_cols = {u.split('=')[0].strip() for u in updates}
@@ -277,27 +331,28 @@ class EncryptedDatabase:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute(
-                f"UPDATE expenses SET {', '.join(updates)} WHERE id = ?",
+                f"UPDATE expenses SET {', '.join(updates)} WHERE id = ? AND user_id = ?",
                 params
             )
             conn.commit()
 
-    def delete_expense(self, expense_id: int) -> None:
-        """Delete an expense."""
+    def delete_expense(self, expense_id: int, user_id: int) -> None:
+        """Delete an expense for a specific user."""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM expenses WHERE id = ?", (expense_id,))
+            cursor.execute("DELETE FROM expenses WHERE id = ? AND user_id = ?", (expense_id, user_id))
             conn.commit()
 
     # Transaction operations
-    def add_transaction(self, amount: float, description: str,
+    def add_transaction(self, amount: float, description: str, user_id: int,
                        date: Optional[datetime] = None, category: Optional[str] = None) -> int:
         """
-        Record a spending transaction.
+        Record a spending transaction for a specific user.
 
         Args:
             amount: Transaction amount
             description: Transaction description
+            user_id: User ID this transaction belongs to
             date: Transaction date (defaults to now)
             category: Optional category
 
@@ -322,19 +377,20 @@ class EncryptedDatabase:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO transactions (date, amount, description, category, created_at)
-                VALUES (?, ?, ?, ?, ?)
-            """, (date.isoformat(), amount, description, category, datetime.now().isoformat()))
+                INSERT INTO transactions (user_id, date, amount, description, category, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (user_id, date.isoformat(), amount, description, category, datetime.now().isoformat()))
             conn.commit()
             return cursor.lastrowid
 
-    def get_transactions(self, start_date: Optional[datetime] = None,
+    def get_transactions(self, user_id: int, start_date: Optional[datetime] = None,
                         end_date: Optional[datetime] = None,
                         limit: Optional[int] = None) -> List[Dict[str, Any]]:
         """
-        Get transactions, optionally filtered by date range.
+        Get transactions for a specific user, optionally filtered by date range.
 
         Args:
+            user_id: User ID to fetch transactions for
             start_date: Filter transactions after this date
             end_date: Filter transactions before this date
             limit: Maximum number of transactions to return
@@ -342,8 +398,8 @@ class EncryptedDatabase:
         Returns:
             List of transaction dictionaries
         """
-        query = "SELECT * FROM transactions WHERE 1=1"
-        params = []
+        query = "SELECT * FROM transactions WHERE user_id = ?"
+        params = [user_id]
 
         if start_date:
             query += " AND date >= ?"
@@ -376,15 +432,15 @@ class EncryptedDatabase:
                 for row in rows
             ]
 
-    def delete_transaction(self, transaction_id: int) -> None:
-        """Delete a transaction."""
+    def delete_transaction(self, transaction_id: int, user_id: int) -> None:
+        """Delete a transaction for a specific user."""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM transactions WHERE id = ?", (transaction_id,))
+            cursor.execute("DELETE FROM transactions WHERE id = ? AND user_id = ?", (transaction_id, user_id))
             conn.commit()
 
-    def get_total_spending_today(self) -> float:
-        """Get total spending for today."""
+    def get_total_spending_today(self, user_id: int) -> float:
+        """Get total spending for today for a specific user."""
         today = datetime.now().date().isoformat()
 
         with sqlite3.connect(self.db_path) as conn:
@@ -392,10 +448,101 @@ class EncryptedDatabase:
             cursor.execute("""
                 SELECT SUM(amount) as total
                 FROM transactions
-                WHERE DATE(date) = DATE(?)
-            """, (today,))
+                WHERE user_id = ? AND DATE(date) = DATE(?)
+            """, (user_id, today))
             result = cursor.fetchone()
             return result[0] if result[0] else 0.0
+
+    # ========================================================================
+    # USER MANAGEMENT
+    # ========================================================================
+
+    def create_user(self, username: str, password_hash: str, email: Optional[str] = None) -> int:
+        """
+        Create a new user.
+
+        Args:
+            username: Unique username
+            password_hash: Hashed password
+            email: Optional email address
+
+        Returns:
+            User ID of created user
+
+        Raises:
+            ValueError: If username already exists
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            now = datetime.now().isoformat()
+
+            try:
+                cursor.execute("""
+                    INSERT INTO users (username, password_hash, email, created_at)
+                    VALUES (?, ?, ?, ?)
+                """, (username, password_hash, email, now))
+                conn.commit()
+                return cursor.lastrowid
+            except sqlite3.IntegrityError:
+                raise ValueError(f"Username '{username}' already exists")
+
+    def get_user_by_username(self, username: str) -> Optional[Dict[str, Any]]:
+        """
+        Get user by username.
+
+        Args:
+            username: Username to look up
+
+        Returns:
+            User dict or None if not found
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, username, password_hash, email, created_at
+                FROM users
+                WHERE username = ?
+            """, (username,))
+            row = cursor.fetchone()
+
+            if row:
+                return {
+                    "id": row[0],
+                    "username": row[1],
+                    "password_hash": row[2],
+                    "email": row[3],
+                    "created_at": row[4]
+                }
+            return None
+
+    def get_user_by_id(self, user_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Get user by ID.
+
+        Args:
+            user_id: User ID to look up
+
+        Returns:
+            User dict or None if not found
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, username, password_hash, email, created_at
+                FROM users
+                WHERE id = ?
+            """, (user_id,))
+            row = cursor.fetchone()
+
+            if row:
+                return {
+                    "id": row[0],
+                    "username": row[1],
+                    "password_hash": row[2],
+                    "email": row[3],
+                    "created_at": row[4]
+                }
+            return None
 
     def close(self) -> None:
         """Close database connection (cleanup)."""
