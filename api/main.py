@@ -8,7 +8,7 @@ wrapping the existing Python backend (database.py, calculator.py).
 import os
 import sys
 from pathlib import Path
-from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File
+from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from typing import List, Optional
@@ -27,7 +27,7 @@ from api.models import (
     UserRegister, UserLogin, UserResponse, TokenResponse
 )
 from api.auth import (
-    hash_password, verify_password, create_access_token, get_current_user_id
+    hash_password, verify_password, create_access_token, get_current_user_id, check_rate_limit
 )
 
 # Load environment variables
@@ -542,12 +542,20 @@ async def delete_transaction(
 # ============================================================================
 
 @app.post("/api/auth/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-async def register(user_data: UserRegister, db: EncryptedDatabase = Depends(get_db)):
+async def register(
+    user_data: UserRegister,
+    request: Request,
+    db: EncryptedDatabase = Depends(get_db)
+):
     """
     Register a new user.
 
     Creates a new user account and returns an access token.
+    Rate limited: 5 requests per 60 seconds per IP.
     """
+    # Rate limiting: 5 requests per minute
+    check_rate_limit(request, max_requests=5, window_seconds=60)
+
     try:
         # Check if username already exists
         existing_user = db.get_user_by_username(user_data.username)
@@ -597,12 +605,20 @@ async def register(user_data: UserRegister, db: EncryptedDatabase = Depends(get_
 
 
 @app.post("/api/auth/login", response_model=TokenResponse)
-async def login(credentials: UserLogin, db: EncryptedDatabase = Depends(get_db)):
+async def login(
+    credentials: UserLogin,
+    request: Request,
+    db: EncryptedDatabase = Depends(get_db)
+):
     """
     Login with username and password.
 
     Returns an access token on successful authentication.
+    Rate limited: 5 requests per 60 seconds per IP.
     """
+    # Rate limiting: 5 requests per minute to prevent brute force
+    check_rate_limit(request, max_requests=5, window_seconds=60)
+
     try:
         # Get user by username
         user = db.get_user_by_username(credentials.username)

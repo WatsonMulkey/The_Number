@@ -1,16 +1,17 @@
 """
 Authentication utilities for The Number API.
 
-Provides password hashing, JWT token generation, and user authentication.
+Provides password hashing, JWT token generation, user authentication, and rate limiting.
 """
 
 import os
 import secrets
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Dict
+from collections import defaultdict
 from passlib.context import CryptContext
 from jose import JWTError, jwt
-from fastapi import HTTPException, status, Depends
+from fastapi import HTTPException, status, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 # Password hashing
@@ -82,3 +83,50 @@ def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depends(secu
         )
 
     return user_id
+
+
+# ============================================================================
+# RATE LIMITING
+# ============================================================================
+
+# Simple in-memory rate limiter (use Redis for production)
+_rate_limit_cache: Dict[str, list] = defaultdict(list)
+
+def check_rate_limit(
+    request: Request,
+    max_requests: int = 5,
+    window_seconds: int = 60
+) -> None:
+    """
+    Simple rate limiting check.
+
+    Args:
+        request: FastAPI request object
+        max_requests: Maximum number of requests allowed
+        window_seconds: Time window in seconds
+
+    Raises:
+        HTTPException: If rate limit is exceeded
+    """
+    # Get client IP
+    client_ip = request.client.host if request.client else "unknown"
+
+    # Clean up old entries
+    now = datetime.utcnow()
+    cutoff = now - timedelta(seconds=window_seconds)
+
+    # Remove expired entries
+    _rate_limit_cache[client_ip] = [
+        timestamp for timestamp in _rate_limit_cache[client_ip]
+        if timestamp > cutoff
+    ]
+
+    # Check if limit exceeded
+    if len(_rate_limit_cache[client_ip]) >= max_requests:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Rate limit exceeded. Try again in {window_seconds} seconds."
+        )
+
+    # Add current request
+    _rate_limit_cache[client_ip].append(now)

@@ -8,6 +8,7 @@ All sensitive data is encrypted at rest using Fernet symmetric encryption.
 import sqlite3
 import json
 import os
+import re
 from datetime import datetime
 from typing import List, Dict, Optional, Any
 from cryptography.fernet import Fernet
@@ -151,6 +152,32 @@ class EncryptedDatabase:
         """Decrypt a string."""
         return self.cipher.decrypt(encrypted_data.encode()).decode()
 
+    @staticmethod
+    def _sanitize_text(text: str) -> str:
+        """
+        Sanitize text input to prevent XSS and injection attacks.
+
+        Args:
+            text: Text to sanitize
+
+        Returns:
+            Sanitized text
+        """
+        if not text:
+            return ""
+
+        # Remove any HTML/XML tags
+        sanitized = re.sub(r'<[^>]*>', '', text)
+
+        # Remove script-like patterns
+        sanitized = re.sub(r'javascript:', '', sanitized, flags=re.IGNORECASE)
+        sanitized = re.sub(r'on\w+\s*=', '', sanitized, flags=re.IGNORECASE)
+
+        # Remove null bytes (SQL injection prevention)
+        sanitized = sanitized.replace('\x00', '')
+
+        return sanitized.strip()
+
     # Settings operations
     def set_setting(self, key: str, value: Any, user_id: int) -> None:
         """
@@ -211,17 +238,18 @@ class EncryptedDatabase:
         Returns:
             ID of created expense
         """
-        # Validate expense data
+        # Sanitize and validate expense data
+        name = self._sanitize_text(name)
+
         if amount < 0:
             raise ValueError("Expense amount cannot be negative")
         if amount > 10_000_000:
             raise ValueError("Amount exceeds maximum ($10,000,000)")
-        if not name or not name.strip():
+        if not name:
             raise ValueError("Expense name is required")
         if len(name) > 200:
             raise ValueError("Expense name too long (max 200 characters)")
 
-        name = name.strip()
         now = datetime.now().isoformat()
 
         with sqlite3.connect(self.db_path) as conn:
@@ -359,17 +387,19 @@ class EncryptedDatabase:
         Returns:
             ID of created transaction
         """
-        # Validate transaction data
+        # Sanitize and validate transaction data
+        description = self._sanitize_text(description)
+        if category:
+            category = self._sanitize_text(category)
+
         if amount <= 0:
             raise ValueError("Transaction amount must be positive")
         if amount > 10_000_000:
             raise ValueError("Amount exceeds maximum ($10,000,000)")
-        if not description or not description.strip():
+        if not description:
             raise ValueError("Transaction description is required")
         if len(description) > 200:
             raise ValueError("Description too long (max 200 characters)")
-
-        description = description.strip()
 
         if date is None:
             date = datetime.now()
@@ -470,8 +500,19 @@ class EncryptedDatabase:
             User ID of created user
 
         Raises:
-            ValueError: If username already exists
+            ValueError: If username already exists or invalid input
         """
+        # Sanitize inputs
+        username = self._sanitize_text(username)
+        if email:
+            email = self._sanitize_text(email)
+
+        # Validate username
+        if not username or len(username) < 3:
+            raise ValueError("Username must be at least 3 characters")
+        if len(username) > 50:
+            raise ValueError("Username too long (max 50 characters)")
+
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             now = datetime.now().isoformat()

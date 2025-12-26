@@ -18,6 +18,7 @@ from src.calculator import MAX_AMOUNT, MAX_STRING_LENGTH
 
 # Test encryption key (valid Fernet key)
 TEST_KEY = "V4R9SIOnCG1ntmUILzyUe0lnQ4OC2bf0EGCuEsslfeg="
+TEST_USER_ID = 1  # Default test user ID for all database operations
 
 
 class TestExpenseErrorCases:
