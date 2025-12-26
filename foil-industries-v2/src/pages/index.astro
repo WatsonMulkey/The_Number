@@ -1,0 +1,695 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+---
+
+<BaseLayout>
+  <Header />
+
+  <main id="main-content">
+    <!-- HERO SECTION -->
+    <section id="hero" class="hero-section">
+      <div class="hero-content">
+        <div class="hero-eyebrow">FOIL INDUSTRIES</div>
+        <h1 class="hero-title">
+          Solving problems,<br>
+          <i>not just</i><br>
+          <span class="highlight">building solutions</span>
+        </h1>
+        <p class="hero-subtitle">
+          Product solutions. // Service design and process management. // Bespoke tooling.
+        </p>
+        <p class="hero-support">10 years of software experience invested in your success</p>
+        <a href="#solutions" class="cta-button">Explore Solutions</a>
+      </div>
+    </section>
+
+    <!-- SOLUTIONS SECTION -->
+    <section id="solutions" class="section solutions-section">
+      <div class="section-header">
+        <div class="section-eyebrow">WHAT WE DO</div>
+        <h2 class="section-title">Solutions</h2>
+        <p class="section-subtitle">
+          Three pillars of expertise: strategic product thinking, thoughtful service design, and custom-built tools that solve real problems.
+        </p>
+      </div>
+
+      <div class="solutions-grid">
+        <!-- Product Management Card -->
+        <article class="tool-card">
+          <div class="card-gradient-top"></div>
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Product Management</h3>
+              <p class="card-tagline">Strategy meets execution</p>
+            </div>
+            <div class="card-number">01</div>
+          </div>
+          <p class="card-description">
+            Eight years transforming user insights into measurable outcomes: 32% YoY engagement growth at Discovery Education, 50% faster completion times at Simplifya. Expertise spans cross-functional leadership, data-driven experimentation, and multi-vertical roadmapping. The focus remains constant—delivering products that create tangible value for users and businesses through rigorous prioritization, strategic vision, and relentless attention to what actually moves metrics.
+          </p>
+          <div class="card-footer">
+            <a href="#contact" class="card-link">Learn More</a>
+          </div>
+        </article>
+
+        <!-- Service Design Card -->
+        <article class="tool-card">
+          <div class="card-gradient-top"></div>
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Service Design</h3>
+              <p class="card-tagline">Process, perfected</p>
+            </div>
+            <div class="card-number">02</div>
+          </div>
+          <p class="card-description">
+            Operational architecture that scales. Designed agile frameworks for globally distributed teams at Bookshop.org, built issue tracking systems reducing resolution time 40% at The Iron Yard. Specialization includes executive reporting pipelines, cross-functional enablement content, and enterprise-wide process documentation. The approach: transform chaotic workflows into elegant, repeatable systems that grow with organizational complexity while maintaining clarity and efficiency.
+          </p>
+          <div class="card-footer">
+            <a href="#contact" class="card-link">Learn More</a>
+          </div>
+        </article>
+
+        <!-- Bespoke Tooling Card -->
+        <article class="tool-card">
+          <div class="card-gradient-top"></div>
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Bespoke Tooling</h3>
+              <p class="card-tagline">Built for your specific needs</p>
+            </div>
+            <div class="card-number">03</div>
+          </div>
+          <p class="card-description">
+            Production-grade solutions for problems off-the-shelf software can't solve. Recent work includes AI-powered applications leveraging Claude API with RAG architecture and anti-hallucination patterns, plus comprehensive analytics suites delivering actionable insights at Registria. Technical foundation: Python, Vue 3, FastAPI, SQL, modern development practices. The deliverable: full-stack tools that are both architecturally sound and genuinely useful—built precisely for your unique challenge.
+          </p>
+          <div class="card-footer">
+            <a href="/TheNumber" class="card-link">The Number App</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section id="about" class="section about-section">
+      <div class="section-header">
+        <div class="section-eyebrow">WHO WE ARE</div>
+        <h2 class="section-title">About</h2>
+      </div>
+
+      <div class="about-content">
+        <p class="about-text">
+          <strong>FOIL Industries</strong> represents the intersection of product management expertise and hands-on building. As a PM who codes, I create tools that solve real problems with elegant simplicity.
+        </p>
+        <p class="about-text">
+          The name comes from literary theory—a foil character makes the protagonist look better by contrast. Similarly, these products are designed to amplify your strengths, not overshadow them.
+        </p>
+        <p class="about-text">
+          Every tool follows the same philosophy: <em>complex problems deserve simple solutions</em>. Professional-grade functionality wrapped in consumer-grade ease of use.
+        </p>
+
+        <div class="skills-grid">
+          <div class="skill-category">
+            <h4>Product Management</h4>
+            <ul>
+              <li>Product Strategy</li>
+              <li>User Research</li>
+              <li>Roadmap Planning</li>
+              <li>Data Analysis</li>
+            </ul>
+          </div>
+          <div class="skill-category">
+            <h4>Development</h4>
+            <ul>
+              <li>Python / FastAPI</li>
+              <li>JavaScript / Vue.js</li>
+              <li>Astro / Web Dev</li>
+              <li>Database Design</li>
+            </ul>
+          </div>
+          <div class="skill-category">
+            <h4>Design</h4>
+            <ul>
+              <li>UI/UX Design</li>
+              <li>Design Systems</li>
+              <li>Accessibility</li>
+              <li>Brand Strategy</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT SECTION -->
+    <section id="contact" class="section contact-section">
+      <div class="section-header">
+        <div class="section-eyebrow">GET IN TOUCH</div>
+        <h2 class="section-title">Contact</h2>
+        <p class="section-subtitle">
+          Interested in collaboration or have questions about the tools? Let's connect.
+        </p>
+      </div>
+
+      <div class="contact-content">
+        <a href="mailto:watson@foilindustries.com" class="contact-email">
+          watson@foilindustries.com
+        </a>
+        <p class="contact-note">
+          Currently accepting freelance projects and product management opportunities.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <p>&copy; 2025 FOIL Industries. Tools that make you better.</p>
+  </footer>
+</BaseLayout>
+
+<style>
+  /* HERO SECTION */
+  .hero-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-4xl) 18% 100px 24%;
+    text-align: center;
+    position: relative;
+    margin-top: 90px;
+  }
+
+  /* Light explosion from bottom-left - inspired by photographic lens flare */
+  /* Positioned on main element so it bleeds across sections */
+  main::before {
+    content: '';
+    position: fixed;
+    bottom: -15%;
+    left: -12%;
+    width: 85%;
+    height: 120vh;
+    background: radial-gradient(
+      ellipse at center,
+      rgba(212, 160, 23, 0.65) 0%,
+      rgba(201, 169, 97, 0.5) 20%,
+      rgba(212, 133, 0, 0.35) 35%,
+      rgba(74, 95, 122, 0.18) 50%,
+      rgba(74, 95, 122, 0.08) 60%,
+      transparent 75%
+    );
+    filter: blur(120px);
+    opacity: 1;
+    pointer-events: none;
+    animation: pulse-glow 8s ease-in-out infinite;
+    z-index: 0;
+  }
+
+  /* Warm-to-cool gradient overlay */
+  .hero-section::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      rgba(43, 46, 51, 0.15) 40%,
+      rgba(26, 29, 33, 0.3) 100%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 0.95;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.08);
+    }
+  }
+
+  /* Ensure content sits above lens flare */
+  main > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 850px;
+  }
+
+  /* Floating particles - mimicking dust specs in photograph */
+  .hero-title::before,
+  .hero-title::after,
+  .hero-subtitle::before,
+  .hero-subtitle::after {
+    content: '';
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: float-particle 12s ease-in-out infinite;
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.4);
+  }
+
+  .hero-title::before {
+    top: 15%;
+    left: 10%;
+    animation-delay: 0s;
+  }
+
+  .hero-title::after {
+    top: 70%;
+    right: 15%;
+    animation-delay: 3s;
+    width: 2px;
+    height: 2px;
+  }
+
+  .hero-subtitle::before {
+    top: -30px;
+    left: 20%;
+    animation-delay: 6s;
+    width: 4px;
+    height: 4px;
+  }
+
+  .hero-subtitle::after {
+    bottom: -40px;
+    right: 25%;
+    animation-delay: 9s;
+    width: 2.5px;
+    height: 2.5px;
+  }
+
+  @keyframes float-particle {
+    0%, 100% {
+      transform: translate(0, 0);
+      opacity: 0.3;
+    }
+    25% {
+      transform: translate(15px, -20px);
+      opacity: 0.7;
+    }
+    50% {
+      transform: translate(-10px, -35px);
+      opacity: 1;
+    }
+    75% {
+      transform: translate(20px, -15px);
+      opacity: 0.5;
+    }
+  }
+
+  .hero-eyebrow {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    color: rgba(201, 169, 97, 0.9);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .hero-title {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .hero-title .highlight {
+    color: var(--color-mustard);
+    text-shadow:
+      0 0 20px rgba(212, 160, 23, 0.4),
+      0 0 40px rgba(212, 160, 23, 0.2),
+      0 0 60px rgba(212, 160, 23, 0.1);
+    filter: brightness(1.1);
+  }
+
+  .hero-subtitle {
+    font-size: clamp(19px, 1.9vw, 26px);
+    color: rgba(209, 209, 209, 0.85);
+    max-width: 700px;
+    margin: 0 auto var(--spacing-md);
+    line-height: 1.65;
+  }
+
+  .hero-support {
+    font-size: 16px;
+    color: var(--color-terracotta-light);
+    font-weight: 600;
+    margin-bottom: var(--spacing-2xl);
+    font-style: italic;
+  }
+
+  .cta-button {
+    display: inline-block;
+    padding: 26px 68px;
+    background-color: var(--color-mustard);
+    color: var(--color-charcoal);
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 8px;
+    box-shadow:
+      0 7px 28px rgba(212, 160, 23, 0.3),
+      0 0 30px rgba(212, 160, 23, 0.25);
+    transition: all 320ms var(--transition-spring);
+    position: relative;
+  }
+
+  /* Halo glow effect on button */
+  .cta-button::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    background: radial-gradient(
+      circle at center,
+      rgba(212, 160, 23, 0.3) 0%,
+      transparent 70%
+    );
+    border-radius: 10px;
+    opacity: 0;
+    transition: opacity 320ms ease;
+    pointer-events: none;
+    filter: blur(8px);
+  }
+
+  .cta-button:hover::before {
+    opacity: 1;
+  }
+
+  .cta-button:hover,
+  .cta-button:focus-visible {
+    background-color: var(--color-gold);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 14px 45px rgba(212, 160, 23, 0.45);
+    color: var(--color-charcoal);
+  }
+
+  /* SOLUTIONS SECTION */
+  .solutions-section {
+    background-color: rgba(53, 56, 61, 0.3);
+    position: relative;
+  }
+
+  .solutions-grid {
+    max-width: 950px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .tool-card {
+    background-color: var(--color-card-light);
+    padding: var(--spacing-lg) var(--spacing-md);
+    border-radius: 12px;
+    border: 1px solid rgba(74, 95, 122, 0.12);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+    position: relative;
+    overflow: hidden;
+    transition: all var(--transition-slow) var(--transition-spring);
+  }
+
+  /* Top gradient accent (hidden by default) */
+  .card-gradient-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--color-slate-blue) 0%, var(--color-terracotta) 100%);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 370ms ease;
+  }
+
+  .tool-card:hover .card-gradient-top,
+  .tool-card:focus-within .card-gradient-top {
+    transform: scaleX(1);
+  }
+
+  .tool-card:hover,
+  .tool-card:focus-within {
+    transform: translateY(-9px);
+    box-shadow: 0 24px 55px rgba(0, 0, 0, 0.5);
+    border-color: var(--color-slate-blue);
+  }
+
+  /* Radial glow on hover */
+  .tool-card::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(74, 95, 122, 0.08) 0%, transparent 70%);
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity var(--transition-slow) ease;
+    pointer-events: none;
+  }
+
+  .tool-card:hover::before,
+  .tool-card:focus-within::before {
+    opacity: 1;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-sm);
+    position: relative;
+  }
+
+  .card-title {
+    color: var(--color-card-dark-text);
+    margin-bottom: 6px;
+  }
+
+  .card-number {
+    font-size: 56px;
+    font-weight: 700;
+    color: rgba(74, 95, 122, 0.08);
+    line-height: 1;
+    user-select: none;
+  }
+
+  .card-tagline {
+    font-size: 15px;
+    font-weight: 600;
+    font-style: italic;
+    color: var(--color-ochre);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .card-badge {
+    display: inline-block;
+    background-color: var(--color-terracotta);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .card-description {
+    font-size: 15px;
+    color: rgba(43, 46, 51, 0.75);
+    line-height: 1.7;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .card-footer {
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid rgba(74, 95, 122, 0.15);
+  }
+
+  .card-link {
+    display: inline-block;
+    padding: 14px 32px;
+    border: 2px solid var(--color-slate-blue);
+    background-color: transparent;
+    color: var(--color-slate-blue);
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 6px;
+    transition: all var(--transition-base) ease;
+  }
+
+  .card-link:hover,
+  .card-link:focus-visible {
+    background-color: var(--color-mustard);
+    border-color: var(--color-mustard);
+    color: var(--color-card-dark-text);
+    transform: translateX(7px);
+    box-shadow: 0 4px 16px rgba(212, 160, 23, 0.3);
+  }
+
+  /* ABOUT SECTION */
+  .about-content {
+    max-width: 850px;
+    margin: 0 auto;
+  }
+
+  .about-text {
+    font-size: 20px;
+    line-height: 1.8;
+    color: rgba(209, 209, 209, 0.82);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .about-text strong {
+    color: var(--color-off-white);
+  }
+
+  .about-text em {
+    color: var(--color-gold);
+    font-style: italic;
+  }
+
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-2xl);
+  }
+
+  .skill-category h4 {
+    color: var(--color-mustard);
+    font-size: 18px;
+    margin-bottom: var(--spacing-sm);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .skill-category ul {
+    list-style: none;
+  }
+
+  .skill-category li {
+    padding: 8px 0;
+    color: var(--color-light-grey);
+    border-bottom: 1px solid rgba(74, 95, 122, 0.15);
+  }
+
+  .skill-category li:last-child {
+    border-bottom: none;
+  }
+
+  /* CONTACT SECTION */
+  .contact-section {
+    background-color: rgba(53, 56, 61, 0.5);
+  }
+
+  .contact-content {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .contact-email {
+    display: inline-block;
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--color-mustard);
+    margin-bottom: var(--spacing-md);
+    transition: all var(--transition-base) ease;
+  }
+
+  .contact-email:hover,
+  .contact-email:focus-visible {
+    color: var(--color-gold);
+    transform: scale(1.05);
+  }
+
+  .contact-note {
+    font-size: 16px;
+    color: var(--color-medium-grey);
+  }
+
+  /* FOOTER */
+  .site-footer {
+    background-color: var(--color-deep-charcoal);
+    border-top: 1px solid rgba(74, 95, 122, 0.15);
+    padding: var(--spacing-xl) 5%;
+    text-align: center;
+  }
+
+  .site-footer p {
+    font-size: 14px;
+    color: var(--color-cool-grey);
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 1023px) {
+    .hero-section {
+      padding: var(--spacing-3xl) 5% 75px;
+      margin-top: 70px;
+    }
+
+    .hero-title {
+      font-size: 40px;
+    }
+
+    .cta-button {
+      padding: 20px 50px;
+    }
+
+    .card-number {
+      font-size: 48px;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .hero-section {
+      min-height: 90vh;
+    }
+
+    .hero-eyebrow {
+      font-size: 11px;
+    }
+
+    .hero-subtitle {
+      font-size: 18px;
+    }
+
+    .tool-card {
+      padding: var(--spacing-md) var(--spacing-sm);
+    }
+
+    .card-header {
+      flex-direction: column;
+    }
+
+    .card-number {
+      align-self: flex-end;
+      margin-top: -20px;
+    }
+
+    .contact-email {
+      font-size: 24px;
+    }
+
+    .skills-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

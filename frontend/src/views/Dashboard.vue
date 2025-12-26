@@ -48,9 +48,29 @@
       <v-row class="mt-8">
         <v-col cols="12" md="4">
           <v-card elevation="2" class="pa-4">
-            <v-card-title class="text-h6">Record Spending</v-card-title>
+            <v-card-title class="text-h6">Record Transaction</v-card-title>
             <v-card-text>
               <v-form @submit.prevent="recordSpending">
+                <!-- Money In/Out Toggle -->
+                <div class="mb-4">
+                  <v-btn-toggle
+                    v-model="transactionType"
+                    color="primary"
+                    mandatory
+                    divided
+                    class="w-100"
+                  >
+                    <v-btn value="out" style="flex: 1;">
+                      <v-icon class="mr-1">mdi-minus-circle</v-icon>
+                      Money Out
+                    </v-btn>
+                    <v-btn value="in" style="flex: 1;">
+                      <v-icon class="mr-1">mdi-plus-circle</v-icon>
+                      Money In
+                    </v-btn>
+                  </v-btn-toggle>
+                </div>
+
                 <v-text-field
                   v-model.number="spendingAmount"
                   type="number"
@@ -61,17 +81,19 @@
                 />
                 <v-text-field
                   v-model="spendingDescription"
-                  label="Description"
+                  :label="transactionType === 'out' ? 'What did you spend on?' : 'Source of income'"
                   variant="outlined"
                   class="mb-2"
+                  :placeholder="transactionType === 'out' ? 'e.g., Groceries' : 'e.g., Freelance work'"
                 />
                 <v-btn
                   type="submit"
-                  color="primary"
+                  :color="transactionType === 'out' ? 'error' : 'success'"
                   block
                   :loading="budgetStore.loadingTransactions"
                 >
-                  Record
+                  <v-icon class="mr-1">{{ transactionType === 'out' ? 'mdi-minus' : 'mdi-plus' }}</v-icon>
+                  {{ transactionType === 'out' ? 'Record Spending' : 'Add Money' }}
                 </v-btn>
               </v-form>
             </v-card-text>
@@ -80,20 +102,46 @@
 
         <v-col cols="12" md="4">
           <v-card elevation="2" class="pa-4">
-            <v-card-title class="text-h6">Budget Summary</v-card-title>
+            <v-card-title class="text-h6">Budget Details</v-card-title>
             <v-card-text>
-              <div class="mb-2">
+              <div class="mb-3">
                 <strong>Mode:</strong> {{ budgetStore.budgetNumber.mode === 'paycheck' ? 'Paycheck' : 'Fixed Pool' }}
               </div>
-              <div v-if="budgetStore.budgetNumber.total_income" class="mb-2">
-                <strong>Monthly Income:</strong> {{ budgetStore.budgetNumber.total_income.toFixed(2) }}
-              </div>
-              <div class="mb-2">
-                <strong>Total Expenses:</strong> {{ budgetStore.budgetNumber.total_expenses.toFixed(2) }}
-              </div>
-              <div v-if="budgetStore.budgetNumber.remaining_money" class="mb-2">
-                <strong>Remaining:</strong> {{ budgetStore.budgetNumber.remaining_money.toFixed(2) }}
-              </div>
+
+              <!-- Paycheck Mode -->
+              <template v-if="budgetStore.budgetNumber.mode === 'paycheck'">
+                <div v-if="budgetStore.budgetNumber.total_income" class="mb-2">
+                  <strong>Monthly Income:</strong> {{ budgetStore.budgetNumber.total_income.toFixed(2) }}
+                </div>
+                <div v-if="budgetStore.budgetNumber.total_expenses" class="mb-2">
+                  <strong>Total Expenses:</strong> {{ budgetStore.budgetNumber.total_expenses.toFixed(2) }}
+                </div>
+                <div v-if="budgetStore.budgetNumber.remaining_money" class="mb-2">
+                  <strong>Remaining:</strong> {{ budgetStore.budgetNumber.remaining_money.toFixed(2) }}
+                </div>
+              </template>
+
+              <!-- Fixed Pool Mode - Show both calculations -->
+              <template v-else>
+                <v-divider class="my-3"></v-divider>
+                <div class="text-caption text-medium-emphasis mb-2">Your Current Plan:</div>
+
+                <div class="mb-2">
+                  <strong>Daily Budget:</strong> {{ budgetStore.budgetNumber.the_number.toFixed(2) }}
+                </div>
+                <div v-if="budgetStore.budgetNumber.days_remaining" class="mb-2">
+                  <strong>Lasts For:</strong> {{ Math.floor(budgetStore.budgetNumber.days_remaining) }} days
+                  ({{ (budgetStore.budgetNumber.days_remaining / 30).toFixed(1) }} months)
+                </div>
+
+                <v-divider class="my-3"></v-divider>
+                <div class="text-caption text-medium-emphasis mb-2">Alternative View:</div>
+
+                <div v-if="budgetStore.budgetNumber.total_expenses" class="text-body-2 text-medium-emphasis">
+                  If you spent {{ (budgetStore.budgetNumber.total_expenses / 30).toFixed(2) }}/day
+                  (monthly expenses), it would last {{ Math.floor((budgetStore.budgetNumber.total_money || 0) / ((budgetStore.budgetNumber.total_expenses || 1) / 30)) }} days
+                </div>
+              </template>
             </v-card-text>
           </v-card>
         </v-col>
@@ -145,6 +193,7 @@ const budgetStore = useBudgetStore()
 
 const spendingAmount = ref(0)
 const spendingDescription = ref('')
+const transactionType = ref<'in' | 'out'>('out')
 
 const recentTransactions = computed(() =>
   budgetStore.transactions.slice(0, 5)
@@ -179,14 +228,25 @@ async function recordSpending() {
   if (spendingAmount.value <= 0 || !spendingDescription.value) return
 
   try {
-    await budgetStore.recordTransaction({
-      amount: spendingAmount.value,
-      description: spendingDescription.value,
-    })
+    if (transactionType.value === 'out') {
+      // Regular spending transaction
+      await budgetStore.recordTransaction({
+        amount: spendingAmount.value,
+        description: spendingDescription.value,
+      })
+    } else {
+      // Money In - add to total pool (fixed pool mode only)
+      // For now, we'll record it as a negative transaction to increase the pool
+      // TODO: Backend needs an endpoint to add money to fixed pool
+      await budgetStore.recordTransaction({
+        amount: -spendingAmount.value,  // Negative = adding money
+        description: `💰 Money In: ${spendingDescription.value}`,
+      })
+    }
     spendingAmount.value = 0
     spendingDescription.value = ''
   } catch (e) {
-    console.error('Failed to record spending:', e)
+    console.error('Failed to record transaction:', e)
   }
 }
 
@@ -206,29 +266,81 @@ onMounted(() => {
 .dashboard {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 24px;
+  padding: var(--spacing-md);
 }
 
 .hero-section {
   text-align: center;
-  padding: 60px 20px 40px;
-  margin-bottom: 40px;
+  padding: var(--spacing-xl) var(--spacing-md) var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  background: linear-gradient(135deg,
+    var(--color-sage-green) 0%,
+    rgba(233, 245, 219, 0.7) 100%);
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(74, 95, 122, 0.08);
 }
 
 .hero-title {
-  font-size: 4rem;
-  font-weight: bold;
-  color: white;
-  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
-  margin-bottom: 16px;
-  font-family: 'Scope One', serif;
+  font-size: clamp(3rem, 6vw, 4.5rem);
+  font-weight: 400;
+  color: var(--color-soft-charcoal);
+  margin-bottom: var(--spacing-sm);
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
 }
 
 .hero-subtitle {
-  font-size: 2rem;
-  color: rgba(255, 255, 255, 0.9);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  font-family: 'Scope One', serif;
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  color: var(--color-text-secondary);
+  font-family: var(--font-display);
   font-style: italic;
+  font-weight: 400;
+}
+
+/* Card styling to match brand */
+:deep(.v-card) {
+  background-color: white;
+  border: 1px solid rgba(233, 245, 219, 0.3);
+  border-radius: 12px;
+  transition: all var(--transition-base) var(--transition-ease);
+}
+
+:deep(.v-card:hover) {
+  border-color: var(--color-sage-green);
+  box-shadow: 0 8px 24px rgba(135, 152, 106, 0.12);
+}
+
+:deep(.v-card-title) {
+  font-family: var(--font-display);
+  color: var(--color-text-primary);
+  font-weight: 400;
+}
+
+:deep(.v-btn) {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+
+/* Primary button styling */
+:deep(.v-btn--variant-elevated) {
+  background-color: var(--color-sage-green) !important;
+  color: var(--color-soft-charcoal) !important;
+}
+
+:deep(.v-btn--variant-elevated:hover) {
+  background-color: #d4e8c4 !important;
+}
+
+/* Error/Success button colors */
+:deep(.v-btn.bg-error) {
+  background-color: var(--color-terracotta) !important;
+  color: white !important;
+}
+
+:deep(.v-btn.bg-success) {
+  background-color: var(--color-success) !important;
+  color: white !important;
 }
 </style>

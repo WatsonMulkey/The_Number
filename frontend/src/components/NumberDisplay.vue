@@ -76,61 +76,60 @@ const spendingPercentage = computed(() => {
 .number-display {
   max-width: 800px;
   margin: 0 auto;
+  background: linear-gradient(135deg,
+    var(--color-sage-green) 0%,
+    rgba(233, 245, 219, 0.85) 100%);
+  border-radius: 24px;
+  padding: var(--spacing-xl) !important;
+  box-shadow: 0 8px 32px rgba(135, 152, 106, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .display-text {
-  font-family: 'Scope One', serif;
-  font-size: 2.5rem;
-  color: white;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  color: var(--color-text-secondary);
+  font-weight: 400;
+  letter-spacing: -0.01em;
 }
 
 .the-number {
-  font-family: 'Scope One', serif;
-  font-size: 150px;
-  font-weight: bold;
-  color: white;
-  text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
+  font-family: var(--font-display);
+  font-size: clamp(5rem, 12vw, 9.375rem);
+  font-weight: 400;
+  color: var(--color-soft-charcoal);
   line-height: 1;
-  transition: color 0.3s ease;
+  transition: color var(--transition-base) var(--transition-ease);
+  letter-spacing: -0.03em;
 }
 
 .the-number.over-budget {
-  color: #ff5252;
+  color: var(--color-terracotta);
 }
 
 .subtitle-text {
-  font-family: 'Scope One', serif;
-  font-size: 1.5rem;
-  color: white;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  font-family: var(--font-ui);
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: var(--color-text-secondary);
+  font-weight: 500;
 }
 
-@media (max-width: 960px) {
-  .the-number {
-    font-size: 100px;
-  }
-
-  .display-text {
-    font-size: 2rem;
-  }
-
-  .subtitle-text {
-    font-size: 1.2rem;
-  }
+/* Today's spending card styling */
+:deep(.v-card) {
+  background-color: white;
+  border: 1px solid rgba(233, 245, 219, 0.4);
+  border-radius: 12px;
 }
 
-@media (max-width: 600px) {
-  .the-number {
-    font-size: 80px;
-  }
+:deep(.v-progress-linear) {
+  border-radius: 4px;
+}
 
-  .display-text {
-    font-size: 1.5rem;
-  }
+:deep(.v-progress-linear.bg-success) {
+  background-color: rgba(135, 152, 106, 0.2) !important;
+}
 
-  .subtitle-text {
-    font-size: 1rem;
-  }
+:deep(.v-progress-linear__determinate) {
+  background-color: var(--color-success) !important;
 }
 </style>

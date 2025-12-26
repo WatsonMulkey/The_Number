@@ -1,0 +1,189 @@
+---
+// Header component with fixed positioning and glass morphism effect
+---
+
+<header class="site-header">
+  <div class="header-container">
+    <div class="logo">
+      <span class="logo-foil">FOIL</span>
+      <span class="logo-industries">Industries</span>
+    </div>
+  </div>
+</header>
+
+<!-- Vertical Sidebar Navigation (Desktop Only) -->
+<nav class="sidebar-nav" aria-label="Main navigation">
+  <ul>
+    <li><a href="#hero">Home</a></li>
+    <li><a href="#solutions">Solutions</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<style>
+  .site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 90px;
+    background-color: rgba(43, 46, 51, 0.92);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border-bottom: 1px solid rgba(74, 95, 122, 0.2);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Subtle accent bar at bottom of header */
+  .site-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(74, 95, 122, 0.4) 30%,
+      rgba(74, 95, 122, 0.6) 50%,
+      rgba(74, 95, 122, 0.4) 70%,
+      transparent 100%);
+  }
+
+  .header-container {
+    width: 100%;
+    padding: 0 5%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    font-size: 30px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: -0.015em;
+    display: flex;
+    gap: 8px;
+  }
+
+  .logo-foil {
+    color: var(--color-mustard);
+  }
+
+  .logo-industries {
+    color: var(--color-off-white);
+  }
+
+  /* Vertical Sidebar Navigation */
+  .sidebar-nav {
+    position: fixed;
+    left: 5%;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    display: none; /* Hidden on mobile */
+  }
+
+  .sidebar-nav ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+  }
+
+  .sidebar-nav a {
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: rgba(209, 209, 209, 0.7);
+    position: relative;
+    transition: all var(--transition-base) ease;
+    display: block;
+  }
+
+  .sidebar-nav a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--color-mustard);
+    transition: width var(--transition-base) ease;
+  }
+
+  .sidebar-nav a:hover,
+  .sidebar-nav a:focus-visible {
+    color: var(--color-mustard);
+    opacity: 1;
+  }
+
+  .sidebar-nav a:hover::after,
+  .sidebar-nav a:focus-visible::after {
+    width: 70%;
+  }
+
+  /* Active state (set via JavaScript) */
+  .sidebar-nav a.active {
+    color: var(--color-mustard);
+    opacity: 1;
+    font-weight: 700;
+  }
+
+  .sidebar-nav a.active::after {
+    width: 70%;
+  }
+
+  /* Show vertical nav on desktop */
+  @media (min-width: 1024px) {
+    .sidebar-nav {
+      display: block;
+    }
+  }
+
+  /* Mobile adjustments */
+  @media (max-width: 1023px) {
+    .site-header {
+      height: 70px;
+    }
+
+    .logo {
+      font-size: 24px;
+    }
+  }
+</style>
+
+<script>
+  // Add active state to navigation based on scroll position
+  document.addEventListener('DOMContentLoaded', () => {
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.sidebar-nav a');
+
+    function updateActiveNav() {
+      const scrollY = window.scrollY + 100;
+
+      sections.forEach((section) => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.offsetHeight;
+        const sectionId = section.getAttribute('id');
+
+        if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
+          navLinks.forEach((link) => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === `#${sectionId}`) {
+              link.classList.add('active');
+            }
+          });
+        }
+      });
+    }
+
+    window.addEventListener('scroll', updateActiveNav);
+    updateActiveNav(); // Initial call
+  });
+</script>
