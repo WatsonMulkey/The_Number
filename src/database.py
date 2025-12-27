@@ -470,7 +470,10 @@ class EncryptedDatabase:
             conn.commit()
 
     def get_total_spending_today(self, user_id: int) -> float:
-        """Get total spending for today for a specific user."""
+        """
+        Get total spending for today for a specific user.
+        Excludes income transactions (category='income').
+        """
         today = datetime.now().date().isoformat()
 
         with sqlite3.connect(self.db_path) as conn:
@@ -478,7 +481,9 @@ class EncryptedDatabase:
             cursor.execute("""
                 SELECT SUM(amount) as total
                 FROM transactions
-                WHERE user_id = ? AND DATE(date) = DATE(?)
+                WHERE user_id = ?
+                  AND DATE(date) = DATE(?)
+                  AND (category IS NULL OR category != 'income')
             """, (user_id, today))
             result = cursor.fetchone()
             return result[0] if result[0] else 0.0

@@ -184,12 +184,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useBudgetStore } from '@/stores/budget'
+import { useAuthStore } from '@/stores/auth'
 import NumberDisplay from '@/components/NumberDisplay.vue'
 import Onboarding from '@/components/Onboarding.vue'
 
 const budgetStore = useBudgetStore()
+const authStore = useAuthStore()
 
 const spendingAmount = ref(0)
 const spendingDescription = ref('')
@@ -201,6 +203,12 @@ const recentTransactions = computed(() =>
 
 async function loadDashboard() {
   console.log('📊 loadDashboard called')
+  console.log('🔑 Auth state:', {
+    isAuthenticated: authStore.isAuthenticated,
+    hasToken: !!authStore.token,
+    hasUser: !!authStore.user
+  })
+
   try {
     // Try to fetch the budget number
     console.log('📊 Fetching budget number...')
@@ -215,8 +223,21 @@ async function loadDashboard() {
       console.log('⚠️ No budget number - onboarding should show')
     }
   } catch (e: any) {
+    // Handle authentication errors
+    if (e.response?.status === 401) {
+      console.error('❌ Authentication failed - token may be invalid or expired')
+      console.log('🔑 Checking stored auth...')
+      const storedToken = localStorage.getItem('auth_token')
+      const storedUser = localStorage.getItem('user')
+      console.log('🔑 LocalStorage:', { hasToken: !!storedToken, hasUser: !!storedUser })
+
+      // Try to re-authenticate
+      await authStore.checkAuth()
+
+      budgetStore.error = 'Please log in again to continue'
+    }
     // If not configured, clear the error so onboarding shows
-    if (e.response?.status === 400 || e.response?.status === 500) {
+    else if (e.response?.status === 400 || e.response?.status === 500) {
       budgetStore.error = null
       console.log('⚠️ Cleared error to show onboarding')
     }
@@ -233,14 +254,14 @@ async function recordSpending() {
       await budgetStore.recordTransaction({
         amount: spendingAmount.value,
         description: spendingDescription.value,
+        category: 'expense'
       })
     } else {
-      // Money In - add to total pool (fixed pool mode only)
-      // For now, we'll record it as a negative transaction to increase the pool
-      // TODO: Backend needs an endpoint to add money to fixed pool
+      // Money In - record as positive amount with income category
       await budgetStore.recordTransaction({
-        amount: -spendingAmount.value,  // Negative = adding money
-        description: `💰 Money In: ${spendingDescription.value}`,
+        amount: spendingAmount.value,  // Positive amount
+        description: spendingDescription.value,
+        category: 'income'
       })
     }
     spendingAmount.value = 0
@@ -259,6 +280,16 @@ async function onOnboardingComplete() {
 
 onMounted(() => {
   loadDashboard()
+})
+
+// Watch for authentication changes and reload dashboard when user logs in
+watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
+  console.log('🔐 Auth state changed:', { isAuthenticated, wasAuthenticated })
+  // If user just logged in (wasn't authenticated before, is now)
+  if (isAuthenticated && !wasAuthenticated) {
+    console.log('✅ User just logged in - reloading dashboard')
+    loadDashboard()
+  }
 })
 </script>
 

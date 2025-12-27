@@ -70,18 +70,25 @@ class BudgetCalculator:
         return sum(expense.amount for expense in self.expenses)
 
     def get_today_spending(self) -> float:
-        """Get total spending for today."""
+        """
+        Get total spending for today.
+        Excludes income transactions (category='income').
+        """
         today = datetime.now().date()
         return sum(
             t.amount for t in self.transactions
-            if t.date.date() == today
+            if t.date.date() == today and t.category != 'income'
         )
 
     def get_period_spending(self, start_date: datetime, end_date: datetime) -> float:
-        """Get total spending between two dates."""
+        """
+        Get total spending between two dates.
+        Excludes income transactions (category='income').
+        """
         return sum(
             t.amount for t in self.transactions
             if start_date.date() <= t.date.date() <= end_date.date()
+               and t.category != 'income'
         )
 
     def calculate_paycheck_mode(self, monthly_income: float, days_until_paycheck: int) -> Dict[str, float]:
@@ -123,25 +130,27 @@ class BudgetCalculator:
             "mode": "paycheck"
         }
 
-    def calculate_fixed_pool_mode(self, total_money: float) -> Dict[str, float]:
+    def calculate_fixed_pool_mode(self, total_money: float,
+                                  target_end_date: Optional[datetime] = None,
+                                  daily_spending_limit: Optional[float] = None) -> Dict:
         """
-        Calculate how long a fixed amount of money will last with current expenses.
+        Calculate fixed pool budget with two options:
+        - Option B: Last until a specific date (provide target_end_date)
+        - Option C: Spend X per day (provide daily_spending_limit)
 
         Args:
             total_money: Total amount of money available
+            target_end_date: Optional target date to make money last until (Option B)
+            daily_spending_limit: Optional daily spending limit to enforce (Option C)
 
         Returns:
-            Dictionary with:
-                - total_money: Total money available
-                - total_expenses: Sum of monthly expenses
-                - months_remaining: How many months the money will last
-                - days_remaining: How many days the money will last
-                - daily_limit: Recommended daily spending limit
+            Dictionary with budget calculations for both options
         """
         if total_money < 0:
             raise ValueError("Total money cannot be negative")
 
         total_expenses = self.get_total_expenses()
+        today = datetime.now().date()  # Use date() to strip time and timezone
 
         # Handle zero money case
         if total_money <= 0:
@@ -155,26 +164,102 @@ class BudgetCalculator:
                 "mode": "fixed_pool"
             }
 
-        # Calculate how long the money will last
-        if total_expenses > 0:
-            months_remaining = total_money / total_expenses
-            days_remaining = months_remaining * 30  # Approximate
-            daily_limit = total_money / days_remaining if days_remaining > 0 else 0
+        # Option B: Calculate daily budget to last until target date
+        if target_end_date:
+            # Convert target_end_date to date object to handle timezone-aware datetimes
+            target_date = target_end_date.date() if hasattr(target_end_date, 'date') else target_end_date
+            days_until_target = (target_date - today).days
+            if days_until_target <= 0:
+                raise ValueError("Target end date must be in the future")
+
+            # Calculate daily portion of monthly expenses
+            daily_expense_rate = total_expenses / 30
+
+            # Money available after accounting for expenses over the period
+            total_expenses_for_period = daily_expense_rate * days_until_target
+            remaining_money = total_money - total_expenses_for_period
+
+            # Divide by days to get daily spending limit
+            daily_limit_option_b = max(0, remaining_money / days_until_target)
+            months_remaining_b = days_until_target / 30
+
+            # Also calculate Option C alternative (if they spent monthly expenses instead)
+            if total_expenses > 0:
+                daily_expense_rate = total_expenses / 30
+                days_if_spending_expenses = total_money / daily_expense_rate
+                end_date_option_c = today + timedelta(days=days_if_spending_expenses)
+            else:
+                days_if_spending_expenses = float('inf')
+                end_date_option_c = None
+
+            return {
+                "total_money": total_money,
+                "total_expenses": total_expenses,
+                "daily_limit": daily_limit_option_b,
+                "target_end_date": target_end_date.isoformat(),
+                "days_remaining": days_until_target,
+                "months_remaining": months_remaining_b,
+                "alt_daily_expenses": total_expenses / 30 if total_expenses > 0 else 0,
+                "alt_end_date": end_date_option_c.isoformat() if end_date_option_c else None,
+                "alt_days_remaining": days_if_spending_expenses,
+                "mode": "fixed_pool",
+                "calculation_mode": "target_date"
+            }
+
+        # Option C: Calculate how long it will last at a specific daily limit
+        elif daily_spending_limit is not None:
+            if daily_spending_limit <= 0:
+                raise ValueError("Daily spending limit must be positive")
+
+            days_it_will_last = total_money / daily_spending_limit
+            end_date = today + timedelta(days=days_it_will_last)
+            months_remaining = days_it_will_last / 30
+
+            # Also calculate Option B alternative
+            if total_expenses > 0:
+                daily_expense_rate = total_expenses / 30
+                days_based_on_expenses = total_money / daily_expense_rate
+                alt_daily_limit = total_money / days_based_on_expenses if days_based_on_expenses > 0 else 0
+            else:
+                days_based_on_expenses = float('inf')
+                alt_daily_limit = 0
+
+            return {
+                "total_money": total_money,
+                "total_expenses": total_expenses,
+                "daily_limit": daily_spending_limit,
+                "end_date": end_date.isoformat(),
+                "days_remaining": days_it_will_last,
+                "months_remaining": months_remaining,
+                "alt_daily_limit": alt_daily_limit,
+                "alt_days_remaining": days_based_on_expenses,
+                "mode": "fixed_pool",
+                "calculation_mode": "daily_limit"
+            }
+
+        # Fallback: No option specified, calculate based on monthly expenses
         else:
-            # No expenses, money lasts forever (theoretically)
-            months_remaining = float('inf')
-            days_remaining = float('inf')
-            daily_limit = 0
+            if total_expenses > 0:
+                months_remaining = total_money / total_expenses
+                days_remaining = months_remaining * 30
+                daily_limit = total_money / days_remaining if days_remaining > 0 else 0
+                end_date = today + timedelta(days=days_remaining)
+            else:
+                months_remaining = float('inf')
+                days_remaining = float('inf')
+                daily_limit = 0
+                end_date = None
 
-        return {
-            "total_money": total_money,
-            "total_expenses": total_expenses,
-            "months_remaining": months_remaining,
-            "days_remaining": days_remaining,
-            "daily_limit": daily_limit,
-            "mode": "fixed_pool"
-        }
-
+            return {
+                "total_money": total_money,
+                "total_expenses": total_expenses,
+                "months_remaining": months_remaining,
+                "days_remaining": days_remaining,
+                "daily_limit": daily_limit,
+                "end_date": end_date.isoformat() if end_date else None,
+                "mode": "fixed_pool",
+                "calculation_mode": "expenses_based"
+            }
     def get_number(self, mode: str, **kwargs) -> float:
         """
         Get "The Number" - the daily spending limit.
