@@ -14,6 +14,10 @@ from fastapi.responses import FileResponse
 from typing import List, Optional
 from dotenv import load_dotenv
 
+# Load environment variables FIRST - before any imports that depend on them
+env_path = Path(__file__).parent.parent / ".env"
+load_dotenv(env_path)
+
 # Add parent directory to path to import existing backend
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -29,10 +33,6 @@ from api.models import (
 from api.auth import (
     hash_password, verify_password, create_access_token, get_current_user_id, check_rate_limit
 )
-
-# Load environment variables
-env_path = Path(__file__).parent.parent / ".env"
-load_dotenv(env_path)
 
 # Create FastAPI app
 app = FastAPI(
@@ -51,6 +51,24 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Startup validation for required environment variables
+@app.on_event("startup")
+async def validate_environment():
+    """Validate that all required environment variables are set."""
+    required_vars = ["DB_ENCRYPTION_KEY", "JWT_SECRET_KEY"]
+    missing = [var for var in required_vars if not os.getenv(var)]
+
+    if missing:
+        error_msg = (
+            f"Missing required environment variables: {', '.join(missing)}\n"
+            f"Copy .env.example to .env and fill in all values.\n"
+            f"See SETUP_GUIDE.md for instructions."
+        )
+        raise RuntimeError(error_msg)
+
+    print("Environment validation passed - DB_ENCRYPTION_KEY and JWT_SECRET_KEY configured")
 
 
 # Dependency: Get database instance
@@ -84,8 +102,23 @@ async def root():
 # Health check
 @app.get("/health")
 async def health_check():
-    """Health check endpoint."""
-    return {"status": "healthy"}
+    """
+    Health check endpoint.
+
+    Verifies that critical environment variables are configured.
+    """
+    # Verify critical env vars exist
+    has_db_key = bool(os.getenv("DB_ENCRYPTION_KEY"))
+    has_jwt_key = bool(os.getenv("JWT_SECRET_KEY"))
+
+    # Determine overall status
+    is_healthy = has_db_key and has_jwt_key
+
+    return {
+        "status": "healthy" if is_healthy else "degraded",
+        "encryption_configured": has_db_key,
+        "auth_configured": has_jwt_key
+    }
 
 
 # ============================================================================
@@ -148,10 +181,21 @@ async def get_the_number(
         today_spending = db.get_total_spending_today(user_id)
         remaining_today = result["daily_limit"] - today_spending
 
+        import sys
+        sys.stderr.write(f"\n{'='*60}\n")
+        sys.stderr.write(f"[DEBUG] Budget calculation for user {user_id}:\n")
+        sys.stderr.write(f"  - Mode: {budget_mode}\n")
+        sys.stderr.write(f"  - Daily limit: {result['daily_limit']}\n")
+        sys.stderr.write(f"  - Today's spending: {today_spending}\n")
+        sys.stderr.write(f"  - Remaining today: {remaining_today}\n")
+        sys.stderr.write(f"{'='*60}\n\n")
+        sys.stderr.flush()
+
         return BudgetNumberResponse(
-            the_number=result["daily_limit"],
+            the_number=remaining_today,
             mode=budget_mode,
             total_income=result.get("total_income"),
+            total_money=result.get("total_money"),
             total_expenses=result.get("total_expenses", result.get("monthly_expenses", 0)),
             remaining_money=result.get("remaining_money"),
             days_remaining=result.get("days_remaining"),
@@ -179,6 +223,7 @@ async def configure_budget(
     Configure budget mode and settings for the authenticated user.
     Requires authentication.
     """
+    print(f"[DEBUG] configure_budget called for user_id={user_id}, mode={config.mode}")
     try:
         # Validate configuration based on mode
         if config.mode == "paycheck":
@@ -692,6 +737,103 @@ async def logout():
     This endpoint exists for consistency and future server-side logout logic.
     """
     return {"message": "Logged out successfully"}
+
+
+# ============================================================================
+# ADMIN / BACKUP ENDPOINTS
+# ============================================================================
+
+@app.post("/api/admin/backup")
+async def create_backup(user_id: int = Depends(get_current_user_id)):
+    """
+    Create a manual database backup.
+
+    Creates a timestamped backup in the backups/manual directory.
+    Requires authentication.
+    """
+    import sqlite3
+    import shutil
+    from datetime import datetime
+    from pathlib import Path as PathLib
+
+    try:
+        # Use absolute paths from the file location
+        api_dir = PathLib(__file__).parent
+        project_root = api_dir.parent
+
+        db_path = api_dir / "budget.db"
+        backup_dir = project_root / "backups" / "manual"
+
+        # Create backup directory if needed
+        backup_dir.mkdir(parents=True, exist_ok=True)
+
+        # Generate timestamped backup filename
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_name = f"budget_backup_{timestamp}.db"
+        backup_path = backup_dir / backup_name
+
+        # Create backup using SQLite's backup API
+        src = sqlite3.connect(str(db_path))
+        dst = sqlite3.connect(str(backup_path))
+
+        with dst:
+            src.backup(dst)
+
+        src.close()
+        dst.close()
+
+        return {
+            "success": True,
+            "backup_path": str(backup_path),
+            "backup_filename": backup_name,
+            "created_at": datetime.now().isoformat()
+        }
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Backup failed: {str(e)}"
+        )
+
+
+@app.get("/api/admin/backups")
+async def list_backups(user_id: int = Depends(get_current_user_id)):
+    """
+    List all available database backups.
+
+    Returns backups from both manual and automatic directories,
+    sorted by creation time (newest first).
+    """
+    from pathlib import Path
+    from datetime import datetime
+
+    # Use absolute path to backups directory
+    backup_root = Path(__file__).parent.parent / "backups"
+    if not backup_root.exists():
+        return {"backups": []}
+
+    all_backups = []
+
+    # Scan both manual and automatic directories
+    for subdir in ["manual", "automatic"]:
+        subdir_path = backup_root / subdir
+        if subdir_path.exists():
+            for backup in subdir_path.glob("budget_backup_*.db"):
+                stat = backup.stat()
+                all_backups.append({
+                    "filename": backup.name,
+                    "path": str(backup),
+                    "type": subdir,
+                    "size": stat.st_size,
+                    "created_at": datetime.fromtimestamp(stat.st_mtime).isoformat()
+                })
+
+    # Sort by creation time (newest first)
+    all_backups.sort(key=lambda b: b["created_at"], reverse=True)
+
+    # Limit to most recent 20
+    return {"backups": all_backups[:20]}
 
 
 # ============================================================================

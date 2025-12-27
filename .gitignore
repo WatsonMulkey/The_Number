@@ -27,6 +27,7 @@ wheels/
 *.db
 *.sqlite
 *.sqlite3
+backups/
 
 # Environment variables
 .env
@@ -50,3 +51,10 @@ htmlcov/
 # Logs
 *.log
 monomythism-website/
+
+# Unrelated projects (not part of The Number app)
+foil-*/
+resume-tailor/
+temp-*/
+output/
+workflow init/

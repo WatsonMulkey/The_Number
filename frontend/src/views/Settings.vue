@@ -2,7 +2,17 @@
   <div class="settings">
     <h1 class="text-h3 mb-6">Budget Settings</h1>
 
-    <v-card elevation="2" class="mb-6">
+    <!-- Loading Spinner -->
+    <div v-if="loading" class="text-center py-8">
+      <v-progress-circular
+        indeterminate
+        color="primary"
+        size="64"
+      ></v-progress-circular>
+      <p class="text-body-1 mt-4">Loading settings...</p>
+    </div>
+
+    <v-card v-else elevation="2" class="mb-6">
       <v-card-title>Configure Budget Mode</v-card-title>
       <v-card-text>
         <v-form @submit.prevent="saveBudgetConfig">
@@ -130,7 +140,7 @@
     </v-card>
 
     <!-- Current Config Display -->
-    <v-card v-if="currentConfig" elevation="2">
+    <v-card v-if="!loading && currentConfig" elevation="2" class="mb-6">
       <v-card-title>Current Configuration</v-card-title>
       <v-card-text>
         <v-list density="compact">
@@ -174,6 +184,46 @@
       </v-card-text>
     </v-card>
 
+    <!-- Backup Management -->
+    <v-card v-if="!loading" elevation="2">
+      <v-card-title>Database Backup</v-card-title>
+      <v-card-text>
+        <p class="text-body-2 text-medium-emphasis mb-4">
+          Create backups of your budget data to prevent data loss. Backups include all expenses, transactions, and settings.
+        </p>
+
+        <v-btn
+          color="primary"
+          size="large"
+          :loading="creatingBackup"
+          @click="createBackup"
+          class="mb-4"
+        >
+          Create Backup Now
+        </v-btn>
+
+        <!-- Recent Backups List -->
+        <div v-if="backups.length > 0">
+          <p class="text-subtitle-1 font-weight-medium mb-2">Recent Backups</p>
+          <v-list density="compact">
+            <v-list-item
+              v-for="backup in backups"
+              :key="backup.filename"
+              class="backup-item"
+            >
+              <v-list-item-title>{{ backup.filename }}</v-list-item-title>
+              <v-list-item-subtitle>
+                {{ new Date(backup.created_at).toLocaleString() }} • {{ formatFileSize(backup.size) }} • {{ backup.type }}
+              </v-list-item-subtitle>
+            </v-list-item>
+          </v-list>
+        </div>
+        <p v-else class="text-body-2 text-medium-emphasis">
+          No backups found. Create your first backup to secure your data.
+        </p>
+      </v-card-text>
+    </v-card>
+
     <!-- Success Snackbar -->
     <v-snackbar
       v-model="showSuccess"
@@ -198,6 +248,7 @@
 import { ref, onMounted } from 'vue'
 import { budgetApi } from '@/services/api'
 import { useBudgetStore } from '@/stores/budget'
+import axios from 'axios'
 
 const budgetStore = useBudgetStore()
 
@@ -212,10 +263,14 @@ const config = ref({
 })
 
 const currentConfig = ref<any>(null)
-const loading = ref(false)
+const loading = ref(true)  // Start as true to show loading state initially
 const showSuccess = ref(false)
 const showError = ref(false)
 const errorMessage = ref('')
+
+// Backup management state
+const backups = ref<any[]>([])
+const creatingBackup = ref(false)
 
 async function loadCurrentConfig() {
   try {
@@ -234,6 +289,8 @@ async function loadCurrentConfig() {
     }
   } catch (e: any) {
     console.error('Failed to load config:', e)
+  } finally {
+    loading.value = false  // Set loading to false when config is loaded
   }
 }
 
@@ -271,8 +328,50 @@ async function saveBudgetConfig() {
   }
 }
 
+// Backup management functions
+async function loadBackups() {
+  try {
+    const token = localStorage.getItem('token')
+    const response = await axios.get('http://localhost:8000/api/admin/backups', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    backups.value = response.data.backups
+  } catch (e) {
+    console.error('Failed to load backups:', e)
+  }
+}
+
+async function createBackup() {
+  creatingBackup.value = true
+  showError.value = false
+
+  try {
+    const token = localStorage.getItem('token')
+    const response = await axios.post('http://localhost:8000/api/admin/backup', {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    showSuccess.value = true
+    // Temporarily store backup success message
+    const backupMsg = `Backup created: ${response.data.backup_filename}`
+    console.log(backupMsg)
+    await loadBackups()
+  } catch (e: any) {
+    showError.value = true
+    errorMessage.value = e.response?.data?.detail || 'Failed to create backup'
+  } finally {
+    creatingBackup.value = false
+  }
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
 onMounted(() => {
   loadCurrentConfig()
+  loadBackups()
 })
 </script>
 
