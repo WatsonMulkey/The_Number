@@ -63,14 +63,21 @@ import ErrorBoundary from './components/ErrorBoundary.vue'
   --transition-ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Typography Hierarchy */
+/* Typography Hierarchy - Simplified */
 * {
   font-family: var(--font-ui);
 }
 
-h1, h2, h3, h4, h5, h6 {
+/* ONLY use display font for h1 - everything else uses Inter */
+h1 {
   font-family: var(--font-display) !important;
   font-weight: 400;
+  color: var(--color-text-primary);
+}
+
+h2, h3, h4, h5, h6 {
+  font-family: var(--font-ui) !important;
+  font-weight: 600;
   color: var(--color-text-primary);
 }
 

@@ -86,17 +86,15 @@ const spendingPercentage = computed(() => {
 }
 
 .display-text {
-  font-family: var(--font-display);
   font-size: clamp(1.75rem, 4vw, 2.5rem);
   color: var(--color-text-secondary);
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: -0.01em;
 }
 
 .the-number {
-  font-family: var(--font-display);
   font-size: clamp(5rem, 12vw, 9.375rem);
-  font-weight: 400;
+  font-weight: 700;
   color: var(--color-soft-charcoal);
   line-height: 1;
   transition: color var(--transition-base) var(--transition-ease);
@@ -108,7 +106,6 @@ const spendingPercentage = computed(() => {
 }
 
 .subtitle-text {
-  font-family: var(--font-ui);
   font-size: clamp(1rem, 2vw, 1.25rem);
   color: var(--color-text-secondary);
   font-weight: 500;

@@ -396,9 +396,7 @@ onMounted(() => {
 
 /* Page title styling */
 h1 {
-  font-family: var(--font-display);
   color: var(--color-text-primary);
-  font-weight: 400;
 }
 
 /* Card styling */
@@ -415,15 +413,13 @@ h1 {
 }
 
 :deep(.v-card-title) {
-  font-family: var(--font-display);
   color: var(--color-text-primary);
-  font-weight: 400;
+  font-weight: 600;
   font-size: 1.5rem;
 }
 
 /* Button styling */
 :deep(.v-btn) {
-  font-family: var(--font-ui);
   font-weight: 600;
   text-transform: none;
 }
@@ -431,19 +427,6 @@ h1 {
 :deep(.v-btn.bg-primary) {
   background-color: var(--color-sage-green) !important;
   color: var(--color-soft-charcoal) !important;
-}
-
-/* Form elements */
-:deep(.v-text-field) {
-  font-family: var(--font-ui);
-}
-
-:deep(.v-radio) {
-  font-family: var(--font-ui);
-}
-
-:deep(.v-label) {
-  font-family: var(--font-ui);
 }
 
 /* Active radio button */

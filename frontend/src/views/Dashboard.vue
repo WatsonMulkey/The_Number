@@ -328,14 +328,12 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
   font-weight: 400;
   color: var(--color-soft-charcoal);
   margin-bottom: var(--spacing-sm);
-  font-family: var(--font-display);
   letter-spacing: -0.02em;
 }
 
 .hero-subtitle {
   font-size: clamp(1.25rem, 3vw, 1.75rem);
   color: var(--color-text-secondary);
-  font-family: var(--font-display);
   font-style: italic;
   font-weight: 400;
 }
@@ -354,13 +352,11 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
 }
 
 :deep(.v-card-title) {
-  font-family: var(--font-display);
   color: var(--color-text-primary);
-  font-weight: 400;
+  font-weight: 600;
 }
 
 :deep(.v-btn) {
-  font-family: var(--font-ui);
   font-weight: 600;
   text-transform: none;
   letter-spacing: 0.01em;

@@ -177,7 +177,6 @@ function handleAuthSuccess() {
 .user-avatar {
   background-color: var(--color-sage-green) !important;
   color: var(--color-soft-charcoal) !important;
-  font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 600;
 }
 </style>

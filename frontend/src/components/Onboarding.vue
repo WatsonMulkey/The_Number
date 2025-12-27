@@ -284,7 +284,7 @@
       <!-- Step 3: Add Expenses -->
       <div v-else-if="currentStep === 3">
         <h2 class="text-h4 mb-3 text-center">Add Your Monthly Expenses</h2>
-        <p class="text-h6 text-center text-medium-emphasis mb-4">
+        <p class="text-h6 text-center mb-4" style="color: var(--color-soft-charcoal);">
           Add expenses that you MUST pay each month (rent, utilities, bills, etc.)
         </p>
 
