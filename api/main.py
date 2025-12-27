@@ -7,12 +7,20 @@ wrapping the existing Python backend (database.py, calculator.py).
 
 import os
 import sys
+import logging
 from pathlib import Path
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from typing import List, Optional
 from dotenv import load_dotenv
+
+# Configure logging
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO"),
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 # Load environment variables FIRST - before any imports that depend on them
 env_path = Path(__file__).parent.parent / ".env"
@@ -70,7 +78,7 @@ async def validate_environment():
         )
         raise RuntimeError(error_msg)
 
-    print("Environment validation passed - DB_ENCRYPTION_KEY and JWT_SECRET_KEY configured")
+    logger.info("Environment validation passed - encryption and auth configured")
 
 
 # Dependency: Get database instance
@@ -215,7 +223,7 @@ async def configure_budget(
     Configure budget mode and settings for the authenticated user.
     Requires authentication.
     """
-    print(f"[DEBUG] configure_budget called for user_id={user_id}, mode={config.mode}")
+    logger.info(f"Budget configured for user {user_id} in {config.mode} mode")
     try:
         # Validate configuration based on mode
         if config.mode == "paycheck":
