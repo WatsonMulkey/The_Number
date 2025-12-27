@@ -113,9 +113,9 @@ Context: [Tool versions, environment, related info]
 Tags: #error #[category] #[tool-name]
 ```
 
-### 4. Add to BEST_PRACTICES.md (If Applicable)
+### 4. Add to docs/BEST_PRACTICES.md (If Applicable)
 
-For common or important errors, consider adding to the "Common Pitfalls" section of BEST_PRACTICES.md to make them more discoverable.
+For common or important errors, consider adding to the "Common Pitfalls" section of docs/BEST_PRACTICES.md to make them more discoverable.
 
 ## Output Format
 
@@ -124,7 +124,7 @@ Provide a brief confirmation:
 ```
 ✅ Error lesson captured: [Error Type]
 - Stored in supermemory with tags: #error #[category]
-- [Added to BEST_PRACTICES.md / Skipped - duplicate found]
+- [Added to docs/BEST_PRACTICES.md / Skipped - duplicate found]
 ```
 
 ## Examples

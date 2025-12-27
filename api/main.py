@@ -192,7 +192,7 @@ async def get_the_number(
         remaining_today = result["daily_limit"] - today_spending
 
         return BudgetNumberResponse(
-            the_number=remaining_today,
+            the_number=result["daily_limit"],
             mode=budget_mode,
             total_income=result.get("total_income"),
             total_money=result.get("total_money"),

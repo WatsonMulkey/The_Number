@@ -9,7 +9,7 @@ Before beginning or resuming work on this project, review the comprehensive best
 
 ## Instructions
 
-1. Read the BEST_PRACTICES.md file in the project root
+1. Read the docs/BEST_PRACTICES.md file in the project
 2. Identify which sections are most relevant to the current task:
    - AI Integration (for resume generation, AI-powered features)
    - API Design (for backend work)
@@ -39,6 +39,6 @@ Provide a brief summary (3-5 bullet points) of the most relevant best practices 
 - Known pitfalls to avoid
 - Security considerations (if relevant)
 - Testing requirements (if relevant)
-- Links to specific sections in BEST_PRACTICES.md
+- Links to specific sections in docs/BEST_PRACTICES.md
 
 Keep the review concise and actionable - focus on what's immediately relevant to the current work.

@@ -6,7 +6,7 @@
     <v-row class="mb-6">
       <v-col cols="12" md="4">
         <v-card elevation="2" class="pa-4 text-center">
-          <div class="text-h4">{{ todayTotal.toFixed(2) }}</div>
+          <div class="text-h4">${{ todayTotal.toFixed(2) }}</div>
           <div class="text-body-2 text-medium-emphasis">Today</div>
         </v-card>
       </v-col>
@@ -18,7 +18,7 @@
       </v-col>
       <v-col cols="12" md="4">
         <v-card elevation="2" class="pa-4 text-center">
-          <div class="text-h4">{{ allTimeTotal.toFixed(2) }}</div>
+          <div class="text-h4">${{ allTimeTotal.toFixed(2) }}</div>
           <div class="text-body-2 text-medium-emphasis">All Time</div>
         </v-card>
       </v-col>

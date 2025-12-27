@@ -10,49 +10,112 @@
     <!-- Progress Indicator -->
     <v-card-text class="text-center py-1" v-if="currentStep > 0">
       <v-chip size="small" color="primary">
-        Step {{ currentStep }} of 4
+        Step {{ currentStep }} of 5
       </v-chip>
     </v-card-text>
 
     <v-card-text class="pa-6">
-      <!-- Step 0: Welcome Screen -->
+      <!-- Step 0: Welcome + Account Creation -->
       <div v-if="currentStep === 0">
-        <div class="text-center">
+        <div class="text-center mb-6">
           <v-icon size="100" color="primary" class="mb-3">mdi-currency-usd</v-icon>
           <h2 class="text-h3 mb-3">Welcome to The Number!</h2>
           <p class="text-h5 text-medium-emphasis mb-4">
-            Let's set up your daily budget in just 4 quick steps
+            Let's set up your daily budget in just 5 quick steps
           </p>
-
-          <v-list class="text-left mb-6 mx-auto" max-width="500">
-            <v-list-item>
-              <template v-slot:prepend>
-                <v-icon color="primary">mdi-numeric-1-circle</v-icon>
-              </template>
-              <v-list-item-title>Choose your budgeting style</v-list-item-title>
-            </v-list-item>
-            <v-list-item>
-              <template v-slot:prepend>
-                <v-icon color="primary">mdi-numeric-2-circle</v-icon>
-              </template>
-              <v-list-item-title>Enter your income or available money</v-list-item-title>
-            </v-list-item>
-            <v-list-item>
-              <template v-slot:prepend>
-                <v-icon color="primary">mdi-numeric-3-circle</v-icon>
-              </template>
-              <v-list-item-title>Add your monthly expenses</v-list-item-title>
-            </v-list-item>
-            <v-list-item>
-              <template v-slot:prepend>
-                <v-icon color="primary">mdi-numeric-4-circle</v-icon>
-              </template>
-              <v-list-item-title>See your daily spending limit!</v-list-item-title>
-            </v-list-item>
-          </v-list>
-
-          <p class="text-body-1 mb-4">This will only take about 2 minutes.</p>
         </div>
+
+        <!-- Account Creation Section -->
+        <v-card class="max-w-700 mx-auto pa-6 mb-6" elevation="3" color="white">
+          <h3 class="text-h5 mb-4 text-center">Create an Account</h3>
+
+          <v-alert type="info" variant="tonal" class="mb-4">
+            <div class="text-body-2">
+              Create an account to save your budget history and make The Number easier to use.
+              If you would like, you can enter an email address for password resetting, <strong>BUT you can use
+              The Number without entering any personally identifiable information</strong>.
+            </div>
+            <div class="text-body-2 mt-3">
+              While we take data and security very seriously, we are also only interested in helping
+              you budget, not selling your info to 3rd parties.
+            </div>
+            <div class="text-body-2 mt-3">
+              At the end of the setup process, you can download a budget file that you can use
+              elsewhere, or use to reload your budget information.
+            </div>
+          </v-alert>
+
+          <v-form ref="accountForm" @submit.prevent="createAccount">
+            <v-text-field
+              v-model="username"
+              label="Username"
+              variant="outlined"
+              :rules="[rules.required, rules.username]"
+              required
+              class="mb-3"
+              hint="Required - Choose a unique username"
+              persistent-hint
+            />
+
+            <v-text-field
+              v-model="email"
+              label="Email (Optional)"
+              variant="outlined"
+              :rules="email ? [rules.email] : []"
+              type="email"
+              class="mb-3"
+              hint="Optional - Only needed for password reset"
+              persistent-hint
+            />
+
+            <v-text-field
+              v-model="password"
+              label="Password"
+              variant="outlined"
+              :rules="[rules.required, rules.minPassword]"
+              type="password"
+              required
+              class="mb-3"
+              hint="At least 8 characters"
+              persistent-hint
+            />
+
+            <v-text-field
+              v-model="confirmPassword"
+              label="Confirm Password"
+              variant="outlined"
+              :rules="[rules.required, v => v === password || 'Passwords must match']"
+              type="password"
+              required
+              class="mb-4"
+            />
+
+            <v-alert v-if="accountError" type="error" class="mb-4">
+              {{ accountError }}
+            </v-alert>
+
+            <div class="text-center">
+              <v-btn
+                type="submit"
+                color="primary"
+                size="large"
+                :loading="creatingAccount"
+                class="px-8"
+              >
+                Create Account & Continue
+              </v-btn>
+            </div>
+          </v-form>
+
+          <v-divider class="my-4" />
+
+          <div class="text-center">
+            <p class="text-body-2 mb-2">Already have an account?</p>
+            <v-btn variant="text" @click="showLoginDialog = true">
+              Login Instead
+            </v-btn>
+          </div>
+        </v-card>
       </div>
 
       <!-- Step 1: Choose Budget Mode -->
@@ -287,6 +350,35 @@
         <p class="text-h6 text-center mb-4" style="color: var(--color-soft-charcoal);">
           Add expenses that you MUST pay each month (rent, utilities, bills, etc.)
         </p>
+
+        <!-- Import from Spreadsheet -->
+        <div class="text-center mb-4">
+          <v-btn
+            variant="outlined"
+            color="primary"
+            @click="triggerFileInput"
+            prepend-icon="mdi-upload"
+          >
+            Import from Spreadsheet (CSV/Excel)
+          </v-btn>
+          <input
+            ref="fileInput"
+            type="file"
+            accept=".csv,.xlsx"
+            style="display: none"
+            @change="handleFileImport"
+          />
+          <p class="text-caption text-medium-emphasis mt-2">
+            Or add expenses manually below
+          </p>
+        </div>
+
+        <v-alert v-if="importSuccess" type="success" class="mb-4 max-w-600 mx-auto">
+          {{ importSuccess }}
+        </v-alert>
+        <v-alert v-if="importError" type="error" class="mb-4 max-w-600 mx-auto">
+          {{ importError }}
+        </v-alert>
 
         <!-- Add Expense Form -->
         <v-card variant="outlined" class="mb-4 pa-4 max-w-600 mx-auto">
@@ -556,16 +648,34 @@
 import { ref, computed } from 'vue'
 import { budgetApi } from '@/services/api'
 import { useValidation } from '@/composables/useValidation'
+import { useAuthStore } from '@/stores/auth'
+import axios from 'axios'
 
 const emit = defineEmits(['complete'])
 const { rules } = useValidation()
+const authStore = useAuthStore()
 
 // Form refs
 const detailsForm = ref<any>(null)
 const expenseForm = ref<any>(null)
+const accountForm = ref<any>(null)
+const fileInput = ref<HTMLInputElement | null>(null)
 
-// Current step (0 = welcome, 1-4 = steps)
+// Current step (0 = account creation, 1-4 = setup steps)
 const currentStep = ref(0)
+
+// Account creation
+const username = ref('')
+const email = ref('')
+const password = ref('')
+const confirmPassword = ref('')
+const creatingAccount = ref(false)
+const accountError = ref('')
+const showLoginDialog = ref(false)
+
+// Import/Export
+const importSuccess = ref('')
+const importError = ref('')
 
 // Budget Mode
 const budgetMode = ref<'paycheck' | 'fixed_pool'>('paycheck')
@@ -720,6 +830,84 @@ async function addExpense() {
 
 function removeExpense(index: number) {
   expenses.value.splice(index, 1)
+}
+
+async function createAccount() {
+  // Validate form before submitting
+  const { valid } = await accountForm.value.validate()
+  if (!valid) return
+
+  creatingAccount.value = true
+  accountError.value = ''
+
+  try {
+    // Call auth store register method
+    await authStore.register(
+      username.value,
+      password.value,
+      email.value || undefined
+    )
+
+    // On success, advance to step 1
+    currentStep.value = 1
+  } catch (err: any) {
+    accountError.value = err.response?.data?.detail || 'Failed to create account'
+  } finally {
+    creatingAccount.value = false
+  }
+}
+
+function triggerFileInput() {
+  fileInput.value?.click()
+}
+
+async function handleFileImport(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+
+  if (!file) return
+
+  // Clear previous messages
+  importSuccess.value = ''
+  importError.value = ''
+
+  try {
+    // Validate file type
+    const validTypes = [
+      'text/csv',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ]
+
+    if (!validTypes.includes(file.type) && !file.name.endsWith('.csv') && !file.name.endsWith('.xlsx')) {
+      importError.value = 'Invalid file type. Please upload a CSV or Excel file.'
+      return
+    }
+
+    // Upload file to API (replace=false to append to existing expenses)
+    const response = await budgetApi.importExpenses(file, false)
+
+    // Handle success
+    const data = response.data
+    if (data.imported_count > 0) {
+      importSuccess.value = `Successfully imported ${data.imported_count} expense(s)!`
+
+      // Add imported expenses to the list
+      if (data.expenses && Array.isArray(data.expenses)) {
+        expenses.value.push(...data.expenses)
+      }
+    }
+
+    // Show any errors that occurred during import
+    if (data.errors && data.errors.length > 0) {
+      importError.value = `${data.errors.length} row(s) failed to import. ${data.errors[0]}`
+    }
+
+    // Clear the file input so the same file can be uploaded again if needed
+    input.value = ''
+  } catch (err: any) {
+    importError.value = err.response?.data?.detail || 'Failed to import expenses'
+  }
 }
 
 function prevStep() {

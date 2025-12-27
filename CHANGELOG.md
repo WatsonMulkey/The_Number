@@ -10,8 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.0] - 2025-12-16
 
 ### Added
-- Comprehensive codebase review (CODEBASE_REVIEW.md)
-- Comprehensive test plan (TEST_PLAN.md)
+- Comprehensive codebase review (docs/CODEBASE_REVIEW.md)
+- Comprehensive test plan (docs/TEST_PLAN.md)
 - Semantic versioning system
 - Frontend environment variable configuration (.env, .env.example)
 

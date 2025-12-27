@@ -10,5 +10,6 @@ uvicorn[standard]==0.38.0
 pydantic==2.12.5
 python-jose[cryptography]==3.5.0
 passlib==1.7.4
+bcrypt==4.3.0  # Required by passlib, v5.0+ incompatible
 python-multipart==0.0.20
 slowapi==0.1.9
