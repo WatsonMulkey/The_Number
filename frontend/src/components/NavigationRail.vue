@@ -91,12 +91,15 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useBudgetStore } from '@/stores/budget'
 import AuthModal from './AuthModal.vue'
 
 const $route = useRoute()
+const $router = useRouter()
 const authStore = useAuthStore()
+const budgetStore = useBudgetStore()
 const showAuthModal = ref(false)
 
 onMounted(async () => {
@@ -106,6 +109,12 @@ onMounted(async () => {
 
 async function handleLogout() {
   await authStore.logout()
+
+  // Clear budget store data
+  budgetStore.$reset()
+
+  // Reload the page to ensure all cached data is cleared
+  window.location.reload()
 }
 
 function handleAuthSuccess() {
