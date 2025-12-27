@@ -247,6 +247,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useValidation } from '@/composables/useValidation'
 import { authApi } from '@/services/api'
 
 const props = defineProps<{
@@ -259,6 +260,7 @@ const emit = defineEmits<{
 }>()
 
 const authStore = useAuthStore()
+const { rules } = useValidation()
 
 // Modal state
 const isOpen = ref(props.modelValue)
@@ -282,21 +284,16 @@ const resetLoading = ref(false)
 const resetError = ref('')
 const resetSuccess = ref('')
 
-// Validation rules
-const usernameRules = [
-  (v: string) => !!v || 'Username is required',
-  (v: string) => v.length >= 3 || 'Username must be at least 3 characters',
-  (v: string) => /^[a-zA-Z0-9_-]+$/.test(v) || 'Username can only contain letters, numbers, hyphens, and underscores'
-]
+// Validation rules - using common validation composable
+const usernameRules = [rules.username]
 
 const emailRules = [
   (v: string) => !v || /.+@.+\..+/.test(v) || 'Email must be valid'
 ]
 
-const loginPasswordRules = [
-  (v: string) => !!v || 'Password is required'
-]
+const loginPasswordRules = [rules.required]
 
+// Strong password requirements for registration and reset
 const registerPasswordRules = [
   (v: string) => !!v || 'Password is required',
   (v: string) => v.length >= 8 || 'Password must be at least 8 characters',

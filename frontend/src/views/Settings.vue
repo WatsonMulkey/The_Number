@@ -15,7 +15,7 @@
     <v-card v-else elevation="2" class="mb-6">
       <v-card-title>Configure Budget Mode</v-card-title>
       <v-card-text>
-        <v-form @submit.prevent="saveBudgetConfig">
+        <v-form ref="budgetConfigForm" @submit.prevent="saveBudgetConfig">
           <!-- Mode Selection -->
           <v-radio-group v-model="config.mode" class="mb-4">
             <v-radio
@@ -53,6 +53,7 @@
               type="number"
               label="Monthly Income"
               variant="outlined"
+              :rules="[rules.positive]"
               required
               class="mb-4"
             />
@@ -61,6 +62,7 @@
               type="number"
               label="Days Until Next Paycheck"
               variant="outlined"
+              :rules="[rules.positiveInteger]"
               required
               class="mb-4"
             />
@@ -73,6 +75,7 @@
               type="number"
               label="Total Money Available"
               variant="outlined"
+              :rules="[rules.nonNegative]"
               required
               class="mb-4"
             />
@@ -121,6 +124,7 @@
               type="number"
               label="Daily Spending Limit"
               variant="outlined"
+              :rules="[rules.positive]"
               required
               class="mb-4"
               hint="How much do you want to limit yourself to per day?"
@@ -248,9 +252,13 @@
 import { ref, onMounted } from 'vue'
 import { budgetApi } from '@/services/api'
 import { useBudgetStore } from '@/stores/budget'
+import { useValidation } from '@/composables/useValidation'
 import axios from 'axios'
 
 const budgetStore = useBudgetStore()
+const { rules } = useValidation()
+
+const budgetConfigForm = ref()
 
 const config = ref({
   mode: 'paycheck' as 'paycheck' | 'fixed_pool',
@@ -295,6 +303,10 @@ async function loadCurrentConfig() {
 }
 
 async function saveBudgetConfig() {
+  // Validate form before submitting
+  const { valid } = await budgetConfigForm.value.validate()
+  if (!valid) return
+
   loading.value = true
   showError.value = false
 

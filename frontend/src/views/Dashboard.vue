@@ -50,7 +50,7 @@
           <v-card elevation="2" class="pa-4">
             <v-card-title class="text-h6">Record Transaction</v-card-title>
             <v-card-text>
-              <v-form @submit.prevent="recordSpending">
+              <v-form ref="transactionForm" @submit.prevent="recordSpending">
                 <!-- Money In/Out Toggle -->
                 <div class="mb-4">
                   <v-btn-toggle
@@ -76,13 +76,17 @@
                   type="number"
                   label="Amount"
                   variant="outlined"
-                  :rules="[v => v > 0 || 'Amount must be positive']"
+                  :rules="[rules.positive]"
+                  required
                   class="mb-2"
                 />
                 <v-text-field
                   v-model="spendingDescription"
                   :label="transactionType === 'out' ? 'What did you spend on?' : 'Source of income'"
                   variant="outlined"
+                  :rules="[rules.required, rules.maxLength(200)]"
+                  counter="200"
+                  required
                   class="mb-2"
                   :placeholder="transactionType === 'out' ? 'e.g., Groceries' : 'e.g., Freelance work'"
                 />
@@ -187,12 +191,15 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useBudgetStore } from '@/stores/budget'
 import { useAuthStore } from '@/stores/auth'
+import { useValidation } from '@/composables/useValidation'
 import NumberDisplay from '@/components/NumberDisplay.vue'
 import Onboarding from '@/components/Onboarding.vue'
 
 const budgetStore = useBudgetStore()
 const authStore = useAuthStore()
+const { rules } = useValidation()
 
+const transactionForm = ref()
 const spendingAmount = ref(0)
 const spendingDescription = ref('')
 const transactionType = ref<'in' | 'out'>('out')
@@ -246,7 +253,9 @@ async function loadDashboard() {
 }
 
 async function recordSpending() {
-  if (spendingAmount.value <= 0 || !spendingDescription.value) return
+  // Validate form before submitting
+  const { valid } = await transactionForm.value.validate()
+  if (!valid) return
 
   try {
     if (transactionType.value === 'out') {
@@ -264,8 +273,11 @@ async function recordSpending() {
         category: 'income'
       })
     }
+
+    // Reset form and clear validation
     spendingAmount.value = 0
     spendingDescription.value = ''
+    transactionForm.value.resetValidation()
   } catch (e) {
     console.error('Failed to record transaction:', e)
   }

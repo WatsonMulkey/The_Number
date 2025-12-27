@@ -6,13 +6,15 @@
     <v-card class="mb-6" elevation="2">
       <v-card-title>Add New Expense</v-card-title>
       <v-card-text>
-        <v-form @submit.prevent="addExpense">
+        <v-form ref="expenseForm" @submit.prevent="addExpense">
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
                 v-model="newExpense.name"
                 label="Expense Name"
                 variant="outlined"
+                :rules="[rules.required, rules.maxLength(100)]"
+                counter="100"
                 required
               />
             </v-col>
@@ -22,6 +24,7 @@
                 type="number"
                 label="Monthly Amount"
                 variant="outlined"
+                :rules="[rules.positive]"
                 required
               />
             </v-col>
@@ -96,9 +99,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useBudgetStore } from '@/stores/budget'
+import { useValidation } from '@/composables/useValidation'
 
 const budgetStore = useBudgetStore()
+const { rules } = useValidation()
 
+const expenseForm = ref()
 const newExpense = ref({
   name: '',
   amount: 0,
@@ -117,27 +123,22 @@ const totalExpenses = computed(() => {
 })
 
 async function addExpense() {
-  console.log('💰 addExpense called')
-  console.log('💰 newExpense:', newExpense.value)
-
-  if (!newExpense.value.name || newExpense.value.amount <= 0) {
-    console.log('❌ Validation failed - name or amount invalid')
-    console.log('  Name:', newExpense.value.name)
-    console.log('  Amount:', newExpense.value.amount)
-    return
-  }
+  // Validate form before submitting
+  const { valid } = await expenseForm.value.validate()
+  if (!valid) return
 
   try {
-    console.log('💰 Calling budgetStore.addExpense...')
     await budgetStore.addExpense({ ...newExpense.value })
-    console.log('✅ Expense added successfully')
+
+    // Reset form and clear validation
     newExpense.value = {
       name: '',
       amount: 0,
       is_fixed: true,
     }
+    expenseForm.value.resetValidation()
   } catch (e) {
-    console.error('❌ Failed to add expense:', e)
+    console.error('Failed to add expense:', e)
   }
 }
 
