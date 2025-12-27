@@ -99,6 +99,7 @@ class BudgetNumberResponse(BaseModel):
     the_number: float = Field(..., description="Daily spending limit")
     mode: str = Field(..., description="Current budget mode")
     total_income: Optional[float] = Field(None, description="Total monthly income (paycheck mode)")
+    total_money: Optional[float] = Field(None, description="Total money available (fixed_pool mode)")
     total_expenses: Optional[float] = Field(None, description="Total monthly expenses")
     remaining_money: Optional[float] = Field(None, description="Money remaining after expenses")
     days_remaining: Optional[float] = Field(None, description="Days remaining in budget period")
@@ -191,3 +192,26 @@ class TokenResponse(BaseModel):
     access_token: str = Field(..., description="JWT access token")
     token_type: str = Field(default="bearer", description="Token type")
     user: UserResponse = Field(..., description="User information")
+
+
+class ForgotPasswordRequest(BaseModel):
+    """Request model for forgot password."""
+    username: str = Field(..., min_length=3, description="Username for password reset")
+
+
+class ForgotPasswordResponse(BaseModel):
+    """Response model for forgot password."""
+    reset_token: str = Field(..., description="Password reset token")
+    message: str = Field(..., description="Instructions for password reset")
+    expires_in: int = Field(..., description="Token expiration time in seconds")
+
+
+class ResetPasswordRequest(BaseModel):
+    """Request model for reset password."""
+    reset_token: str = Field(..., description="Password reset token")
+    new_password: str = Field(..., min_length=8, description="New password (min 8 characters)")
+
+
+class ResetPasswordResponse(BaseModel):
+    """Response model for reset password."""
+    message: str = Field(..., description="Success message")

@@ -91,6 +91,70 @@ def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depends(secu
 
 
 # ============================================================================
+# PASSWORD RESET
+# ============================================================================
+
+# Simple in-memory password reset token storage (use Redis for production)
+# Format: {token: {username: str, expires: datetime}}
+_reset_tokens: Dict[str, dict] = {}
+
+def generate_reset_token(username: str) -> str:
+    """
+    Generate a password reset token for a user.
+
+    Args:
+        username: The username requesting password reset
+
+    Returns:
+        A secure random token string
+    """
+    token = secrets.token_urlsafe(32)
+    expires = datetime.utcnow() + timedelta(hours=1)  # Token valid for 1 hour
+
+    _reset_tokens[token] = {
+        "username": username,
+        "expires": expires
+    }
+
+    return token
+
+
+def verify_reset_token(token: str) -> Optional[str]:
+    """
+    Verify a password reset token and return the username if valid.
+
+    Args:
+        token: The reset token to verify
+
+    Returns:
+        Username if token is valid, None otherwise
+    """
+    if token not in _reset_tokens:
+        return None
+
+    token_data = _reset_tokens[token]
+
+    # Check if token has expired
+    if datetime.utcnow() > token_data["expires"]:
+        # Clean up expired token
+        del _reset_tokens[token]
+        return None
+
+    return token_data["username"]
+
+
+def invalidate_reset_token(token: str) -> None:
+    """
+    Invalidate a reset token after it's been used.
+
+    Args:
+        token: The reset token to invalidate
+    """
+    if token in _reset_tokens:
+        del _reset_tokens[token]
+
+
+# ============================================================================
 # RATE LIMITING
 # ============================================================================
 

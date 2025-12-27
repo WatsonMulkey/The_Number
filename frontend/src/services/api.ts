@@ -105,4 +105,33 @@ export const budgetApi = {
   deleteTransaction: (id: number) => api.delete(`/api/transactions/${id}`),
 }
 
+// Password reset types
+export interface ForgotPasswordRequest {
+  username: string
+}
+
+export interface ForgotPasswordResponse {
+  reset_token: string
+  message: string
+  expires_in: number
+}
+
+export interface ResetPasswordRequest {
+  reset_token: string
+  new_password: string
+}
+
+export interface ResetPasswordResponse {
+  message: string
+}
+
+// Password reset API
+export const authApi = {
+  forgotPassword: (data: ForgotPasswordRequest) =>
+    api.post<ForgotPasswordResponse>('/api/auth/forgot-password', data),
+
+  resetPassword: (data: ResetPasswordRequest) =>
+    api.post<ResetPasswordResponse>('/api/auth/reset-password', data),
+}
+
 export default api

@@ -28,10 +28,12 @@ from src.export_expenses import export_to_csv, export_to_excel
 from api.models import (
     ExpenseCreate, ExpenseResponse, TransactionCreate, TransactionResponse,
     BudgetModeConfig, BudgetNumberResponse, ImportExpensesResponse, ErrorResponse,
-    UserRegister, UserLogin, UserResponse, TokenResponse
+    UserRegister, UserLogin, UserResponse, TokenResponse,
+    ForgotPasswordRequest, ForgotPasswordResponse, ResetPasswordRequest, ResetPasswordResponse
 )
 from api.auth import (
-    hash_password, verify_password, create_access_token, get_current_user_id, check_rate_limit
+    hash_password, verify_password, create_access_token, get_current_user_id, check_rate_limit,
+    generate_reset_token, verify_reset_token, invalidate_reset_token
 )
 
 # Create FastAPI app
@@ -180,16 +182,6 @@ async def get_the_number(
         # Get today's spending
         today_spending = db.get_total_spending_today(user_id)
         remaining_today = result["daily_limit"] - today_spending
-
-        import sys
-        sys.stderr.write(f"\n{'='*60}\n")
-        sys.stderr.write(f"[DEBUG] Budget calculation for user {user_id}:\n")
-        sys.stderr.write(f"  - Mode: {budget_mode}\n")
-        sys.stderr.write(f"  - Daily limit: {result['daily_limit']}\n")
-        sys.stderr.write(f"  - Today's spending: {today_spending}\n")
-        sys.stderr.write(f"  - Remaining today: {remaining_today}\n")
-        sys.stderr.write(f"{'='*60}\n\n")
-        sys.stderr.flush()
 
         return BudgetNumberResponse(
             the_number=remaining_today,
@@ -737,6 +729,85 @@ async def logout():
     This endpoint exists for consistency and future server-side logout logic.
     """
     return {"message": "Logged out successfully"}
+
+
+@app.post("/api/auth/forgot-password", response_model=ForgotPasswordResponse)
+async def forgot_password(
+    request: Request,
+    forgot_request: ForgotPasswordRequest
+):
+    """
+    Request a password reset token.
+
+    Generates a password reset token for the given username.
+    The token is valid for 1 hour.
+
+    Rate limited to prevent abuse.
+    """
+    # Apply rate limiting
+    check_rate_limit(request, max_requests=5, window_seconds=300)  # 5 requests per 5 minutes
+
+    # Verify username exists
+    db = EncryptedDatabase()
+    user = db.get_user_by_username(forgot_request.username)
+
+    if not user:
+        # Don't reveal if username exists or not (security best practice)
+        # Return success even if user doesn't exist
+        pass
+
+    # Generate reset token
+    reset_token = generate_reset_token(forgot_request.username)
+
+    return ForgotPasswordResponse(
+        reset_token=reset_token,
+        message="Password reset token generated. Use this token to reset your password within 1 hour.",
+        expires_in=3600  # 1 hour in seconds
+    )
+
+
+@app.post("/api/auth/reset-password", response_model=ResetPasswordResponse)
+async def reset_password(
+    request: Request,
+    reset_request: ResetPasswordRequest
+):
+    """
+    Reset password using a reset token.
+
+    Validates the reset token and updates the user's password.
+    The token is invalidated after successful password reset.
+    """
+    # Verify reset token
+    username = verify_reset_token(reset_request.reset_token)
+
+    if not username:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token"
+        )
+
+    # Update password
+    db = EncryptedDatabase()
+    user = db.get_user_by_username(username)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Hash new password
+    hashed_password = hash_password(reset_request.new_password)
+
+    # Update password in database
+    db.update_user_password(user["id"], hashed_password)
+
+    # Invalidate the reset token
+    invalidate_reset_token(reset_request.reset_token)
+
+    return ResetPasswordResponse(
+        message="Password has been reset successfully. You can now login with your new password."
+    )
 
 
 # ============================================================================

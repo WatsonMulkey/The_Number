@@ -585,6 +585,34 @@ class EncryptedDatabase:
                 }
             return None
 
+    def update_user_password(self, user_id: int, new_password_hash: str) -> None:
+        """
+        Update a user's password.
+
+        Args:
+            user_id: ID of the user
+            new_password_hash: New password hash
+
+        Raises:
+            ValueError: If user doesn't exist
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+
+            # Verify user exists
+            cursor.execute("SELECT id FROM users WHERE id = ?", (user_id,))
+            if not cursor.fetchone():
+                raise ValueError(f"User with ID {user_id} not found")
+
+            # Update password
+            cursor.execute("""
+                UPDATE users
+                SET password_hash = ?
+                WHERE id = ?
+            """, (new_password_hash, user_id))
+
+            conn.commit()
+
     def close(self) -> None:
         """Close database connection (cleanup)."""
         # SQLite connections are closed automatically with context managers
