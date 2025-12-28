@@ -55,8 +55,7 @@ htmlcov/
 *.log
 monomythism-website/
 
-# Unrelated projects (not part of The Number app)
-foil-*/
+# Unrelated projects
 resume-tailor/
 temp-*/
 output/
