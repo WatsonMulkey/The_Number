@@ -111,7 +111,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useBudgetStore } from '@/stores/budget'
-import { budgetApi } from '@/services/api'
+import { budgetApi, type Transaction } from '@/services/api'
 import { format } from 'date-fns'
 
 const budgetStore = useBudgetStore()
@@ -134,12 +134,12 @@ const headers = [
 const todayTotal = computed(() => {
   const today = new Date().toISOString().split('T')[0]
   return budgetStore.transactions
-    .filter(txn => txn.date.startsWith(today))
-    .reduce((sum, txn) => sum + txn.amount, 0)
+    .filter((txn: Transaction) => txn.date.startsWith(today))
+    .reduce((sum: number, txn: Transaction) => sum + txn.amount, 0)
 })
 
 const allTimeTotal = computed(() => {
-  return budgetStore.transactions.reduce((sum, txn) => sum + txn.amount, 0)
+  return budgetStore.transactions.reduce((sum: number, txn: Transaction) => sum + txn.amount, 0)
 })
 
 function formatDate(dateString: string) {
@@ -176,7 +176,7 @@ async function deleteTransaction(id: number) {
 
   try {
     await budgetApi.deleteTransaction(id)
-    budgetStore.transactions = budgetStore.transactions.filter(txn => txn.id !== id)
+    budgetStore.transactions = budgetStore.transactions.filter((txn: Transaction) => txn.id !== id)
   } catch (e) {
     console.error('Failed to delete transaction:', e)
   }

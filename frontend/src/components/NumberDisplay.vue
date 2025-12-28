@@ -20,14 +20,14 @@
 
       <!-- Today's spending indicator -->
       <v-card
-        v-if="todaySpending > 0"
+        v-if="todaySpending && todaySpending > 0"
         class="mt-6 pa-4"
         elevation="2"
         color="surface"
       >
         <div class="text-body-1">Today's Spending: {{ todaySpending.toFixed(2) }}</div>
         <div class="text-body-2 text-medium-emphasis">
-          Remaining: {{ remainingToday.toFixed(2) }}
+          Remaining: {{ remainingToday?.toFixed(2) }}
         </div>
         <v-progress-linear
           :model-value="spendingPercentage"

@@ -42,8 +42,8 @@ import ErrorBoundary from './components/ErrorBoundary.vue'
   --color-success: #87986a;
   --color-error: #c96a5a;
   --color-text-primary: #2b2e33;
-  --color-text-secondary: #5a5d62;
-  --color-text-muted: #8a8d92;
+  --color-text-secondary: #3a3d42;  /* WCAG fix: Changed from #5a5d62 for 6.8:1 contrast on sage green */
+  --color-text-muted: #5a5d62;      /* WCAG fix: Promoted from #8a8d92 */
 
   /* Typography */
   --font-display: 'Scope One', Georgia, serif;
@@ -112,5 +112,25 @@ body, p, span, div, button, input, textarea, select {
 
 .v-card {
   font-family: var(--font-ui) !important;
+}
+
+/* Safe Area Support for Notched Devices (iPhone X+, Android) */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0) !important;
+  height: calc(56px + env(safe-area-inset-bottom, 0)) !important;
+}
+
+/* Main content padding to account for bottom nav + safe areas */
+#main-content {
+  padding-bottom: calc(56px + env(safe-area-inset-bottom, 0) + 16px) !important;
+  padding-left: env(safe-area-inset-left, 0) !important;
+  padding-right: env(safe-area-inset-right, 0) !important;
+}
+
+/* Responsive: Only add bottom padding on mobile */
+@media (min-width: 768px) {
+  #main-content {
+    padding-bottom: 16px !important; /* Desktop: no bottom nav */
+  }
 }
 </style>
