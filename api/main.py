@@ -93,6 +93,11 @@ def get_db() -> EncryptedDatabase:
     Dependency that provides a database instance.
 
     Uses the encryption key from environment variables.
+
+    Database path priority:
+    1. DB_PATH environment variable
+    2. /data/budget.db (production - Fly.io persistent volume)
+    3. api/budget.db (development fallback)
     """
     encryption_key = os.getenv("DB_ENCRYPTION_KEY")
     if not encryption_key:
@@ -100,7 +105,18 @@ def get_db() -> EncryptedDatabase:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Database encryption key not configured"
         )
-    return EncryptedDatabase(encryption_key=encryption_key)
+
+    # Determine database path
+    db_path = os.getenv("DB_PATH")
+    if not db_path:
+        # Check if running in production (Fly.io has /data volume)
+        if Path("/data").exists():
+            db_path = "/data/budget.db"
+        else:
+            # Development: use local path
+            db_path = str(Path(__file__).parent / "budget.db")
+
+    return EncryptedDatabase(db_path=db_path, encryption_key=encryption_key)
 
 
 # Root endpoint

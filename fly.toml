@@ -1,0 +1,40 @@
+# Fly.io configuration for The Number Budget App
+# Learn more: https://fly.io/docs/reference/configuration/
+
+app = "the-number-budget"
+primary_region = "lax"  # Los Angeles (closest to you, change if needed)
+
+[build]
+  # Fly will automatically detect and use the Dockerfile
+
+[env]
+  # Non-sensitive environment variables
+  # LOG_LEVEL will default to INFO in api/main.py if not set
+  PORT = "8000"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "off"  # Keep running (free tier supports this)
+  auto_start_machines = true
+  min_machines_running = 1    # Always have 1 instance running
+
+  # Health check to ensure app is responding
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/health"
+
+[mounts]
+  # Persistent volume for SQLite database
+  # This ensures your database survives deployments
+  source = "the_number_data"
+  destination = "/data"
+  initial_size = "1gb"  # Start with 1GB (free tier allows 3GB total)
+
+[[vm]]
+  memory = "256mb"  # Free tier shared-cpu VM
+  cpu_kind = "shared"
+  cpus = 1
