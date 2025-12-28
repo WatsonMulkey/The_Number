@@ -133,4 +133,16 @@ body, p, span, div, button, input, textarea, select {
     padding-bottom: 16px !important; /* Desktop: no bottom nav */
   }
 }
+
+/* Phase 3.2: High-contrast focus indicators for accessibility */
+*:focus-visible {
+  outline: 3px solid var(--color-slate);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.v-btn:focus-visible {
+  outline: 2px solid var(--color-slate);
+  outline-offset: 2px;
+}
 </style>

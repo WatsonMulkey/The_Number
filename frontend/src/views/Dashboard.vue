@@ -462,11 +462,17 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
   overflow-y: auto;
 }
 
+/* Phase 3.1: Touch Target Enlargement */
 /* Slide Indicators */
 .slide-indicators {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.slide-indicators .v-btn {
+  min-width: 44px !important;
+  min-height: 44px !important;
 }
 
 /* Record Transaction Card */
@@ -531,6 +537,9 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
 }
 
 :deep(.v-btn--icon.v-btn--density-default) {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
   background-color: rgba(255, 255, 255, 0.8) !important;
   border: 1px solid var(--color-sage-green);
 }
