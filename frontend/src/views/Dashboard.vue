@@ -332,15 +332,22 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
 </script>
 
 <style scoped>
+/* Phase 2.1: Mobile-first responsive padding */
 .dashboard {
   max-width: 1400px;
   margin: 0 auto;
-  padding: var(--spacing-md);
+  padding: var(--spacing-sm); /* 16px on mobile */
+}
+
+@media (min-width: 768px) {
+  .dashboard {
+    padding: var(--spacing-md); /* 24px on desktop */
+  }
 }
 
 .hero-section {
   text-align: center;
-  padding: var(--spacing-xl) var(--spacing-md) var(--spacing-lg);
+  padding: var(--spacing-md) var(--spacing-sm); /* Reduced mobile padding */
   margin-bottom: var(--spacing-lg);
   background: linear-gradient(135deg,
     var(--color-sage-green) 0%,
@@ -349,8 +356,15 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
   box-shadow: 0 4px 16px rgba(74, 95, 122, 0.08);
 }
 
+@media (min-width: 768px) {
+  .hero-section {
+    padding: var(--spacing-xl) var(--spacing-md) var(--spacing-lg);
+  }
+}
+
+/* Phase 2.4: Responsive hero title (reduced min from 3rem to 2rem) */
 .hero-title {
-  font-size: clamp(3rem, 6vw, 4.5rem);
+  font-size: clamp(2rem, 6vw, 4.5rem);
   font-weight: 400;
   color: var(--color-soft-charcoal);
   margin-bottom: var(--spacing-sm);
@@ -364,17 +378,25 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
   font-weight: 400;
 }
 
-/* Carousel/Window styling */
+/* Phase 2.3: Responsive carousel height */
 .main-carousel {
   max-width: 800px;
   margin: 0 auto;
-  min-height: 500px;
+  min-height: 300px; /* Reduced from 500px for mobile */
+  max-height: 80vh;  /* Never taller than viewport */
+}
+
+@media (min-width: 768px) {
+  .main-carousel {
+    min-height: 450px;
+  }
 }
 
 /* Budget Details Card */
 .budget-details-card {
   max-width: 800px;
   margin: 0 auto;
+  padding: var(--spacing-md) !important; /* Mobile padding */
   background: linear-gradient(135deg,
     var(--color-sage-green) 0%,
     rgba(233, 245, 219, 0.85) 100%);
@@ -382,6 +404,12 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
   box-shadow: 0 8px 32px rgba(135, 152, 106, 0.15);
   border: 2px solid rgba(255, 255, 255, 0.3);
   min-height: 450px;
+}
+
+@media (min-width: 768px) {
+  .budget-details-card {
+    padding: var(--spacing-xl) !important; /* Desktop padding */
+  }
 }
 
 .detail-item {
@@ -413,6 +441,7 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
 .transactions-card {
   max-width: 800px;
   margin: 0 auto;
+  padding: var(--spacing-md) !important; /* Mobile padding */
   background: linear-gradient(135deg,
     var(--color-sage-green) 0%,
     rgba(233, 245, 219, 0.85) 100%);
@@ -420,6 +449,12 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
   box-shadow: 0 8px 32px rgba(135, 152, 106, 0.15);
   border: 2px solid rgba(255, 255, 255, 0.3);
   min-height: 450px;
+}
+
+@media (min-width: 768px) {
+  .transactions-card {
+    padding: var(--spacing-xl) !important; /* Desktop padding */
+  }
 }
 
 .transactions-list {
@@ -438,6 +473,7 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
 .record-transaction-card {
   max-width: 600px;
   margin: 0 auto;
+  padding: var(--spacing-md) !important; /* Consistent mobile padding */
   background-color: white;
   border: 1px solid rgba(233, 245, 219, 0.3);
   border-radius: 16px;
