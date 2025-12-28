@@ -142,7 +142,7 @@ class ErrorResponse(BaseModel):
 class UserRegister(BaseModel):
     """Request model for user registration."""
     username: str = Field(..., min_length=3, max_length=50, description="Username")
-    password: str = Field(..., min_length=6, description="Password (minimum 6 characters)")
+    password: str = Field(..., min_length=6, max_length=72, description="Password (6-72 characters)")
     email: Optional[str] = Field(None, max_length=100, description="Email (optional)")
 
     class Config:
@@ -209,7 +209,7 @@ class ForgotPasswordResponse(BaseModel):
 class ResetPasswordRequest(BaseModel):
     """Request model for reset password."""
     reset_token: str = Field(..., description="Password reset token")
-    new_password: str = Field(..., min_length=8, description="New password (min 8 characters)")
+    new_password: str = Field(..., min_length=8, max_length=72, description="New password (8-72 characters)")
 
 
 class ResetPasswordResponse(BaseModel):
