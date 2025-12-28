@@ -117,9 +117,21 @@ async function handleLogout() {
   window.location.reload()
 }
 
-function handleAuthSuccess() {
-  // Modal will close automatically
-  // You could add a success message here if desired
+async function handleAuthSuccess() {
+  // Navigate to dashboard to show onboarding for new users
+  // or refresh the number for existing users
+  await $router.push({ name: 'dashboard' })
+
+  // Try to fetch the budget number for existing users
+  // For new users, this will fail gracefully and show onboarding
+  if (authStore.isAuthenticated) {
+    try {
+      await budgetStore.fetchNumber()
+    } catch (e) {
+      // Ignore error - this is expected for new users
+      // The dashboard will show onboarding flow automatically
+    }
+  }
 }
 </script>
 

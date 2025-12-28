@@ -232,7 +232,7 @@ Use this to ensure you've tested all core features:
 
 ### Where to Get Help
 - **Support Channel**: [Discord/Slack link]
-- **Email**: your-email@example.com
+- **Email**: watson@foil.engineering
 - **Response Time**: Within 4 hours (usually faster)
 
 ### Office Hours

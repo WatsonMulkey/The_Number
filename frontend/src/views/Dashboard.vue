@@ -35,7 +35,7 @@
     <!-- Main Dashboard -->
     <div v-else>
       <!-- Swipeable Content Area -->
-      <v-window v-model="currentSlide" class="main-carousel mb-8" show-arrows>
+      <v-window v-model="currentSlide" class="main-carousel mb-8" show-arrows continuous>
         <!-- Slide 1: The Number Display -->
         <v-window-item :value="0">
           <NumberDisplay

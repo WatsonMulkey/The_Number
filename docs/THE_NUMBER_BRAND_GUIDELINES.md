@@ -809,7 +809,7 @@ Background: Always Warm White or Sage Green (never Charcoal—needs contrast)
 - Messaging: "Our first consumer app, built on our philosophy of radical simplicity"
 
 **Email/Support Communications**:
-- From: "The Number by FOIL Industries" <support@foilindustries.com>
+- From: "The Number by FOIL Industries" <watson@foil.engineering>
 - Email signature: The Number logo + small FOIL logo
 - Tone: Use The Number's conversational voice, sign off with FOIL credibility
 
@@ -1073,7 +1073,7 @@ Initial brand guidelines established. Covers core identity, color, typography, v
 - FOIL co-branding modifications
 - New product naming
 
-**Feedback & Questions**: design@foilindustries.com
+**Feedback & Questions**: watson@foil.engineering
 
 ---
 

@@ -1992,7 +1992,7 @@ xs: 8px, sm: 16px, md: 24px, lg: 40px, xl: 64px
 ## Contact & Governance
 
 **Design System Owner**: Watson Mulkey (FOIL Industries)
-**Email**: watson@foilindustries.com
+**Email**: watson@foil.engineering
 **Repository**: `foil-industries-v2/`
 
 **Approval Required For**:

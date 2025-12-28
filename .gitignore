@@ -39,6 +39,9 @@ backups/
 *.swo
 *~
 
+# Claude Code settings with API keys
+.claude/settings.local.json
+
 # OS
 .DS_Store
 Thumbs.db

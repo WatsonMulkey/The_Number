@@ -6,37 +6,55 @@ This script allows administrators to reset user passwords from the command line.
 It's useful for emergency password resets or initial user setup.
 
 Usage:
-    python reset_password.py <username> [--password <new_password>]
+    python reset_password.py
 
-Examples:
-    # Reset password with a specific password
-    python reset_password.py john_doe --password NewSecurePass123
+Interactive mode will prompt you for username and password.
 
-    # Generate a random password
-    python reset_password.py john_doe
+Requirements:
+    pip install passlib[bcrypt] python-dotenv cryptography
 """
 
-import argparse
-import hashlib
+import getpass
+import os
 import secrets
 import string
 import sqlite3
 import sys
 from pathlib import Path
 
+try:
+    from passlib.context import CryptContext
+except ImportError:
+    print("❌ Error: passlib not installed")
+    print("   Install it with: pip install passlib[bcrypt]")
+    sys.exit(1)
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    print("❌ Error: python-dotenv not installed")
+    print("   Install it with: pip install python-dotenv")
+    sys.exit(1)
+
+# Load environment variables
+load_dotenv()
+
+# Initialize bcrypt password context (MUST match api/auth.py)
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 
 def hash_password(password: str) -> str:
     """
-    Hash a password using SHA-256.
+    Hash a password using bcrypt.
     This matches the password hashing used in the API.
 
     Args:
         password: The plain text password to hash
 
     Returns:
-        The hexadecimal hash of the password
+        The bcrypt hash of the password
     """
-    return hashlib.sha256(password.encode()).hexdigest()
+    return pwd_context.hash(password)
 
 
 def generate_random_password(length: int = 16) -> str:
@@ -74,26 +92,30 @@ def generate_random_password(length: int = 16) -> str:
     return ''.join(password_list)
 
 
-def reset_user_password(username: str, new_password: str, db_path: str = "budget.db") -> bool:
+def reset_user_password(username: str, new_password: str) -> bool:
     """
     Reset a user's password in the database.
 
     Args:
         username: The username of the account to reset
         new_password: The new password (will be hashed before storage)
-        db_path: Path to the SQLite database file
 
     Returns:
         True if successful, False otherwise
     """
     try:
+        # Get database path from environment or use default
+        db_path = os.getenv("DB_PATH", "api/budget.db")
+
         # Check if database exists
         if not Path(db_path).exists():
             print(f"❌ Error: Database not found at {db_path}")
+            print(f"   Set DB_PATH in .env file if using a different location")
             return False
 
-        # Hash the new password
+        # Hash the new password using bcrypt
         hashed_password = hash_password(new_password)
+        print(f"   Password hash starts with: {hashed_password[:15]}...")
 
         # Connect to database
         conn = sqlite3.connect(db_path)
@@ -105,72 +127,67 @@ def reset_user_password(username: str, new_password: str, db_path: str = "budget
 
         if not user:
             print(f"❌ Error: User '{username}' not found in database")
+            print(f"\nAvailable users:")
+            cursor.execute("SELECT username FROM users")
+            for row in cursor.fetchall():
+                print(f"   - {row[0]}")
             conn.close()
             return False
 
         user_id, db_username = user
 
-        # Update password
+        # Update password (column name is 'hashed_password' not 'password_hash')
         cursor.execute(
-            "UPDATE users SET password_hash = ? WHERE id = ?",
+            "UPDATE users SET hashed_password = ? WHERE id = ?",
             (hashed_password, user_id)
         )
         conn.commit()
+
+        # Verify update
+        cursor.execute("SELECT hashed_password FROM users WHERE id = ?", (user_id,))
+        updated_hash = cursor.fetchone()[0]
+
         conn.close()
 
-        return True
+        if updated_hash == hashed_password:
+            print(f"   ✓ Database updated successfully")
+            return True
+        else:
+            print(f"   ❌ Database update verification failed")
+            return False
 
     except Exception as e:
         print(f"❌ Error resetting password: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 
 def main():
     """Main entry point for the password reset script."""
-    parser = argparse.ArgumentParser(
-        description="Reset user password for The Number Budget App",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  # Reset password with a specific password
-  python reset_password.py john_doe --password NewSecurePass123
+    print("=" * 50)
+    print("Password Reset Tool - The Number")
+    print("=" * 50)
+    print()
 
-  # Generate a random password
-  python reset_password.py john_doe
+    # Get username
+    username = input("Enter username: ").strip()
+    if not username:
+        print("❌ Error: Username cannot be empty")
+        sys.exit(1)
 
-  # Use custom database path
-  python reset_password.py john_doe --db /path/to/budget.db
-        """
-    )
+    # Get password (use getpass for security)
+    print("\nEnter new password (hidden for security)")
+    print("Requirements: 8+ chars, uppercase, lowercase, number")
+    new_password = getpass.getpass("New password: ")
+    confirm_password = getpass.getpass("Confirm password: ")
 
-    parser.add_argument(
-        "username",
-        help="Username of the account to reset"
-    )
-
-    parser.add_argument(
-        "-p", "--password",
-        help="New password (if not provided, a random password will be generated)",
-        default=None
-    )
-
-    parser.add_argument(
-        "-d", "--db",
-        help="Path to the database file (default: budget.db)",
-        default="budget.db"
-    )
-
-    args = parser.parse_args()
-
-    # Generate or use provided password
-    if args.password:
-        new_password = args.password
-        password_generated = False
-    else:
-        new_password = generate_random_password()
-        password_generated = True
+    if new_password != confirm_password:
+        print("❌ Error: Passwords do not match")
+        sys.exit(1)
 
     # Validate password requirements
+    print("\nValidating password...")
     if len(new_password) < 8:
         print("❌ Error: Password must be at least 8 characters long")
         sys.exit(1)
@@ -187,26 +204,21 @@ Examples:
         print("❌ Error: Password must contain at least one digit")
         sys.exit(1)
 
-    # Confirm reset
-    print(f"\n🔐 Password Reset for user: {args.username}")
-    print(f"   Database: {args.db}")
-
-    if password_generated:
-        print(f"   Generated password: {new_password}")
-
-    confirm = input("\nProceed with password reset? (yes/no): ")
-
-    if confirm.lower() not in ['yes', 'y']:
-        print("❌ Password reset cancelled")
-        sys.exit(0)
+    print("✓ Password meets requirements")
 
     # Reset password
-    if reset_user_password(args.username, new_password, args.db):
-        print(f"\n✅ Password reset successful for user: {args.username}")
-        if password_generated:
-            print(f"\n⚠️  IMPORTANT: Save this generated password securely:")
-            print(f"   {new_password}")
-            print("\n   This password will NOT be displayed again!")
+    print(f"\nUpdating password for user: {username}...")
+    if reset_user_password(username, new_password):
+        print(f"\n{'='*50}")
+        print("✅ Password updated successfully!")
+        print(f"{'='*50}")
+        print(f"\nThe user can now log in with:")
+        print(f"  Username: {username}")
+        print(f"  Password: (the password you just entered)")
+        print(f"\nRemember to:")
+        print(f"  1. Notify the user securely")
+        print(f"  2. Recommend they change their password immediately")
+        print(f"{'='*50}")
     else:
         print(f"\n❌ Password reset failed")
         sys.exit(1)

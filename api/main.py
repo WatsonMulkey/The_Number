@@ -53,10 +53,16 @@ app = FastAPI(
     redoc_url="/api/redoc"
 )
 
-# Configure CORS - Allow all localhost ports for development
+# Configure CORS
+# Read allowed origins from environment variable
+# For development: defaults to localhost on any port
+# For production: set CORS_ORIGINS to your frontend URL(s)
+cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176")
+allowed_origins = [origin.strip() for origin in cors_origins.split(",")]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"http://localhost:\d+",
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -913,6 +919,236 @@ async def list_backups(user_id: int = Depends(get_current_user_id)):
 
     # Limit to most recent 20
     return {"backups": all_backups[:20]}
+
+
+@app.get("/api/export/{format}")
+async def export_budget_data(format: str, user_id: int = Depends(get_current_user_id)):
+    """
+    Export all budget data (config, expenses, transactions) in CSV or Excel format.
+
+    Supported formats: 'csv', 'excel'
+    """
+    import csv
+    import io
+    from datetime import datetime
+    from fastapi.responses import StreamingResponse
+
+    if format not in ['csv', 'excel']:
+        raise HTTPException(status_code=400, detail="Invalid format. Use 'csv' or 'excel'")
+
+    db = get_db()
+
+    # Get budget configuration
+    settings = {}
+    for row in db.execute('SELECT key, value FROM settings WHERE user_id = ?', (user_id,)):
+        settings[row[0]] = row[1]
+
+    # Get expenses
+    expenses = list(db.execute('SELECT name, amount, is_fixed FROM expenses WHERE user_id = ? ORDER BY name', (user_id,)))
+
+    # Get transactions
+    transactions = list(db.execute(
+        'SELECT date, amount, description, category FROM transactions WHERE user_id = ? ORDER BY date DESC',
+        (user_id,)
+    ))
+
+    if format == 'csv':
+        # Create CSV with multiple sections
+        output = io.StringIO()
+        writer = csv.writer(output)
+
+        # Budget Configuration Section
+        writer.writerow(['BUDGET CONFIGURATION'])
+        writer.writerow(['Setting', 'Value'])
+        for key, value in settings.items():
+            writer.writerow([key, value])
+        writer.writerow([])  # Blank line
+
+        # Expenses Section
+        writer.writerow(['MONTHLY EXPENSES'])
+        writer.writerow(['Name', 'Amount', 'Type'])
+        for exp in expenses:
+            exp_type = 'Fixed' if exp[2] else 'Variable'
+            writer.writerow([exp[0], f'${exp[1]:.2f}', exp_type])
+        writer.writerow([])
+
+        # Transactions Section
+        writer.writerow(['TRANSACTIONS'])
+        writer.writerow(['Date', 'Amount', 'Description', 'Category'])
+        for txn in transactions:
+            category = txn[3] if txn[3] else ''
+            writer.writerow([txn[0], f'${txn[1]:.2f}', txn[2], category])
+
+        # Return CSV file
+        output.seek(0)
+        filename = f"budget_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+
+    else:  # Excel format
+        try:
+            import openpyxl
+            from openpyxl.styles import Font, PatternFill, Alignment
+        except ImportError:
+            raise HTTPException(
+                status_code=500,
+                detail="Excel export requires openpyxl. Please install it."
+            )
+
+        # Create workbook with multiple sheets
+        wb = openpyxl.Workbook()
+
+        # Sheet 1: Budget Configuration
+        ws_config = wb.active
+        ws_config.title = "Budget Config"
+        ws_config['A1'] = 'Budget Configuration'
+        ws_config['A1'].font = Font(bold=True, size=14)
+        ws_config['A3'] = 'Setting'
+        ws_config['B3'] = 'Value'
+        ws_config['A3'].font = Font(bold=True)
+        ws_config['B3'].font = Font(bold=True)
+
+        row = 4
+        for key, value in settings.items():
+            ws_config[f'A{row}'] = key
+            ws_config[f'B{row}'] = value
+            row += 1
+
+        # Sheet 2: Expenses
+        ws_expenses = wb.create_sheet("Expenses")
+        ws_expenses['A1'] = 'Monthly Expenses'
+        ws_expenses['A1'].font = Font(bold=True, size=14)
+        ws_expenses['A3'] = 'Name'
+        ws_expenses['B3'] = 'Amount'
+        ws_expenses['C3'] = 'Type'
+        for col in ['A3', 'B3', 'C3']:
+            ws_expenses[col].font = Font(bold=True)
+
+        row = 4
+        total = 0
+        for exp in expenses:
+            exp_type = 'Fixed' if exp[2] else 'Variable'
+            ws_expenses[f'A{row}'] = exp[0]
+            ws_expenses[f'B{row}'] = exp[1]
+            ws_expenses[f'B{row}'].number_format = '$#,##0.00'
+            ws_expenses[f'C{row}'] = exp_type
+            total += exp[1]
+            row += 1
+
+        # Add total
+        ws_expenses[f'A{row}'] = 'TOTAL'
+        ws_expenses[f'A{row}'].font = Font(bold=True)
+        ws_expenses[f'B{row}'] = total
+        ws_expenses[f'B{row}'].number_format = '$#,##0.00'
+        ws_expenses[f'B{row}'].font = Font(bold=True)
+
+        # Sheet 3: Transactions
+        ws_txns = wb.create_sheet("Transactions")
+        ws_txns['A1'] = 'Transaction History'
+        ws_txns['A1'].font = Font(bold=True, size=14)
+        ws_txns['A3'] = 'Date'
+        ws_txns['B3'] = 'Amount'
+        ws_txns['C3'] = 'Description'
+        ws_txns['D3'] = 'Category'
+        for col in ['A3', 'B3', 'C3', 'D3']:
+            ws_txns[col].font = Font(bold=True)
+
+        row = 4
+        for txn in transactions:
+            ws_txns[f'A{row}'] = txn[0]
+            ws_txns[f'B{row}'] = txn[1]
+            ws_txns[f'B{row}'].number_format = '$#,##0.00'
+            ws_txns[f'C{row}'] = txn[2]
+            ws_txns[f'D{row}'] = txn[3] if txn[3] else ''
+            row += 1
+
+        # Auto-size columns
+        for ws in [ws_config, ws_expenses, ws_txns]:
+            for column in ws.columns:
+                max_length = 0
+                column_letter = column[0].column_letter
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max_length + 2, 50)
+                ws.column_dimensions[column_letter].width = adjusted_width
+
+        # Save to bytes
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+
+        filename = f"budget_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        return StreamingResponse(
+            output,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+
+
+@app.get("/api/admin/backups/download/{filename}")
+async def download_backup(filename: str, user_id: int = Depends(get_current_user_id)):
+    """
+    Download a specific backup file.
+
+    Security: Validates filename to prevent directory traversal attacks.
+    Returns the backup file as a downloadable attachment.
+    """
+    from pathlib import Path
+    from fastapi.responses import FileResponse
+    import os
+
+    # Validate filename to prevent directory traversal
+    if "/" in filename or "\\" in filename or ".." in filename:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid filename"
+        )
+
+    # Only allow .db files with correct naming pattern
+    if not filename.startswith("budget_backup_") or not filename.endswith(".db"):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid backup filename format"
+        )
+
+    # Use same path logic as create_backup
+    api_dir = Path(__file__).parent
+    project_root = api_dir.parent
+
+    # Search for the backup in both manual and automatic directories
+    backup_path = None
+    for subdir in ["manual", "automatic"]:
+        potential_path = project_root / "backups" / subdir / filename
+        logger.info(f"Checking backup path: {potential_path}")
+        logger.info(f"File exists: {potential_path.exists()}")
+        if potential_path.exists():
+            backup_path = potential_path
+            logger.info(f"Found backup at: {backup_path}")
+            break
+
+    if not backup_path:
+        logger.error(f"Backup file not found in {project_root / 'backups'}")
+        raise HTTPException(
+            status_code=404,
+            detail="Backup file not found"
+        )
+
+    # Return file as download
+    return FileResponse(
+        path=str(backup_path),
+        filename=filename,
+        media_type="application/x-sqlite3",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        }
+    )
 
 
 # ============================================================================

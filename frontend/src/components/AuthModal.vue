@@ -66,17 +66,6 @@
             </div>
           </div>
 
-          <!-- Forgot Password Link (Login only) -->
-          <div v-if="mode === 'login'" class="text-center mb-3">
-            <v-btn
-              variant="text"
-              size="small"
-              @click="mode = 'forgot'"
-            >
-              Forgot Password?
-            </v-btn>
-          </div>
-
           <v-alert v-if="authStore.error" type="error" variant="tonal" class="mb-3">
             {{ authStore.error }}
           </v-alert>
@@ -100,131 +89,6 @@
               @click="toggleMode"
             >
               {{ mode === 'login' ? "Don't have an account? Register" : 'Already have an account? Login' }}
-            </v-btn>
-          </div>
-        </v-form>
-
-        <!-- Forgot Password Form -->
-        <v-form v-if="mode === 'forgot'" ref="forgotForm" @submit.prevent="handleForgotPassword">
-          <p class="text-body-2 text-medium-emphasis mb-4">
-            Enter your username to receive a password reset token.
-          </p>
-
-          <v-text-field
-            v-model="forgotUsername"
-            label="Username"
-            variant="outlined"
-            :rules="usernameRules"
-            class="mb-3"
-            autofocus
-          />
-
-          <v-alert v-if="resetError" type="error" variant="tonal" class="mb-3">
-            {{ resetError }}
-          </v-alert>
-
-          <v-btn
-            type="submit"
-            color="primary"
-            block
-            size="large"
-            :loading="resetLoading"
-            class="mb-3"
-          >
-            Request Reset Token
-          </v-btn>
-
-          <v-divider class="mb-3" />
-
-          <div class="text-center">
-            <v-btn
-              variant="text"
-              @click="mode = 'login'"
-            >
-              Back to Login
-            </v-btn>
-          </div>
-        </v-form>
-
-        <!-- Reset Password Form -->
-        <v-form v-if="mode === 'reset'" ref="resetForm" @submit.prevent="handleResetPassword">
-          <v-alert type="info" variant="tonal" class="mb-4">
-            <div class="text-subtitle-2 mb-2">Your reset token:</div>
-            <div class="text-mono text-caption" style="word-break: break-all;">
-              {{ resetToken }}
-            </div>
-            <div class="text-caption mt-2">Copy this token - you'll need it to reset your password.</div>
-          </v-alert>
-
-          <v-text-field
-            v-model="resetTokenInput"
-            label="Reset Token"
-            variant="outlined"
-            class="mb-3"
-            hint="Paste the token shown above"
-          />
-
-          <v-text-field
-            v-model="newPassword"
-            label="New Password"
-            variant="outlined"
-            :type="showPassword ? 'text' : 'password'"
-            :rules="registerPasswordRules"
-            class="mb-3"
-            :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-            @click:append-inner="showPassword = !showPassword"
-          >
-            <template v-slot:append-inner>
-              <v-icon
-                @click="showPassword = !showPassword"
-                style="cursor: pointer;"
-              >
-                {{ showPassword ? 'mdi-eye-off' : 'mdi-eye' }}
-              </v-icon>
-            </template>
-          </v-text-field>
-
-          <!-- Password Strength Indicator -->
-          <div v-if="newPassword" class="mb-3">
-            <div class="text-caption mb-1">Password Strength:</div>
-            <v-progress-linear
-              :model-value="newPasswordStrength"
-              :color="newPasswordStrengthColor"
-              height="6"
-              rounded
-            />
-            <div class="text-caption text-medium-emphasis mt-1">
-              {{ newPasswordStrengthText }}
-            </div>
-          </div>
-
-          <v-alert v-if="resetError" type="error" variant="tonal" class="mb-3">
-            {{ resetError }}
-          </v-alert>
-
-          <v-alert v-if="resetSuccess" type="success" variant="tonal" class="mb-3">
-            {{ resetSuccess }}
-          </v-alert>
-
-          <v-btn
-            type="submit"
-            color="primary"
-            block
-            size="large"
-            :loading="resetLoading"
-            class="mb-3"
-          >
-            Reset Password
-          </v-btn>
-
-          <v-divider class="mb-3" />
-
-          <div class="text-center">
-            <v-btn
-              variant="text"
-              @click="mode = 'login'"
-            >
-              Back to Login
             </v-btn>
           </div>
         </v-form>
@@ -264,7 +128,7 @@ const { rules } = useValidation()
 
 // Modal state
 const isOpen = ref(props.modelValue)
-const mode = ref<'login' | 'register' | 'forgot' | 'reset'>('login')
+const mode = ref<'login' | 'register'>('login')
 
 // Login/Register form
 const username = ref('')
@@ -272,17 +136,6 @@ const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const form = ref<any>(null)
-
-// Password reset form
-const forgotUsername = ref('')
-const forgotForm = ref<any>(null)
-const resetToken = ref('')
-const resetTokenInput = ref('')
-const newPassword = ref('')
-const resetForm = ref<any>(null)
-const resetLoading = ref(false)
-const resetError = ref('')
-const resetSuccess = ref('')
 
 // Validation rules - using common validation composable
 const usernameRules = [rules.username]
@@ -337,53 +190,9 @@ const passwordStrengthText = computed(() => {
   return 'Strong'
 })
 
-// New password strength (for reset password form)
-const newPasswordStrength = computed(() => {
-  if (!newPassword.value) return 0
-
-  let strength = 0
-  const pwd = newPassword.value
-
-  if (pwd.length >= 8) strength += 20
-  if (pwd.length >= 12) strength += 10
-  if (pwd.length >= 16) strength += 10
-
-  if (/[a-z]/.test(pwd)) strength += 15
-  if (/[A-Z]/.test(pwd)) strength += 15
-  if (/[0-9]/.test(pwd)) strength += 15
-  if (/[^a-zA-Z0-9]/.test(pwd)) strength += 20
-
-  return Math.min(strength, 100)
-})
-
-const newPasswordStrengthColor = computed(() => {
-  const strength = newPasswordStrength.value
-  if (strength < 40) return 'error'
-  if (strength < 70) return 'warning'
-  return 'success'
-})
-
-const newPasswordStrengthText = computed(() => {
-  const strength = newPasswordStrength.value
-  if (strength < 40) return 'Weak - Add more characters and variety'
-  if (strength < 70) return 'Fair - Consider adding special characters'
-  return 'Strong'
-})
-
 // Modal title based on mode
 const modalTitle = computed(() => {
-  switch (mode.value) {
-    case 'login':
-      return 'Welcome Back!'
-    case 'register':
-      return 'Create Account'
-    case 'forgot':
-      return 'Forgot Password'
-    case 'reset':
-      return 'Reset Password'
-    default:
-      return 'Welcome Back!'
-  }
+  return mode.value === 'login' ? 'Welcome Back!' : 'Create Account'
 })
 
 watch(() => props.modelValue, (newVal) => {
@@ -395,12 +204,6 @@ watch(() => props.modelValue, (newVal) => {
     email.value = ''
     password.value = ''
     showPassword.value = false
-    forgotUsername.value = ''
-    resetToken.value = ''
-    resetTokenInput.value = ''
-    newPassword.value = ''
-    resetError.value = ''
-    resetSuccess.value = ''
     authStore.clearError()
   }
 })
@@ -412,7 +215,6 @@ watch(isOpen, (newVal) => {
 function toggleMode() {
   mode.value = mode.value === 'login' ? 'register' : 'login'
   authStore.clearError()
-  resetError.value = ''
 }
 
 async function handleSubmit() {
@@ -434,61 +236,8 @@ async function handleSubmit() {
   }
 }
 
-async function handleForgotPassword() {
-  const { valid } = await forgotForm.value.validate()
-  if (!valid) return
-
-  resetLoading.value = true
-  resetError.value = ''
-
-  try {
-    const response = await authApi.forgotPassword({
-      username: forgotUsername.value
-    })
-
-    // Store the reset token and show it to the user
-    resetToken.value = response.data.reset_token
-    resetTokenInput.value = response.data.reset_token // Pre-fill for convenience
-
-    // Switch to reset password mode
-    mode.value = 'reset'
-  } catch (err: any) {
-    resetError.value = err.response?.data?.detail || 'Failed to generate reset token'
-  } finally {
-    resetLoading.value = false
-  }
-}
-
-async function handleResetPassword() {
-  const { valid } = await resetForm.value.validate()
-  if (!valid) return
-
-  resetLoading.value = true
-  resetError.value = ''
-  resetSuccess.value = ''
-
-  try {
-    const response = await authApi.resetPassword({
-      reset_token: resetTokenInput.value,
-      new_password: newPassword.value
-    })
-
-    resetSuccess.value = response.data.message
-
-    // Auto-redirect to login after 2 seconds
-    setTimeout(() => {
-      mode.value = 'login'
-      resetSuccess.value = ''
-    }, 2000)
-  } catch (err: any) {
-    resetError.value = err.response?.data?.detail || 'Failed to reset password'
-  } finally {
-    resetLoading.value = false
-  }
-}
-
 function handleClose() {
-  if (!authStore.loading && !resetLoading.value) {
+  if (!authStore.loading) {
     isOpen.value = false
   }
 }

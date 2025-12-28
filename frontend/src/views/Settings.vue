@@ -188,43 +188,42 @@
       </v-card-text>
     </v-card>
 
-    <!-- Backup Management -->
+    <!-- Export Data -->
     <v-card v-if="!loading" elevation="2">
-      <v-card-title>Database Backup</v-card-title>
+      <v-card-title>Export Budget Data</v-card-title>
       <v-card-text>
         <p class="text-body-2 text-medium-emphasis mb-4">
-          Create backups of your budget data to prevent data loss. Backups include all expenses, transactions, and settings.
+          Download all your budget data including expenses, transactions, and settings. Use this to back up your data or transfer it to another system.
         </p>
 
-        <v-btn
-          color="primary"
-          size="large"
-          :loading="creatingBackup"
-          @click="createBackup"
-          class="mb-4"
-        >
-          Create Backup Now
-        </v-btn>
+        <div class="d-flex gap-3">
+          <v-btn
+            color="primary"
+            size="large"
+            :loading="exportingCsv"
+            @click="exportData('csv')"
+            prepend-icon="mdi-file-delimited"
+          >
+            Download CSV
+          </v-btn>
 
-        <!-- Recent Backups List -->
-        <div v-if="backups.length > 0">
-          <p class="text-subtitle-1 font-weight-medium mb-2">Recent Backups</p>
-          <v-list density="compact">
-            <v-list-item
-              v-for="backup in backups"
-              :key="backup.filename"
-              class="backup-item"
-            >
-              <v-list-item-title>{{ backup.filename }}</v-list-item-title>
-              <v-list-item-subtitle>
-                {{ new Date(backup.created_at).toLocaleString() }} • {{ formatFileSize(backup.size) }} • {{ backup.type }}
-              </v-list-item-subtitle>
-            </v-list-item>
-          </v-list>
+          <v-btn
+            color="success"
+            size="large"
+            :loading="exportingExcel"
+            @click="exportData('excel')"
+            prepend-icon="mdi-file-excel"
+          >
+            Download Excel
+          </v-btn>
         </div>
-        <p v-else class="text-body-2 text-medium-emphasis">
-          No backups found. Create your first backup to secure your data.
-        </p>
+
+        <v-alert type="info" variant="tonal" class="mt-4">
+          <div class="text-body-2">
+            <strong>CSV:</strong> Simple format that opens in any spreadsheet app<br>
+            <strong>Excel:</strong> Multiple sheets with formatted data (Budget Config, Expenses, Transactions)
+          </div>
+        </v-alert>
       </v-card-text>
     </v-card>
 
@@ -276,9 +275,9 @@ const showSuccess = ref(false)
 const showError = ref(false)
 const errorMessage = ref('')
 
-// Backup management state
-const backups = ref<any[]>([])
-const creatingBackup = ref(false)
+// Export state
+const exportingCsv = ref(false)
+const exportingExcel = ref(false)
 
 async function loadCurrentConfig() {
   try {
@@ -340,50 +339,52 @@ async function saveBudgetConfig() {
   }
 }
 
-// Backup management functions
-async function loadBackups() {
-  try {
-    const token = localStorage.getItem('token')
-    const response = await axios.get('http://localhost:8000/api/admin/backups', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    backups.value = response.data.backups
-  } catch (e) {
-    console.error('Failed to load backups:', e)
-  }
-}
-
-async function createBackup() {
-  creatingBackup.value = true
+// Export functions
+async function exportData(format: 'csv' | 'excel') {
+  const loadingRef = format === 'csv' ? exportingCsv : exportingExcel
+  loadingRef.value = true
   showError.value = false
 
   try {
-    const token = localStorage.getItem('token')
-    const response = await axios.post('http://localhost:8000/api/admin/backup', {}, {
-      headers: { Authorization: `Bearer ${token}` }
+    const token = localStorage.getItem('auth_token')
+    const response = await axios.get(`http://localhost:8000/api/export/${format}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      responseType: 'blob'
     })
+
+    // Create a download link and trigger it
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+
+    // Get filename from Content-Disposition header or generate one
+    const contentDisposition = response.headers['content-disposition']
+    let filename = `budget_export_${new Date().toISOString().split('T')[0]}.${format === 'csv' ? 'csv' : 'xlsx'}`
+
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="?(.+)"?/)
+      if (filenameMatch) {
+        filename = filenameMatch[1]
+      }
+    }
+
+    link.setAttribute('download', filename)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+
     showSuccess.value = true
-    // Temporarily store backup success message
-    const backupMsg = `Backup created: ${response.data.backup_filename}`
-    console.log(backupMsg)
-    await loadBackups()
   } catch (e: any) {
     showError.value = true
-    errorMessage.value = e.response?.data?.detail || 'Failed to create backup'
+    errorMessage.value = e.response?.data?.detail || `Failed to export ${format.toUpperCase()}`
   } finally {
-    creatingBackup.value = false
+    loadingRef.value = false
   }
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 onMounted(() => {
   loadCurrentConfig()
-  loadBackups()
 })
 </script>
 

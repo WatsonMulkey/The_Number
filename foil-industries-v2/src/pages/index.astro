@@ -4,6 +4,30 @@ import Header from '../components/Header.astro';
 ---
 
 <BaseLayout>
+  <!-- Password Protection Overlay -->
+  <div id="password-overlay" class="password-overlay">
+    <div class="password-container">
+      <div class="password-logo">
+        <svg width="50" height="50" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M50 10L90 30V70L50 90L10 70V30L50 10Z" stroke="#D4A017" stroke-width="3" fill="none"/>
+        </svg>
+      </div>
+      <h2 class="password-title">FOIL Industries</h2>
+      <p class="password-subtitle">Site Under Construction</p>
+      <form id="password-form" class="password-form">
+        <input
+          type="password"
+          id="password-input"
+          class="password-input"
+          placeholder="Enter password"
+          autocomplete="off"
+        />
+        <button type="submit" class="password-submit">Enter</button>
+        <p id="password-error" class="password-error"></p>
+      </form>
+    </div>
+  </div>
+
   <Header />
 
   <main id="main-content">
@@ -166,9 +190,150 @@ import Header from '../components/Header.astro';
   <footer class="site-footer">
     <p>&copy; 2025 FOIL Industries. Tools that make you better.</p>
   </footer>
+
+  <script>
+    // Check if user is already authenticated
+    const isAuthenticated = sessionStorage.getItem('foil-auth') === 'true';
+    const overlay = document.getElementById('password-overlay');
+    const form = document.getElementById('password-form');
+    const input = document.getElementById('password-input');
+    const error = document.getElementById('password-error');
+
+    if (isAuthenticated) {
+      overlay.style.display = 'none';
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const password = input.value;
+
+      if (password === 'loremipsum') {
+        sessionStorage.setItem('foil-auth', 'true');
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+          overlay.style.display = 'none';
+        }, 300);
+      } else {
+        error.textContent = 'Incorrect password';
+        input.value = '';
+        input.classList.add('shake');
+        setTimeout(() => {
+          input.classList.remove('shake');
+        }, 500);
+      }
+    });
+  </script>
 </BaseLayout>
 
 <style>
+  /* PASSWORD OVERLAY */
+  .password-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #1a1d21 0%, #2b2e33 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 300ms ease;
+  }
+
+  .password-container {
+    text-align: center;
+    max-width: 400px;
+    padding: 60px 40px;
+    background: rgba(53, 56, 61, 0.6);
+    border-radius: 16px;
+    border: 1px solid rgba(74, 95, 122, 0.2);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+
+  .password-logo {
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .password-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--color-mustard);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .password-subtitle {
+    font-size: 14px;
+    color: rgba(209, 209, 209, 0.7);
+    margin-bottom: 32px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .password-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .password-input {
+    padding: 16px 20px;
+    background: rgba(26, 29, 33, 0.8);
+    border: 2px solid rgba(74, 95, 122, 0.3);
+    border-radius: 8px;
+    color: var(--color-off-white);
+    font-size: 16px;
+    text-align: center;
+    transition: all 200ms ease;
+  }
+
+  .password-input:focus {
+    outline: none;
+    border-color: var(--color-mustard);
+    box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.1);
+  }
+
+  .password-input.shake {
+    animation: shake 0.5s;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+    20%, 40%, 60%, 80% { transform: translateX(8px); }
+  }
+
+  .password-submit {
+    padding: 16px 32px;
+    background: var(--color-mustard);
+    color: var(--color-charcoal);
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 200ms ease;
+  }
+
+  .password-submit:hover {
+    background: var(--color-gold);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(212, 160, 23, 0.3);
+  }
+
+  .password-error {
+    color: var(--color-terracotta);
+    font-size: 14px;
+    min-height: 20px;
+  }
+
   /* HERO SECTION */
   .hero-section {
     min-height: 100vh;
