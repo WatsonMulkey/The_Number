@@ -5,6 +5,7 @@ uvicorn[standard]==0.34.0
 # Authentication and security
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
+bcrypt==4.2.1  # Pin to 4.x - v5.0+ incompatible with passlib 1.7.4
 python-multipart==0.0.20
 
 # Database encryption
