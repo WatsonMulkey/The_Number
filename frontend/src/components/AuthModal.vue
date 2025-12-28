@@ -4,7 +4,7 @@
       <v-card-title class="text-h5 pa-6 text-center" style="background-color: #E9F5DB;">
         <div>
           <v-icon size="48" color="primary" class="mb-2">
-            {{ mode === 'forgot' || mode === 'reset' ? 'mdi-lock-reset' : 'mdi-account-circle' }}
+            mdi-account-circle
           </v-icon>
           <div style="color: #2d5016;">{{ modalTitle }}</div>
         </div>
@@ -112,7 +112,6 @@
 import { ref, watch, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useValidation } from '@/composables/useValidation'
-import { authApi } from '@/services/api'
 
 const props = defineProps<{
   modelValue: boolean
