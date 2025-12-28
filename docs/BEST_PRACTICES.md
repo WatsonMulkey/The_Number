@@ -622,6 +622,8 @@ async function getCachedData(key: string, fetcher: () => Promise<any>) {
 - Share loading state across operations
 - Skip error handling for API calls
 - Use native alerts instead of framework components
+- **Deploy to production without verifying core architecture requirements**
+- **Assume a web app is just HTML/CSS/JS without checking if it's a PWA**
 
 **DO:**
 - Define TypeScript interfaces for all data
@@ -631,11 +633,56 @@ async function getCachedData(key: string, fetcher: () => Promise<any>) {
 - Use per-operation loading states
 - Handle all error cases with user feedback
 - Use consistent UI component library
+- **Search supermemory and docs/ before ANY deployment**
+- **Verify PWA infrastructure if project is defined as a PWA**
+
+### 10.2.1 Critical Context Failures
+
+**LESSON LEARNED: PWA Deployment Without Infrastructure (Dec 2024)**
+
+**What Happened:**
+- Deployed The Number app to production (foil.engineering/TheNumber)
+- Missing manifest.json, service worker, app icons
+- Despite PWA being core Day 1 requirement in docs/PWA_IMPLEMENTATION_PLAN.md
+
+**Root Cause:**
+- Did not check implementation plans before deployment
+- Did not search supermemory for "PWA" requirements
+- Assumed Vue 3 + Vuetify = complete deployment
+- No pre-deployment verification checklist
+
+**How to Prevent:**
+1. **MANDATORY pre-deployment verification** (see Section 10.3)
+2. **Search supermemory** for project requirements before ANY major milestone
+3. **Read docs/ folder** for implementation plans and architecture docs
+4. **Pause when user says "deploy"** - verify requirements first
+5. **Session handoffs** should include "CORE ARCHITECTURE" prominently
+
+**Recovery:**
+- Implement Vite PWA plugin
+- Generate icons with canvas script
+- Configure manifest with proper base path
+- Rebuild and redeploy
 
 ### 10.3 Production Readiness Checklist
 
-Before any production deployment:
+**CRITICAL: Before ANY production deployment, verify project-specific requirements first!**
 
+**Pre-Deployment Verification (MANDATORY):**
+1. [ ] Search supermemory for "[project name] requirements" and "PWA"
+2. [ ] Check docs/ folder for *_IMPLEMENTATION_PLAN.md or *_REQUIREMENTS.md
+3. [ ] Review original project architecture documents
+4. [ ] Run best-practices-review skill
+
+**For PWA Apps (like The Number):**
+- [ ] manifest.json or manifest.webmanifest exists
+- [ ] Service worker configured (sw.js)
+- [ ] App icons generated (192x192, 512x512 minimum)
+- [ ] Install prompt implemented
+- [ ] Offline functionality tested
+- [ ] Test "Add to Home Screen" on iOS Safari and Android Chrome
+
+**For All Production Deployments:**
 - [ ] All CRITICAL issues resolved
 - [ ] Authentication implemented
 - [ ] CORS configured for production only
