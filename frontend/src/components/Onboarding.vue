@@ -645,7 +645,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { budgetApi } from '@/services/api'
 import { useValidation } from '@/composables/useValidation'
 import { useAuthStore } from '@/stores/auth'
@@ -663,6 +663,13 @@ const fileInput = ref<HTMLInputElement | null>(null)
 
 // Current step (0 = account creation, 1-4 = setup steps)
 const currentStep = ref(0)
+
+// Skip account creation step if user is already authenticated
+onMounted(() => {
+  if (authStore.isAuthenticated) {
+    currentStep.value = 1
+  }
+})
 
 // Account creation
 const username = ref('')
