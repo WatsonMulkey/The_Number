@@ -20,7 +20,7 @@
         <div class="text-center mb-6">
           <v-icon size="100" color="primary" class="mb-3">mdi-currency-usd</v-icon>
           <h2 class="text-h3 mb-3">Welcome to The Number!</h2>
-          <p class="text-h5 text-medium-emphasis mb-4">
+          <p class="text-h5 onboarding-subtitle mb-4">
             Let's set up your daily budget in just 5 quick steps
           </p>
         </div>
@@ -121,7 +121,7 @@
       <!-- Step 1: Choose Budget Mode -->
       <div v-else-if="currentStep === 1">
         <h2 class="text-h4 mb-4 text-center">Choose Your Budgeting Style</h2>
-        <p class="text-h6 text-center text-medium-emphasis mb-4">Which situation describes you best?</p>
+        <p class="text-h6 text-center onboarding-secondary-text mb-4">Which situation describes you best?</p>
 
         <v-radio-group v-model="budgetMode">
           <v-card
@@ -137,10 +137,10 @@
                     <v-icon color="primary" class="mr-2">mdi-cash-check</v-icon>
                     Paycheck Mode
                   </div>
-                  <div class="text-body-2 text-medium-emphasis">
+                  <div class="text-body-2 onboarding-secondary-text">
                     I have regular income (weekly, bi-weekly, or monthly paychecks)
                   </div>
-                  <div class="text-caption text-medium-emphasis mt-1">
+                  <div class="text-caption onboarding-secondary-text mt-1">
                     → Calculate your daily budget from income and days until next paycheck
                   </div>
                 </div>
@@ -161,10 +161,10 @@
                     <v-icon color="primary" class="mr-2">mdi-piggy-bank</v-icon>
                     Fixed Pool Mode
                   </div>
-                  <div class="text-body-2 text-medium-emphasis">
+                  <div class="text-body-2 onboarding-secondary-text">
                     I have a fixed amount of money to work with
                   </div>
-                  <div class="text-caption text-medium-emphasis mt-1">
+                  <div class="text-caption onboarding-secondary-text mt-1">
                     → See how long your money will last and get a daily spending limit
                   </div>
                 </div>
@@ -189,7 +189,7 @@
                 <template v-slot:label>
                   <div>
                     <strong>Weekly</strong>
-                    <div class="text-caption text-medium-emphasis">Every 7 days</div>
+                    <div class="text-caption onboarding-secondary-text">Every 7 days</div>
                   </div>
                 </template>
               </v-radio>
@@ -197,7 +197,7 @@
                 <template v-slot:label>
                   <div>
                     <strong>Bi-weekly</strong>
-                    <div class="text-caption text-medium-emphasis">Every 14 days</div>
+                    <div class="text-caption onboarding-secondary-text">Every 14 days</div>
                   </div>
                 </template>
               </v-radio>
@@ -205,7 +205,7 @@
                 <template v-slot:label>
                   <div>
                     <strong>Semi-monthly</strong>
-                    <div class="text-caption text-medium-emphasis">Twice a month (e.g., 1st and 15th)</div>
+                    <div class="text-caption onboarding-secondary-text">Twice a month (e.g., 1st and 15th)</div>
                   </div>
                 </template>
               </v-radio>
@@ -213,7 +213,7 @@
                 <template v-slot:label>
                   <div>
                     <strong>Monthly</strong>
-                    <div class="text-caption text-medium-emphasis">Once a month</div>
+                    <div class="text-caption onboarding-secondary-text">Once a month</div>
                   </div>
                 </template>
               </v-radio>
@@ -270,7 +270,7 @@
             />
 
             <p class="text-h6 mb-3">How would you like to set up your budget?</p>
-            <p class="text-caption text-medium-emphasis mb-4">You can change this later in Settings</p>
+            <p class="text-caption onboarding-secondary-text mb-4">You can change this later in Settings</p>
 
             <v-radio-group v-model="fixedPoolMode">
               <v-card
@@ -286,7 +286,7 @@
                         <v-icon size="small" color="primary" class="mr-1">mdi-calendar-clock</v-icon>
                         Make it last until a specific date
                       </div>
-                      <div class="text-caption text-medium-emphasis">
+                      <div class="text-caption onboarding-secondary-text">
                         Set a target date, and we'll calculate your daily budget
                       </div>
                     </div>
@@ -307,7 +307,7 @@
                         <v-icon size="small" color="primary" class="mr-1">mdi-cash-limit</v-icon>
                         Set a daily spending limit
                       </div>
-                      <div class="text-caption text-medium-emphasis">
+                      <div class="text-caption onboarding-secondary-text">
                         Set how much you want to spend per day, see when it runs out
                       </div>
                     </div>
@@ -368,7 +368,7 @@
             style="display: none"
             @change="handleFileImport"
           />
-          <p class="text-caption text-medium-emphasis mt-2">
+          <p class="text-caption onboarding-secondary-text mt-2">
             Or add expenses manually below
           </p>
         </div>
@@ -527,7 +527,7 @@
                   </template>
                   <template v-else-if="fixedPoolMode === 'target_date' && targetEndDate">
                     {{ formatTargetDate(targetEndDate) }}
-                    <div class="text-caption text-medium-emphasis">
+                    <div class="text-caption onboarding-secondary-text">
                       ({{ calculateDaysUntilTarget(targetEndDate) }} days / {{ (calculateDaysUntilTarget(targetEndDate) / 30).toFixed(1) }} months)
                     </div>
                   </template>
@@ -1032,5 +1032,11 @@ async function completeOnboarding() {
 
 .bg-success-lighten {
   background-color: rgba(76, 175, 80, 0.1);
+}
+
+/* ACCESSIBILITY FIX: High-contrast text for sage green backgrounds */
+.onboarding-subtitle,
+.onboarding-secondary-text {
+  color: var(--color-soft-charcoal) !important; /* #3a3d42 - 6.8:1 contrast on sage green */
 }
 </style>
