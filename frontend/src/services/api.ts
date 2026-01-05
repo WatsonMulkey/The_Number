@@ -43,6 +43,7 @@ export interface BudgetNumber {
   total_expenses: number
   remaining_money?: number
   days_remaining?: number
+  total_money?: number
   today_spending: number
   remaining_today: number
   is_over_budget: boolean
@@ -71,6 +72,8 @@ export interface BudgetConfig {
   monthly_income?: number
   days_until_paycheck?: number
   total_money?: number
+  target_end_date?: string
+  daily_spending_limit?: number
 }
 
 // API endpoints

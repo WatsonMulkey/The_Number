@@ -136,7 +136,7 @@
       </v-window>
 
       <!-- Slide Indicators -->
-      <div class="slide-indicators mb-6">
+      <div class="slide-indicators mb-6" role="tablist" aria-label="Dashboard sections">
         <v-btn
           v-for="n in 3"
           :key="n"
@@ -145,6 +145,10 @@
           :color="currentSlide === n - 1 ? 'primary' : 'grey'"
           @click="currentSlide = n - 1"
           class="mx-1"
+          role="tab"
+          :aria-selected="currentSlide === n - 1"
+          :aria-label="['The Number Display', 'Budget Details', 'Recent Transactions'][n - 1]"
+          :aria-controls="`slide-${n - 1}`"
         >
           <v-icon v-if="currentSlide === n - 1">mdi-circle</v-icon>
           <v-icon v-else>mdi-circle-outline</v-icon>

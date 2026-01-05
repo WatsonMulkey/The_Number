@@ -12,9 +12,10 @@ export const useValidation = () => {
       return true
     },
 
-    positive: (v: number) => {
+    positive: (v: any) => {
       if (v === null || v === undefined || v === '') return 'Amount is required'
-      if (v <= 0) return 'Must be greater than 0'
+      if (typeof v === 'number' && v <= 0) return 'Must be greater than 0'
+      if (typeof v !== 'number') return 'Must be a valid number'
       return true
     },
 
@@ -51,15 +52,16 @@ export const useValidation = () => {
       return true
     },
 
-    positiveInteger: (v: number) => {
+    positiveInteger: (v: any) => {
       if (v === null || v === undefined || v === '') return 'This field is required'
-      if (!Number.isInteger(v)) return 'Must be a whole number'
+      if (typeof v !== 'number' || !Number.isInteger(v)) return 'Must be a whole number'
       if (v <= 0) return 'Must be greater than 0'
       return true
     },
 
-    nonNegative: (v: number) => {
+    nonNegative: (v: any) => {
       if (v === null || v === undefined || v === '') return 'This field is required'
+      if (typeof v !== 'number') return 'Must be a valid number'
       if (v < 0) return 'Cannot be negative'
       return true
     }
