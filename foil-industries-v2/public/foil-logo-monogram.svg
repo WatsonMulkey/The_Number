@@ -1,0 +1,66 @@
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- FOIL Industries Monogram - Compact Icon Version -->
+  <!-- For app icons, favicons, and small applications -->
+
+  <defs>
+    <linearGradient id="beamGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#35383D;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#2B2E33;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1A1D21;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background (optional - remove for transparent) -->
+  <rect width="400" height="400" fill="#2B2E33"/>
+
+  <!-- Stylized "FOIL" as stacked beams forming a structure -->
+  <g id="monogram">
+    <!-- F - Top horizontal -->
+    <rect x="80" y="80" width="180" height="25" fill="url(#beamGrad)"/>
+    <rect x="80" y="77" width="180" height="3" fill="#D4A017"/>
+
+    <!-- F - Middle horizontal -->
+    <rect x="80" y="150" width="140" height="20" fill="url(#beamGrad)"/>
+    <rect x="80" y="147" width="140" height="3" fill="#4A5F7A" opacity="0.7"/>
+
+    <!-- F + L - Left vertical -->
+    <rect x="80" y="80" width="25" height="240" fill="url(#beamGrad)"/>
+    <rect x="75" y="80" width="5" height="240" fill="#4A5F7A" opacity="0.4"/>
+
+    <!-- O - Center square frame -->
+    <rect x="145" y="205" width="110" height="20" fill="url(#beamGrad)"/>
+    <rect x="145" y="295" width="110" height="20" fill="url(#beamGrad)"/>
+    <rect x="145" y="205" width="20" height="110" fill="url(#beamGrad)"/>
+    <rect x="235" y="205" width="20" height="110" fill="url(#beamGrad)"/>
+
+    <!-- O - Inner glow -->
+    <rect x="165" y="225" width="70" height="70" fill="#D4A017" opacity="0.15"/>
+
+    <!-- L - Right vertical -->
+    <rect x="295" y="80" width="25" height="240" fill="url(#beamGrad)"/>
+    <rect x="320" y="80" width="5" height="240" fill="#1A1D21" opacity="0.5"/>
+
+    <!-- L - Bottom horizontal -->
+    <rect x="80" y="295" width="240" height="25" fill="url(#beamGrad)"/>
+    <rect x="80" y="317" width="240" height="3" fill="#1A1D21" opacity="0.6"/>
+
+    <!-- I - Implied by the vertical structure -->
+
+    <!-- Accent bolts -->
+    <circle cx="92" cy="92" r="4" fill="#D4A017"/>
+    <circle cx="92" cy="92" r="1.5" fill="#2B2E33"/>
+
+    <circle cx="245" cy="92" r="4" fill="#D4A017"/>
+    <circle cx="245" cy="92" r="1.5" fill="#2B2E33"/>
+
+    <circle cx="92" cy="308" r="4" fill="#D4A017"/>
+    <circle cx="92" cy="308" r="1.5" fill="#2B2E33"/>
+
+    <circle cx="308" cy="308" r="4" fill="#D4A017"/>
+    <circle cx="308" cy="308" r="1.5" fill="#2B2E33"/>
+
+    <!-- Center accent - mustard rivet -->
+    <circle cx="200" cy="260" r="6" fill="#D4A017"/>
+    <circle cx="200" cy="260" r="2" fill="#2B2E33"/>
+  </g>
+</svg>

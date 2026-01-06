@@ -1,0 +1,13 @@
+---
+deployment:
+  tasks:
+    # Install dependencies
+    - export DEPLOYPATH=/home/foilexyo/public_html
+    - export REPOPATH=$HOME/repositories/foil-industries
+    - /usr/bin/npm install --prefix $REPOPATH
+
+    # Build the Astro site
+    - /usr/bin/npm run build --prefix $REPOPATH
+
+    # Copy built files to public directory
+    - /bin/cp -R $REPOPATH/dist/* $DEPLOYPATH/

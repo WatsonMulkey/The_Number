@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FOIL Logo Concepts</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Space Grotesk', Arial, sans-serif;
+      background: #1a1d21;
+      padding: 40px;
+    }
+
+    .concept {
+      background: white;
+      padding: 60px;
+      margin-bottom: 40px;
+      border-radius: 12px;
+      min-height: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .concept-title {
+      color: #f5f5f5;
+      font-size: 24px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    /* CONCEPT 1: Industrial I-Beam Style */
+    #concept1 {
+      display: flex;
+      gap: 20px;
+      font-family: Arial, sans-serif;
+      font-weight: 900;
+      position: relative;
+    }
+
+    /* F - Vertical with two horizontals */
+    .letter-f {
+      position: relative;
+      width: 120px;
+    }
+
+    .f-vertical {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 30px;
+      height: 200px;
+      background: linear-gradient(to right, #35383d, #2b2e33, #1a1d21);
+      border: 3px solid #2b2e33;
+      box-shadow: inset -2px 0 4px rgba(0,0,0,0.3);
+    }
+
+    .f-top {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 120px;
+      height: 24px;
+      background: linear-gradient(to bottom, #4a5f7a, #35383d);
+      border: 3px solid #2b2e33;
+      border-top: 4px solid #d4a017;
+    }
+
+    .f-mid {
+      position: absolute;
+      left: 0;
+      top: 85px;
+      width: 90px;
+      height: 20px;
+      background: linear-gradient(to bottom, #4a5f7a, #35383d);
+      border: 3px solid #2b2e33;
+    }
+
+    .rivet {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: #d4a017;
+      border-radius: 50%;
+      border: 2px solid #2b2e33;
+    }
+
+    /* O - Square frame */
+    .letter-o {
+      position: relative;
+      width: 120px;
+      height: 200px;
+    }
+
+    .o-frame {
+      position: absolute;
+      border: 22px solid #2b2e33;
+      width: 100%;
+      height: 140px;
+      top: 30px;
+      background: white;
+      box-shadow: inset 0 0 20px rgba(74, 95, 122, 0.1);
+    }
+
+    .o-inner {
+      position: absolute;
+      top: 50px;
+      left: 35px;
+      width: 50px;
+      height: 90px;
+      background: #f5f5f5;
+      border: 2px solid #2b2e33;
+    }
+
+    .o-corner {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #d4a017;
+    }
+
+    /* I - Simple column */
+    .letter-i {
+      position: relative;
+      width: 50px;
+      height: 200px;
+    }
+
+    .i-column {
+      position: absolute;
+      left: 10px;
+      top: 20px;
+      width: 30px;
+      height: 160px;
+      background: linear-gradient(to right, #4a5f7a, #2b2e33, #1a1d21);
+      border: 3px solid #2b2e33;
+    }
+
+    .i-cap {
+      position: absolute;
+      width: 50px;
+      height: 12px;
+      background: #2b2e33;
+      left: 0;
+    }
+
+    .i-cap.top { top: 15px; border-top: 3px solid #d4a017; }
+    .i-cap.bottom { bottom: 8px; }
+
+    /* L - Vertical with bottom horizontal */
+    .letter-l {
+      position: relative;
+      width: 150px;
+      height: 200px;
+    }
+
+    .l-vertical {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 30px;
+      height: 200px;
+      background: linear-gradient(to right, #35383d, #2b2e33, #1a1d21);
+      border: 3px solid #2b2e33;
+    }
+
+    .l-bottom {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 150px;
+      height: 24px;
+      background: linear-gradient(to bottom, #4a5f7a, #2b2e33);
+      border: 3px solid #2b2e33;
+      border-bottom: 4px solid #1a1d21;
+    }
+
+    /* CONCEPT 2: Bold Block Letters */
+    #concept2 {
+      display: flex;
+      gap: 15px;
+      font-family: Arial, sans-serif;
+      font-weight: 900;
+      font-size: 140px;
+      line-height: 1;
+    }
+
+    #concept2 .letter {
+      color: #2b2e33;
+      text-shadow:
+        3px 3px 0 #4a5f7a,
+        6px 6px 0 #d4a017;
+      font-weight: 900;
+      letter-spacing: -5px;
+    }
+
+    /* CONCEPT 3: Stacked Frame Monogram */
+    #concept3 {
+      position: relative;
+      width: 300px;
+      height: 300px;
+    }
+
+    .frame-outer {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 20px solid #2b2e33;
+      background: linear-gradient(135deg, #35383d, #2b2e33);
+    }
+
+    .frame-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 20px;
+      background: linear-gradient(to right, #d4a017, #c9a961);
+    }
+
+    .frame-bottom {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 20px;
+      background: linear-gradient(to right, #d4a017, #c9a961);
+    }
+
+    .inner-square {
+      position: absolute;
+      top: 90px;
+      left: 90px;
+      width: 120px;
+      height: 120px;
+      border: 15px solid #4a5f7a;
+      background: white;
+    }
+
+    .center-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 48px;
+      font-weight: 900;
+      color: #2b2e33;
+      letter-spacing: -2px;
+    }
+
+    .corner-rivet {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #d4a017;
+      border-radius: 50%;
+      border: 2px solid #2b2e33;
+    }
+  </style>
+</head>
+<body>
+
+  <h2 class="concept-title">Concept 1: Industrial I-Beam Construction</h2>
+  <div class="concept">
+    <div id="concept1">
+      <!-- F -->
+      <div class="letter-f">
+        <div class="f-vertical"></div>
+        <div class="f-top"></div>
+        <div class="f-mid"></div>
+        <div class="rivet" style="top: 8px; left: 10px;"></div>
+        <div class="rivet" style="top: 92px; left: 10px;"></div>
+      </div>
+
+      <!-- O -->
+      <div class="letter-o">
+        <div class="o-frame"></div>
+        <div class="o-inner"></div>
+        <div class="o-corner" style="top: 30px; left: 0;"></div>
+        <div class="o-corner" style="top: 30px; right: 0;"></div>
+        <div class="o-corner" style="bottom: 30px; left: 0;"></div>
+        <div class="o-corner" style="bottom: 30px; right: 0;"></div>
+      </div>
+
+      <!-- I -->
+      <div class="letter-i">
+        <div class="i-cap top"></div>
+        <div class="i-column"></div>
+        <div class="i-cap bottom"></div>
+        <div class="rivet" style="top: 22px; left: 21px;"></div>
+        <div class="rivet" style="bottom: 15px; left: 21px;"></div>
+      </div>
+
+      <!-- L -->
+      <div class="letter-l">
+        <div class="l-vertical"></div>
+        <div class="l-bottom"></div>
+        <div class="rivet" style="top: 8px; left: 10px;"></div>
+        <div class="rivet" style="bottom: 8px; left: 10px;"></div>
+        <div class="rivet" style="bottom: 8px; right: 10px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="concept-title">Concept 2: Bold 3D Block Letters</h2>
+  <div class="concept">
+    <div id="concept2">
+      <span class="letter">F</span>
+      <span class="letter">O</span>
+      <span class="letter">I</span>
+      <span class="letter">L</span>
+    </div>
+  </div>
+
+  <h2 class="concept-title">Concept 3: Architectural Frame Monogram</h2>
+  <div class="concept">
+    <div id="concept3">
+      <div class="frame-outer">
+        <div class="frame-top"></div>
+        <div class="frame-bottom"></div>
+      </div>
+      <div class="inner-square"></div>
+      <div class="center-text">FOIL</div>
+      <div class="corner-rivet" style="top: 15px; left: 15px;"></div>
+      <div class="corner-rivet" style="top: 15px; right: 15px;"></div>
+      <div class="corner-rivet" style="bottom: 15px; left: 15px;"></div>
+      <div class="corner-rivet" style="bottom: 15px; right: 15px;"></div>
+    </div>
+  </div>
+
+</body>
+</html>

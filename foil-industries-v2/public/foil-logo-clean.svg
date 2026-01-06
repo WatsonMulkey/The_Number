@@ -1,0 +1,118 @@
+<svg width="800" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- FOIL Industries Logo - Clean Geometric Style -->
+  <!-- Modern industrial aesthetic with precise lines -->
+
+  <defs>
+    <!-- Gradient for depth -->
+    <linearGradient id="beamGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#35383D;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#2B2E33;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1A1D21;stop-opacity:1" />
+    </linearGradient>
+
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#D4A017;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#C9A961;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- F - I-Beam Construction -->
+  <g id="f-letter">
+    <!-- Vertical I-beam -->
+    <rect x="60" y="90" width="30" height="220" fill="url(#beamGradient)"/>
+    <rect x="55" y="90" width="5" height="220" fill="#4A5F7A" opacity="0.3"/>
+    <rect x="90" y="90" width="5" height="220" fill="#1A1D21" opacity="0.5"/>
+
+    <!-- Top horizontal beam -->
+    <rect x="60" y="90" width="160" height="24" fill="url(#beamGradient)"/>
+    <rect x="60" y="86" width="160" height="4" fill="url(#accentGradient)"/>
+    <polygon points="60,114 55,120 215,120 220,114" fill="#1A1D21" opacity="0.3"/>
+
+    <!-- Middle horizontal beam -->
+    <rect x="60" y="190" width="120" height="20" fill="url(#beamGradient)"/>
+    <rect x="60" y="186" width="120" height="4" fill="#4A5F7A" opacity="0.5"/>
+    <polygon points="60,210 55,215 175,215 180,210" fill="#1A1D21" opacity="0.3"/>
+
+    <!-- Bolts -->
+    <circle cx="75" cy="102" r="3.5" fill="#D4A017"/>
+    <circle cx="75" cy="102" r="1.5" fill="#2B2E33"/>
+    <circle cx="75" cy="202" r="3.5" fill="#D4A017"/>
+    <circle cx="75" cy="202" r="1.5" fill="#2B2E33"/>
+  </g>
+
+  <!-- O - Frame Structure -->
+  <g id="o-letter">
+    <!-- Outer frame - thick walls -->
+    <rect x="250" y="150" width="25" height="120" fill="url(#beamGradient)"/>
+    <rect x="345" y="150" width="25" height="120" fill="url(#beamGradient)"/>
+    <rect x="250" y="150" width="120" height="25" fill="url(#beamGradient)"/>
+    <rect x="250" y="245" width="120" height="25" fill="url(#beamGradient)"/>
+
+    <!-- Inner space -->
+    <rect x="275" y="175" width="70" height="70" fill="#F5F5F5"/>
+
+    <!-- Accent corners -->
+    <rect x="246" y="146" width="8" height="8" fill="#D4A017"/>
+    <rect x="366" y="146" width="8" height="8" fill="#D4A017"/>
+    <rect x="246" y="266" width="8" height="8" fill="#D4A017"/>
+    <rect x="366" y="266" width="8" height="8" fill="#D4A017"/>
+
+    <!-- Inner shadow -->
+    <rect x="275" y="175" width="70" height="5" fill="#2B2E33" opacity="0.2"/>
+    <rect x="275" y="175" width="5" height="70" fill="#2B2E33" opacity="0.2"/>
+  </g>
+
+  <!-- I - Column -->
+  <g id="i-letter">
+    <rect x="415" y="150" width="30" height="170" fill="url(#beamGradient)"/>
+
+    <!-- Flange top -->
+    <rect x="405" y="145" width="50" height="10" fill="#2B2E33"/>
+    <rect x="405" y="145" width="50" height="3" fill="url(#accentGradient)"/>
+
+    <!-- Flange bottom -->
+    <rect x="405" y="315" width="50" height="10" fill="#2B2E33"/>
+    <rect x="405" y="322" width="50" height="3" fill="#1A1D21"/>
+
+    <!-- Side highlights -->
+    <rect x="410" y="155" width="3" height="160" fill="#4A5F7A" opacity="0.2"/>
+    <rect x="442" y="155" width="3" height="160" fill="#1A1D21" opacity="0.4"/>
+
+    <!-- Bolts -->
+    <circle cx="430" cy="155" r="3.5" fill="#D4A017"/>
+    <circle cx="430" cy="155" r="1.5" fill="#2B2E33"/>
+    <circle cx="430" cy="310" r="3.5" fill="#D4A017"/>
+    <circle cx="430" cy="310" r="1.5" fill="#2B2E33"/>
+  </g>
+
+  <!-- L - Angle Iron -->
+  <g id="l-letter">
+    <!-- Vertical beam -->
+    <rect x="500" y="90" width="30" height="220" fill="url(#beamGradient)"/>
+    <rect x="495" y="90" width="5" height="220" fill="#4A5F7A" opacity="0.3"/>
+    <rect x="530" y="90" width="5" height="220" fill="#1A1D21" opacity="0.5"/>
+
+    <!-- Bottom horizontal beam -->
+    <rect x="500" y="286" width="180" height="24" fill="url(#beamGradient)"/>
+    <rect x="500" y="282" width="180" height="4" fill="#4A5F7A" opacity="0.5"/>
+    <polygon points="500,310 495,315 675,315 680,310" fill="#1A1D21" opacity="0.3"/>
+
+    <!-- Accent strip on horizontal -->
+    <rect x="500" y="295" width="180" height="3" fill="url(#accentGradient)" opacity="0.6"/>
+
+    <!-- Bolts -->
+    <circle cx="515" cy="102" r="3.5" fill="#D4A017"/>
+    <circle cx="515" cy="102" r="1.5" fill="#2B2E33"/>
+    <circle cx="515" cy="298" r="3.5" fill="#D4A017"/>
+    <circle cx="515" cy="298" r="1.5" fill="#2B2E33"/>
+    <circle cx="665" cy="298" r="3.5" fill="#D4A017"/>
+    <circle cx="665" cy="298" r="1.5" fill="#2B2E33"/>
+  </g>
+
+  <!-- Supporting cable/chain detail -->
+  <g id="detail">
+    <line x1="220" y1="86" x2="220" y2="70" stroke="#4A5F7A" stroke-width="2.5"/>
+    <circle cx="220" cy="65" r="6" fill="none" stroke="#D4A017" stroke-width="3"/>
+    <circle cx="220" cy="65" r="2" fill="#D4A017"/>
+  </g>
+</svg>
