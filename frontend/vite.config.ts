@@ -5,8 +5,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
-  // Base path for production deployment at foil.engineering/TheNumber
-  base: '/TheNumber/',
+  // Base path for standalone deployment at thenumber-rust.vercel.app
+  // Vercel rewrite on FOIL site will handle /TheNumber/ routing
+  base: '/',
 
   plugins: [
     vue(),
@@ -22,17 +23,17 @@ export default defineConfig({
         background_color: '#E9F5DB',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/TheNumber/',
-        scope: '/TheNumber/',
+        start_url: '/',
+        scope: '/',
         icons: [
           {
-            src: '/TheNumber/icon-192.png',
+            src: '/icon-192.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any maskable'
           },
           {
-            src: '/TheNumber/icon-512.png',
+            src: '/icon-512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
