@@ -2,8 +2,8 @@
   <v-card class="onboarding-card mx-auto" elevation="4" max-width="900" color="#E9F5DB">
     <v-card-title class="pa-4 text-center" style="background-color: #E9F5DB;">
       <div>
-        <h1 class="text-h4 mb-1" style="color: #2d5016; font-family: var(--font-display);">The Number</h1>
-        <p class="text-body-2" style="color: var(--color-soft-charcoal);">Your Simple Daily Budget</p>
+        <h1 class="text-h4 mb-1 font-weight-bold" style="color: #2d5016; font-family: var(--font-display);">The Number</h1>
+        
       </div>
     </v-card-title>
 
@@ -17,17 +17,9 @@
       />
     </div>
 
-    <v-card-text class="pa-6">
-      <!-- Step 0: Welcome + Account Creation -->
+    <v-card-text>
+      <!-- Step 0: Account Creation -->
       <div v-if="currentStep === 0">
-        <div class="text-center mb-6">
-          <v-icon size="64" color="primary" class="mb-3">mdi-currency-usd</v-icon>
-          <h2 class="text-h5 mb-2">Welcome!</h2>
-          <p class="text-body-1 onboarding-subtitle">
-            Set up your daily budget in 5 quick steps
-          </p>
-        </div>
-
         <!-- Account Creation Section -->
         <v-card class="max-w-700 mx-auto pa-6 mb-6" elevation="3" color="white">
           <h3 class="text-h6 mb-4 text-center">Create an Account</h3>
