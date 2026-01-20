@@ -34,7 +34,7 @@ from src.calculator import BudgetCalculator
 from src.import_expenses import import_expenses_from_file
 from src.export_expenses import export_to_csv, export_to_excel
 from api.models import (
-    ExpenseCreate, ExpenseResponse, TransactionCreate, TransactionResponse,
+    ExpenseCreate, ExpenseResponse, ExpenseUpdate, TransactionCreate, TransactionResponse,
     BudgetModeConfig, BudgetNumberResponse, ImportExpensesResponse, ErrorResponse,
     UserRegister, UserLogin, UserResponse, TokenResponse,
     ForgotPasswordRequest, ForgotPasswordResponse, ResetPasswordRequest, ResetPasswordResponse
@@ -392,6 +392,54 @@ async def delete_expense(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error deleting expense: {str(e)}"
+        )
+
+
+@app.put("/api/expenses/{expense_id}", response_model=ExpenseResponse)
+async def update_expense(
+    expense_id: int,
+    expense: ExpenseUpdate,
+    user_id: int = Depends(get_current_user_id),
+    db: EncryptedDatabase = Depends(get_db)
+):
+    """
+    Update an expense for the authenticated user.
+    Supports partial updates - only provided fields are updated.
+    Requires authentication.
+    """
+    try:
+        # Verify expense exists and belongs to user
+        existing = db.get_expense_by_id(expense_id, user_id)
+        if not existing:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Expense not found"
+            )
+
+        # Update expense (database method handles partial updates)
+        db.update_expense(
+            expense_id=expense_id,
+            user_id=user_id,
+            name=expense.name,
+            amount=expense.amount,
+            is_fixed=expense.is_fixed
+        )
+
+        # Return updated expense
+        updated = db.get_expense_by_id(expense_id, user_id)
+        return updated
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating expense: {str(e)}"
         )
 
 

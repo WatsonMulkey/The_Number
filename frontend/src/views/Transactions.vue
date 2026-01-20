@@ -49,7 +49,9 @@
             {{ formatDate(item.date) }}
           </template>
           <template v-slot:item.amount="{ item }">
-            {{ item.amount.toFixed(2) }}
+            <span :class="item.category === 'income' ? 'text-success' : 'text-error'">
+              {{ item.category === 'income' ? '+' : '-' }}${{ item.amount.toFixed(2) }}
+            </span>
           </template>
           <template v-slot:item.actions="{ item }">
             <v-btn
@@ -135,11 +137,19 @@ const todayTotal = computed(() => {
   const today = new Date().toISOString().split('T')[0]
   return budgetStore.transactions
     .filter((txn: Transaction) => txn.date.startsWith(today))
-    .reduce((sum: number, txn: Transaction) => sum + txn.amount, 0)
+    .reduce((sum: number, txn: Transaction) => {
+      // Income subtracts from spending, expenses add
+      const amount = txn.category === 'income' ? -txn.amount : txn.amount
+      return sum + amount
+    }, 0)
 })
 
 const allTimeTotal = computed(() => {
-  return budgetStore.transactions.reduce((sum: number, txn: Transaction) => sum + txn.amount, 0)
+  return budgetStore.transactions.reduce((sum: number, txn: Transaction) => {
+    // Income subtracts from spending, expenses add
+    const amount = txn.category === 'income' ? -txn.amount : txn.amount
+    return sum + amount
+  }, 0)
 })
 
 function formatDate(dateString: string) {

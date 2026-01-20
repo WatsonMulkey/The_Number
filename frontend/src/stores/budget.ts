@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { budgetApi, type BudgetNumber, type Expense, type Transaction } from '@/services/api'
+import { budgetApi, type BudgetNumber, type Expense, type ExpenseUpdate, type Transaction } from '@/services/api'
 
 export const useBudgetStore = defineStore('budget', () => {
   // State
@@ -85,6 +85,21 @@ export const useBudgetStore = defineStore('budget', () => {
     }
   }
 
+  async function updateExpense(id: number, updates: ExpenseUpdate) {
+    loadingExpenses.value = true
+    error.value = null
+    try {
+      await budgetApi.updateExpense(id, updates)
+      await fetchExpenses()
+      await fetchNumber() // Refresh "The Number" since expenses affect it
+    } catch (e: any) {
+      error.value = e.response?.data?.detail || 'Failed to update expense'
+      throw e
+    } finally {
+      loadingExpenses.value = false
+    }
+  }
+
   async function fetchTransactions(limit = 20) {
     loadingTransactions.value = true
     error.value = null
@@ -136,6 +151,7 @@ export const useBudgetStore = defineStore('budget', () => {
     fetchNumber,
     fetchExpenses,
     addExpense,
+    updateExpense,
     removeExpense,
     fetchTransactions,
     recordTransaction,

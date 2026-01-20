@@ -42,6 +42,21 @@ class ExpenseResponse(BaseModel):
     updated_at: str
 
 
+class ExpenseUpdate(BaseModel):
+    """Request model for updating an expense (partial update supported)."""
+    name: Optional[str] = Field(None, max_length=MAX_STRING_LENGTH, description="Expense name")
+    amount: Optional[float] = Field(None, gt=0, le=MAX_AMOUNT, description="Monthly expense amount")
+    is_fixed: Optional[bool] = Field(None, description="True for fixed monthly expenses, False for variable")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "name": "Utilities",
+                "amount": 150.00
+            }
+        }
+
+
 class TransactionCreate(BaseModel):
     """Request model for creating a transaction."""
     amount: float = Field(..., gt=0, le=MAX_AMOUNT, description="Transaction amount")

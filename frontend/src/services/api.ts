@@ -58,6 +58,12 @@ export interface Expense {
   updated_at: string
 }
 
+export interface ExpenseUpdate {
+  name?: string
+  amount?: number
+  is_fixed?: boolean
+}
+
 export interface Transaction {
   id: number
   date: string
@@ -89,6 +95,8 @@ export const budgetApi = {
   getExpenses: () => api.get<Expense[]>('/api/expenses'),
   createExpense: (expense: Omit<Expense, 'id' | 'created_at' | 'updated_at'>) =>
     api.post<Expense>('/api/expenses', expense),
+  updateExpense: (id: number, expense: ExpenseUpdate) =>
+    api.put<Expense>(`/api/expenses/${id}`, expense),
   deleteExpense: (id: number) => api.delete(`/api/expenses/${id}`),
   importExpenses: (file: File, replace: boolean) => {
     const formData = new FormData()
