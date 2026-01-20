@@ -1,7 +1,7 @@
 <template>
-  <!-- Desktop: Left Rail (≥768px) -->
+  <!-- Desktop: Left Rail (≥768px) - Hidden during onboarding -->
   <v-navigation-drawer
-    v-if="!isMobile"
+    v-if="!isMobile && !isOnboarding"
     permanent
     rail
     :width="96"
@@ -56,9 +56,9 @@
     </v-list>
   </v-navigation-drawer>
 
-  <!-- Mobile: Bottom Navigation (<768px) -->
+  <!-- Mobile: Bottom Navigation (<768px) - Hidden during onboarding -->
   <v-bottom-navigation
-    v-else
+    v-else-if="!isOnboarding"
     v-model="activeNav"
     grow
     class="mobile-nav safe-area-bottom"
@@ -169,6 +169,11 @@ const authStore = useAuthStore()
 const budgetStore = useBudgetStore()
 const showAuthModal = ref(false)
 const isMobile = ref(false)
+
+// Hide navigation during onboarding (when budget not configured but user is authenticated)
+const isOnboarding = computed(() => {
+  return authStore.isAuthenticated && !budgetStore.budgetNumber && !budgetStore.loadingNumber
+})
 
 // Active nav value for mobile bottom nav
 const activeNav = computed({

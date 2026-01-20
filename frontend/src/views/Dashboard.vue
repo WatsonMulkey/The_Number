@@ -1,10 +1,6 @@
 <template>
   <div class="dashboard">
-    <!-- Hero Section (only show during onboarding) -->
-    <div v-if="!budgetStore.budgetNumber && !budgetStore.loadingNumber" class="hero-section">
-      <h1 class="hero-title">The Number</h1>
-      <p class="hero-subtitle">A different way to budget</p>
-    </div>
+    <!-- Hero Section removed - Onboarding component has its own branded header -->
 
     <!-- Error Alert (only show when not in onboarding) -->
     <v-alert

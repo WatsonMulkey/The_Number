@@ -226,6 +226,9 @@ async def get_the_number(
             is_over_budget=(remaining_today < 0)
         )
 
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is (don't wrap in 500)
+        raise
     except Exception as e:
         import traceback
         traceback.print_exc()
