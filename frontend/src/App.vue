@@ -127,10 +127,18 @@ body, p, span, div, button, input, textarea, select {
   padding-right: env(safe-area-inset-right, 0) !important;
 }
 
-/* Responsive: Only add bottom padding on mobile */
+/* Responsive: Desktop layout adjustments */
 @media (min-width: 768px) {
   #main-content {
     padding-bottom: 16px !important; /* Desktop: no bottom nav */
+    padding-left: 96px !important; /* Account for fixed navigation rail width */
+  }
+}
+
+/* Ensure content doesn't overlap with fixed nav rail */
+@media (max-width: 767px) {
+  #main-content {
+    padding-left: 0 !important; /* Mobile: no left nav, use bottom nav */
   }
 }
 
