@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/TheNumber/:path*",
-      "destination": "https://thenumber.vercel.app/:path*"
+      "destination": "https://thenumber-rust.vercel.app/:path*"
     }
   ],
   "headers": [
