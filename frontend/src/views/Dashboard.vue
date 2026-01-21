@@ -225,7 +225,7 @@ const authStore = useAuthStore()
 const { rules } = useValidation()
 
 const transactionForm = ref()
-const spendingAmount = ref(0)
+const spendingAmount = ref<number | null>(null)
 const spendingDescription = ref('')
 const transactionType = ref<'in' | 'out'>('out')
 const currentSlide = ref(0)
@@ -300,8 +300,8 @@ async function recordSpending() {
       })
     }
 
-    // Reset form and clear validation
-    spendingAmount.value = 0
+    // Reset form - use null to avoid triggering "must be greater than 0" validation
+    spendingAmount.value = null
     spendingDescription.value = ''
     transactionForm.value.resetValidation()
   } catch (e) {
