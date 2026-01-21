@@ -651,6 +651,12 @@
         </v-btn>
       </template>
     </v-snackbar>
+
+    <!-- Login Dialog for existing users -->
+    <AuthModal
+      v-model="showLoginDialog"
+      @success="handleLoginSuccess"
+    />
   </v-card>
 </template>
 
@@ -659,6 +665,7 @@ import { ref, computed, onMounted } from 'vue'
 import { budgetApi } from '@/services/api'
 import { useValidation } from '@/composables/useValidation'
 import { useAuthStore } from '@/stores/auth'
+import AuthModal from '@/components/AuthModal.vue'
 import axios from 'axios'
 
 const emit = defineEmits(['complete'])
@@ -871,6 +878,35 @@ async function createAccount() {
     accountError.value = err.response?.data?.detail || 'Failed to create account'
   } finally {
     creatingAccount.value = false
+  }
+}
+
+async function handleLoginSuccess() {
+  // User logged in successfully via the AuthModal
+  // Close the login dialog
+  showLoginDialog.value = false
+
+  // Show loading while checking budget config
+  loading.value = true
+
+  try {
+    const response = await budgetApi.getBudgetConfig()
+    if (response.data?.configured) {
+      // User already has a budget - skip onboarding entirely
+      emit('complete')
+    } else {
+      // User exists but no budget yet - continue to step 1
+      currentStep.value = 1
+    }
+  } catch (err: any) {
+    // Show error to user but still allow them to proceed
+    console.error('Failed to check budget config:', err)
+    showError.value = true
+    errorMessage.value = 'Could not load your existing settings. You can set up a new budget or try again.'
+    // Proceed to step 1 so user isn't stuck
+    currentStep.value = 1
+  } finally {
+    loading.value = false
   }
 }
 

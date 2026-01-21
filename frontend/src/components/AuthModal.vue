@@ -1,9 +1,19 @@
 <template>
-  <v-dialog v-model="isOpen" max-width="500" persistent>
+  <v-dialog
+    v-model="isOpen"
+    max-width="500"
+    persistent
+    role="dialog"
+    :aria-labelledby="'auth-modal-title'"
+  >
     <v-card>
-      <v-card-title class="text-h5 pa-6 text-center" style="background-color: #E9F5DB;">
+      <v-card-title
+        id="auth-modal-title"
+        class="text-h5 pa-6 text-center"
+        style="background-color: #E9F5DB;"
+      >
         <div>
-          <v-icon size="48" color="primary" class="mb-2">
+          <v-icon size="48" color="primary" class="mb-2" aria-hidden="true">
             mdi-account-circle
           </v-icon>
           <div style="color: #2d5016;">{{ modalTitle }}</div>
@@ -39,13 +49,16 @@
             :type="showPassword ? 'text' : 'password'"
             :rules="mode === 'login' ? loginPasswordRules : registerPasswordRules"
             class="mb-3"
-            :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-            @click:append-inner="showPassword = !showPassword"
           >
             <template v-slot:append-inner>
               <v-icon
                 @click="showPassword = !showPassword"
+                @keydown.enter="showPassword = !showPassword"
+                @keydown.space.prevent="showPassword = !showPassword"
                 style="cursor: pointer;"
+                role="button"
+                tabindex="0"
+                :aria-label="showPassword ? 'Hide password' : 'Show password'"
               >
                 {{ showPassword ? 'mdi-eye-off' : 'mdi-eye' }}
               </v-icon>
@@ -66,7 +79,14 @@
             </div>
           </div>
 
-          <v-alert v-if="authStore.error" type="error" variant="tonal" class="mb-3">
+          <v-alert
+            v-if="authStore.error"
+            type="error"
+            variant="tonal"
+            class="mb-3"
+            role="alert"
+            aria-live="assertive"
+          >
             {{ authStore.error }}
           </v-alert>
 
@@ -213,6 +233,9 @@ watch(isOpen, (newVal) => {
 
 function toggleMode() {
   mode.value = mode.value === 'login' ? 'register' : 'login'
+  // Clear password for security when switching modes
+  password.value = ''
+  showPassword.value = false
   authStore.clearError()
 }
 
