@@ -666,7 +666,6 @@ import { budgetApi } from '@/services/api'
 import { useValidation } from '@/composables/useValidation'
 import { useAuthStore } from '@/stores/auth'
 import AuthModal from '@/components/AuthModal.vue'
-import axios from 'axios'
 
 const emit = defineEmits(['complete'])
 const { rules } = useValidation()

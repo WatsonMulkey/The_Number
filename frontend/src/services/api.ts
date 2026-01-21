@@ -1,7 +1,24 @@
 import axios from 'axios'
 
+/**
+ * Get the API base URL from environment variables.
+ * In production, VITE_API_URL must be set - localhost fallback is for development only.
+ */
+function getApiBaseUrl(): string {
+  const envUrl = import.meta.env.VITE_API_URL
+  if (envUrl) {
+    return envUrl
+  }
+  // Development fallback only - production must have VITE_API_URL configured
+  if (import.meta.env.DEV) {
+    return 'http://localhost:8000'
+  }
+  // Production without VITE_API_URL - use relative URL (same origin)
+  return ''
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+  baseURL: getApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -26,10 +43,14 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token is invalid or expired, redirect to login
+      // Only redirect if there was a token (i.e., user was previously authenticated)
+      // This prevents redirect loops for unauthenticated users visiting the app
+      const hadToken = localStorage.getItem('auth_token')
       localStorage.removeItem('auth_token')
       localStorage.removeItem('user')
-      window.location.href = '/#/login' // Or use router if available
+      if (hadToken) {
+        window.location.href = '/#/login'
+      }
     }
     return Promise.reject(error)
   }
@@ -47,6 +68,8 @@ export interface BudgetNumber {
   today_spending: number
   remaining_today: number
   is_over_budget: boolean
+  adjusted_daily_budget?: number
+  original_daily_budget?: number
 }
 
 export interface Expense {
@@ -117,6 +140,7 @@ export const budgetApi = {
 }
 
 // Password reset types
+// TODO: Implement password reset UI in AuthModal.vue to use these endpoints
 export interface ForgotPasswordRequest {
   username: string
 }
@@ -136,11 +160,17 @@ export interface ResetPasswordResponse {
   message: string
 }
 
-// Password reset API
+/**
+ * Password reset API endpoints.
+ * Backend endpoints are implemented - UI needs to be added to AuthModal.vue.
+ * @see AuthModal.vue - Add "Forgot Password" link and reset flow
+ */
 export const authApi = {
+  /** Request a password reset token (sent to user's email if configured) */
   forgotPassword: (data: ForgotPasswordRequest) =>
     api.post<ForgotPasswordResponse>('/api/auth/forgot-password', data),
 
+  /** Reset password using the token from forgotPassword */
   resetPassword: (data: ResetPasswordRequest) =>
     api.post<ResetPasswordResponse>('/api/auth/reset-password', data),
 }

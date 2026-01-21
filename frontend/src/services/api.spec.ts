@@ -1,23 +1,37 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import axios from 'axios'
-import { budgetApi } from './api'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { BudgetConfig, Expense, Transaction } from './api'
 
-// Mock axios
-vi.mock('axios')
+// Use vi.hoisted to ensure mock functions are defined before vi.mock runs
+const mockFns = vi.hoisted(() => ({
+  get: vi.fn(),
+  post: vi.fn(),
+  put: vi.fn(),
+  delete: vi.fn(),
+}))
+
+// Mock axios.create to return our mock instance
+vi.mock('axios', () => {
+  return {
+    default: {
+      create: () => ({
+        get: mockFns.get,
+        post: mockFns.post,
+        put: mockFns.put,
+        delete: mockFns.delete,
+        interceptors: {
+          request: { use: vi.fn() },
+          response: { use: vi.fn() },
+        },
+      }),
+    },
+  }
+})
+
+// Import after mocking
+import { budgetApi } from './api'
 
 describe('API Client', () => {
-  const mockedAxios = axios as any
-
   beforeEach(() => {
-    mockedAxios.create.mockReturnValue({
-      get: vi.fn(),
-      post: vi.fn(),
-      delete: vi.fn(),
-    })
-  })
-
-  afterEach(() => {
     vi.clearAllMocks()
   })
 
@@ -35,14 +49,10 @@ describe('API Client', () => {
         is_over_budget: false,
       }
 
-      const mockGet = vi.fn().mockResolvedValue({ data: mockData })
-      mockedAxios.create.mockReturnValue({ get: mockGet })
+      mockFns.get.mockResolvedValueOnce({ data: mockData })
+      const result = await budgetApi.getNumber()
 
-      // Re-import to get fresh instance
-      const { budgetApi: freshApi } = await import('./api')
-      const result = await freshApi.getNumber()
-
-      expect(mockGet).toHaveBeenCalledWith('/api/number')
+      expect(mockFns.get).toHaveBeenCalledWith('/api/number')
       expect(result.data).toEqual(mockData)
     })
   })
@@ -55,13 +65,10 @@ describe('API Client', () => {
         days_until_paycheck: 15,
       }
 
-      const mockPost = vi.fn().mockResolvedValue({ data: config })
-      mockedAxios.create.mockReturnValue({ post: mockPost })
+      mockFns.post.mockResolvedValueOnce({ data: config })
+      const result = await budgetApi.configureBudget(config)
 
-      const { budgetApi: freshApi } = await import('./api')
-      const result = await freshApi.configureBudget(config)
-
-      expect(mockPost).toHaveBeenCalledWith('/api/budget/configure', config)
+      expect(mockFns.post).toHaveBeenCalledWith('/api/budget/configure', config)
       expect(result.data).toEqual(config)
     })
 
@@ -73,13 +80,10 @@ describe('API Client', () => {
         configured: true,
       }
 
-      const mockGet = vi.fn().mockResolvedValue({ data: mockConfig })
-      mockedAxios.create.mockReturnValue({ get: mockGet })
+      mockFns.get.mockResolvedValueOnce({ data: mockConfig })
+      const result = await budgetApi.getBudgetConfig()
 
-      const { budgetApi: freshApi } = await import('./api')
-      const result = await freshApi.getBudgetConfig()
-
-      expect(mockGet).toHaveBeenCalledWith('/api/budget/config')
+      expect(mockFns.get).toHaveBeenCalledWith('/api/budget/config')
       expect(result.data).toEqual(mockConfig)
     })
   })
@@ -97,13 +101,10 @@ describe('API Client', () => {
         },
       ]
 
-      const mockGet = vi.fn().mockResolvedValue({ data: mockExpenses })
-      mockedAxios.create.mockReturnValue({ get: mockGet })
+      mockFns.get.mockResolvedValueOnce({ data: mockExpenses })
+      const result = await budgetApi.getExpenses()
 
-      const { budgetApi: freshApi } = await import('./api')
-      const result = await freshApi.getExpenses()
-
-      expect(mockGet).toHaveBeenCalledWith('/api/expenses')
+      expect(mockFns.get).toHaveBeenCalledWith('/api/expenses')
       expect(result.data).toEqual(mockExpenses)
     })
 
@@ -121,39 +122,30 @@ describe('API Client', () => {
         updated_at: '2024-01-01T00:00:00',
       }
 
-      const mockPost = vi.fn().mockResolvedValue({ data: createdExpense })
-      mockedAxios.create.mockReturnValue({ post: mockPost })
+      mockFns.post.mockResolvedValueOnce({ data: createdExpense })
+      const result = await budgetApi.createExpense(newExpense)
 
-      const { budgetApi: freshApi } = await import('./api')
-      const result = await freshApi.createExpense(newExpense)
-
-      expect(mockPost).toHaveBeenCalledWith('/api/expenses', newExpense)
+      expect(mockFns.post).toHaveBeenCalledWith('/api/expenses', newExpense)
       expect(result.data).toEqual(createdExpense)
     })
 
     it('should delete expense', async () => {
       const expenseId = 1
 
-      const mockDelete = vi.fn().mockResolvedValue({ data: null })
-      mockedAxios.create.mockReturnValue({ delete: mockDelete })
+      mockFns.delete.mockResolvedValueOnce({ data: null })
+      await budgetApi.deleteExpense(expenseId)
 
-      const { budgetApi: freshApi } = await import('./api')
-      await freshApi.deleteExpense(expenseId)
-
-      expect(mockDelete).toHaveBeenCalledWith(`/api/expenses/${expenseId}`)
+      expect(mockFns.delete).toHaveBeenCalledWith(`/api/expenses/${expenseId}`)
     })
 
     it('should import expenses', async () => {
       const file = new File(['content'], 'expenses.csv', { type: 'text/csv' })
       const replace = true
 
-      const mockPost = vi.fn().mockResolvedValue({ data: { imported: 5 } })
-      mockedAxios.create.mockReturnValue({ post: mockPost })
+      mockFns.post.mockResolvedValueOnce({ data: { imported: 5 } })
+      await budgetApi.importExpenses(file, replace)
 
-      const { budgetApi: freshApi } = await import('./api')
-      await freshApi.importExpenses(file, replace)
-
-      expect(mockPost).toHaveBeenCalledWith(
+      expect(mockFns.post).toHaveBeenCalledWith(
         `/api/expenses/import?replace=${replace}`,
         expect.any(FormData),
         { headers: { 'Content-Type': 'multipart/form-data' } }
@@ -163,13 +155,10 @@ describe('API Client', () => {
     it('should export expenses as CSV', async () => {
       const mockBlob = new Blob(['data'], { type: 'text/csv' })
 
-      const mockGet = vi.fn().mockResolvedValue({ data: mockBlob })
-      mockedAxios.create.mockReturnValue({ get: mockGet })
+      mockFns.get.mockResolvedValueOnce({ data: mockBlob })
+      const result = await budgetApi.exportExpenses('csv')
 
-      const { budgetApi: freshApi } = await import('./api')
-      const result = await freshApi.exportExpenses('csv')
-
-      expect(mockGet).toHaveBeenCalledWith('/api/expenses/export/csv', {
+      expect(mockFns.get).toHaveBeenCalledWith('/api/expenses/export/csv', {
         responseType: 'blob',
       })
       expect(result.data).toEqual(mockBlob)
@@ -178,13 +167,10 @@ describe('API Client', () => {
     it('should export expenses as Excel', async () => {
       const mockBlob = new Blob(['data'], { type: 'application/vnd.ms-excel' })
 
-      const mockGet = vi.fn().mockResolvedValue({ data: mockBlob })
-      mockedAxios.create.mockReturnValue({ get: mockGet })
+      mockFns.get.mockResolvedValueOnce({ data: mockBlob })
+      const result = await budgetApi.exportExpenses('excel')
 
-      const { budgetApi: freshApi } = await import('./api')
-      const result = await freshApi.exportExpenses('excel')
-
-      expect(mockGet).toHaveBeenCalledWith('/api/expenses/export/excel', {
+      expect(mockFns.get).toHaveBeenCalledWith('/api/expenses/export/excel', {
         responseType: 'blob',
       })
       expect(result.data).toEqual(mockBlob)
@@ -204,13 +190,10 @@ describe('API Client', () => {
         },
       ]
 
-      const mockGet = vi.fn().mockResolvedValue({ data: mockTransactions })
-      mockedAxios.create.mockReturnValue({ get: mockGet })
+      mockFns.get.mockResolvedValueOnce({ data: mockTransactions })
+      const result = await budgetApi.getTransactions()
 
-      const { budgetApi: freshApi } = await import('./api')
-      const result = await freshApi.getTransactions()
-
-      expect(mockGet).toHaveBeenCalledWith('/api/transactions', {
+      expect(mockFns.get).toHaveBeenCalledWith('/api/transactions', {
         params: { limit: undefined },
       })
       expect(result.data).toEqual(mockTransactions)
@@ -219,13 +202,10 @@ describe('API Client', () => {
     it('should get transactions with custom limit', async () => {
       const mockTransactions: Transaction[] = []
 
-      const mockGet = vi.fn().mockResolvedValue({ data: mockTransactions })
-      mockedAxios.create.mockReturnValue({ get: mockGet })
+      mockFns.get.mockResolvedValueOnce({ data: mockTransactions })
+      await budgetApi.getTransactions(50)
 
-      const { budgetApi: freshApi } = await import('./api')
-      await freshApi.getTransactions(50)
-
-      expect(mockGet).toHaveBeenCalledWith('/api/transactions', {
+      expect(mockFns.get).toHaveBeenCalledWith('/api/transactions', {
         params: { limit: 50 },
       })
     })
@@ -244,37 +224,28 @@ describe('API Client', () => {
         created_at: '2024-01-15T12:00:00',
       }
 
-      const mockPost = vi.fn().mockResolvedValue({ data: createdTransaction })
-      mockedAxios.create.mockReturnValue({ post: mockPost })
+      mockFns.post.mockResolvedValueOnce({ data: createdTransaction })
+      const result = await budgetApi.createTransaction(newTransaction)
 
-      const { budgetApi: freshApi } = await import('./api')
-      const result = await freshApi.createTransaction(newTransaction)
-
-      expect(mockPost).toHaveBeenCalledWith('/api/transactions', newTransaction)
+      expect(mockFns.post).toHaveBeenCalledWith('/api/transactions', newTransaction)
       expect(result.data).toEqual(createdTransaction)
     })
 
     it('should delete transaction', async () => {
       const transactionId = 1
 
-      const mockDelete = vi.fn().mockResolvedValue({ data: null })
-      mockedAxios.create.mockReturnValue({ delete: mockDelete })
+      mockFns.delete.mockResolvedValueOnce({ data: null })
+      await budgetApi.deleteTransaction(transactionId)
 
-      const { budgetApi: freshApi } = await import('./api')
-      await freshApi.deleteTransaction(transactionId)
-
-      expect(mockDelete).toHaveBeenCalledWith(`/api/transactions/${transactionId}`)
+      expect(mockFns.delete).toHaveBeenCalledWith(`/api/transactions/${transactionId}`)
     })
   })
 
   describe('Error Handling', () => {
     it('should handle network errors', async () => {
-      const mockGet = vi.fn().mockRejectedValue(new Error('Network error'))
-      mockedAxios.create.mockReturnValue({ get: mockGet })
+      mockFns.get.mockRejectedValueOnce(new Error('Network error'))
 
-      const { budgetApi: freshApi } = await import('./api')
-
-      await expect(freshApi.getNumber()).rejects.toThrow('Network error')
+      await expect(budgetApi.getNumber()).rejects.toThrow('Network error')
     })
 
     it('should handle API errors with status codes', async () => {
@@ -285,12 +256,9 @@ describe('API Client', () => {
         },
       }
 
-      const mockGet = vi.fn().mockRejectedValue(error)
-      mockedAxios.create.mockReturnValue({ get: mockGet })
+      mockFns.get.mockRejectedValueOnce(error)
 
-      const { budgetApi: freshApi } = await import('./api')
-
-      await expect(freshApi.getNumber()).rejects.toEqual(error)
+      await expect(budgetApi.getNumber()).rejects.toEqual(error)
     })
   })
 })

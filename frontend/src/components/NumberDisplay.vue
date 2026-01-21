@@ -37,6 +37,30 @@
           class="mt-2"
         />
       </v-card>
+
+      <!-- Overspend impact warning -->
+      <v-alert
+        v-if="isOverBudget && adjustedDailyBudget"
+        type="warning"
+        density="comfortable"
+        variant="tonal"
+        class="mt-4 overspend-alert"
+        role="status"
+        aria-live="polite"
+      >
+        <template #prepend>
+          <v-icon aria-hidden="true">mdi-alert-circle-outline</v-icon>
+        </template>
+
+        <div>
+          <div class="font-weight-medium">
+            Your new daily budget is ${{ adjustedDailyBudget.toFixed(2) }}
+          </div>
+          <div class="text-body-2 text-medium-emphasis mt-1">
+            (down ${{ budgetDelta.toFixed(2) }} from ${{ originalDailyBudget?.toFixed(2) }})
+          </div>
+        </div>
+      </v-alert>
     </div>
   </v-card>
 </template>
@@ -51,6 +75,8 @@ const props = defineProps<{
   remainingToday?: number
   isOverBudget?: boolean
   daysRemaining?: number
+  adjustedDailyBudget?: number
+  originalDailyBudget?: number
 }>()
 
 const formattedNumber = computed(() => {
@@ -69,6 +95,11 @@ const subtitle = computed(() => {
 const spendingPercentage = computed(() => {
   if (!props.todaySpending || !props.theNumber) return 0
   return Math.min((props.todaySpending / props.theNumber) * 100, 100)
+})
+
+const budgetDelta = computed(() => {
+  if (!props.adjustedDailyBudget || !props.originalDailyBudget) return 0
+  return props.originalDailyBudget - props.adjustedDailyBudget
 })
 </script>
 
@@ -128,5 +159,23 @@ const spendingPercentage = computed(() => {
 
 :deep(.v-progress-linear__determinate) {
   background-color: var(--color-success) !important;
+}
+
+/* Overspend warning alert */
+.overspend-alert {
+  border-radius: 12px;
+  background-color: rgba(255, 193, 7, 0.12) !important;
+  border: 2px solid rgba(255, 193, 7, 0.3);
+  text-align: left;
+}
+
+.overspend-alert :deep(.v-icon) {
+  color: #F57C00;
+}
+
+@media (max-width: 600px) {
+  .overspend-alert .font-weight-medium {
+    font-size: 0.875rem;
+  }
 }
 </style>

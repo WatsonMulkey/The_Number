@@ -2,14 +2,28 @@
  * Authentication store using Pinia
  *
  * Manages user authentication state, login/logout, and token storage.
+ * Uses localStorage for session persistence across browser refreshes.
  */
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
+import { useBudgetStore } from './budget'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+/**
+ * Get the API base URL from environment variables.
+ * Matches logic in services/api.ts for consistency.
+ */
+function getApiUrl(): string {
+  const envUrl = import.meta.env.VITE_API_URL
+  if (envUrl) return envUrl
+  if (import.meta.env.DEV) return 'http://localhost:8000'
+  return '' // Production uses relative URLs
+}
 
+const API_URL = getApiUrl()
+
+/** User profile data */
 export interface User {
   id: number
   username: string
@@ -17,12 +31,16 @@ export interface User {
   created_at: string
 }
 
+/** Response from login/register endpoints */
 export interface AuthResponse {
   access_token: string
   token_type: string
   user: User
 }
 
+/**
+ * Authentication store - manages user login state and session.
+ */
 export const useAuthStore = defineStore('auth', () => {
   // State
   const user = ref<User | null>(null)
@@ -31,13 +49,17 @@ export const useAuthStore = defineStore('auth', () => {
   const error = ref<string | null>(null)
 
   // Computed
+  /** Whether the user is currently logged in */
   const isAuthenticated = computed(() => !!token.value && !!user.value)
+  /** Two-letter initials for avatar display */
   const userInitials = computed(() => {
     if (!user.value) return 'TN'
     return user.value.username.substring(0, 2).toUpperCase()
   })
 
   // Actions
+
+  /** Register a new user account */
   async function register(username: string, password: string, email?: string) {
     loading.value = true
     error.value = null
@@ -68,6 +90,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  /** Log in with username and password */
   async function login(username: string, password: string) {
     loading.value = true
     error.value = null
@@ -97,6 +120,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  /** Log out and clear all session data */
   async function logout() {
     try {
       // Call logout endpoint (optional, since JWT is stateless)
@@ -115,9 +139,14 @@ export const useAuthStore = defineStore('auth', () => {
 
       // Remove axios default header
       delete axios.defaults.headers.common['Authorization']
+
+      // Clear PWA app badge
+      const budgetStore = useBudgetStore()
+      await budgetStore.clearAppBadge()
     }
   }
 
+  /** Check for existing session in localStorage and validate token */
   async function checkAuth() {
     // Try to restore session from localStorage
     const storedToken = localStorage.getItem('auth_token')
@@ -141,6 +170,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  /** Clear any displayed error message */
   function clearError() {
     error.value = null
   }

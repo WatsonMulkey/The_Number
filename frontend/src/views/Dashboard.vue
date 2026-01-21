@@ -287,14 +287,14 @@ async function recordSpending() {
     if (transactionType.value === 'out') {
       // Regular spending transaction
       await budgetStore.recordTransaction({
-        amount: spendingAmount.value,
+        amount: spendingAmount.value!,
         description: spendingDescription.value,
         category: 'expense'
       })
     } else {
       // Money In - record as positive amount with income category
       await budgetStore.recordTransaction({
-        amount: spendingAmount.value,  // Positive amount
+        amount: spendingAmount.value!,  // Positive amount
         description: spendingDescription.value,
         category: 'income'
       })
