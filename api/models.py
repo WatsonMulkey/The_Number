@@ -121,6 +121,8 @@ class BudgetNumberResponse(BaseModel):
     today_spending: float = Field(..., description="Amount spent today")
     remaining_today: float = Field(..., description="Remaining daily budget for today")
     is_over_budget: bool = Field(..., description="True if over budget today")
+    adjusted_daily_budget: Optional[float] = Field(None, description="Recalculated daily budget if over budget today")
+    original_daily_budget: Optional[float] = Field(None, description="Original daily budget before adjustment")
 
     class Config:
         json_schema_extra = {

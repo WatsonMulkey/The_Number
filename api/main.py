@@ -212,6 +212,26 @@ async def get_the_number(
         # Get today's spending
         today_spending = db.get_total_spending_today(user_id)
         remaining_today = result["daily_limit"] - today_spending
+        is_over_budget = remaining_today < 0
+
+        # Calculate adjusted daily budget if over budget
+        adjusted_daily_budget = None
+        original_daily_budget = None
+        days_remaining = result.get("days_remaining")
+
+        if is_over_budget and days_remaining and days_remaining > 1:
+            original_daily_budget = result["daily_limit"]
+
+            # Calculate remaining money after today's spending
+            remaining_money = result.get("remaining_money", 0)
+            remaining_after_today = remaining_money - today_spending
+
+            # Spread across remaining days (excluding today)
+            adjusted = remaining_after_today / (days_remaining - 1)
+
+            # Only return if positive (recoverable overspend)
+            if adjusted > 0:
+                adjusted_daily_budget = round(adjusted, 2)
 
         return BudgetNumberResponse(
             the_number=result["daily_limit"],
@@ -220,10 +240,12 @@ async def get_the_number(
             total_money=result.get("total_money"),
             total_expenses=result.get("total_expenses", result.get("monthly_expenses", 0)),
             remaining_money=result.get("remaining_money"),
-            days_remaining=result.get("days_remaining"),
+            days_remaining=days_remaining,
             today_spending=today_spending,
             remaining_today=remaining_today,
-            is_over_budget=(remaining_today < 0)
+            is_over_budget=is_over_budget,
+            adjusted_daily_budget=adjusted_daily_budget,
+            original_daily_budget=original_daily_budget
         )
 
     except HTTPException:
