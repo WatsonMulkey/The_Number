@@ -27,14 +27,16 @@
     <!-- Transactions Table -->
     <v-card elevation="2">
       <v-card-title>
-        <div class="d-flex justify-space-between align-center">
+        <div class="d-flex justify-space-between align-center w-100">
           <span>Recent Transactions</span>
           <v-btn
             color="primary"
             @click="showAddDialog = true"
+            class="add-transaction-btn"
           >
             <v-icon start>mdi-plus</v-icon>
-            Add Transaction
+            <span class="d-none d-sm-inline">Add Transaction</span>
+            <span class="d-sm-none">Add</span>
           </v-btn>
         </div>
       </v-card-title>
@@ -204,7 +206,19 @@ onMounted(() => {
   padding: 24px;
 }
 
+@media (max-width: 600px) {
+  .transactions {
+    padding: 16px;
+  }
+}
+
 .gap-2 {
   gap: 8px;
+}
+
+/* Ensure button has proper touch target and doesn't shrink */
+.add-transaction-btn {
+  flex-shrink: 0;
+  min-height: 44px;
 }
 </style>
