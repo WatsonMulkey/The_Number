@@ -196,13 +196,15 @@
           Download all your budget data including expenses, transactions, and settings. Use this to back up your data or transfer it to another system.
         </p>
 
-        <div class="d-flex gap-3">
+        <div class="d-flex flex-column flex-sm-row gap-3">
           <v-btn
             color="primary"
             size="large"
             :loading="exportingCsv"
             @click="exportData('csv')"
             prepend-icon="mdi-file-delimited"
+            block
+            class="flex-sm-grow-0"
           >
             Download CSV
           </v-btn>
@@ -213,6 +215,8 @@
             :loading="exportingExcel"
             @click="exportData('excel')"
             prepend-icon="mdi-file-excel"
+            block
+            class="flex-sm-grow-0"
           >
             Download Excel
           </v-btn>
