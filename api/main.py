@@ -186,8 +186,28 @@ async def get_the_number(
 
         # Calculate "The Number" based on mode
         if budget_mode == "paycheck":
+            from datetime import datetime, date, timedelta
             monthly_income = db.get_setting("monthly_income", user_id)
-            days_until_paycheck = db.get_setting("days_until_paycheck", user_id)
+
+            # Try new approach: calculate from next_payday_date
+            next_payday_str = db.get_setting("next_payday_date", user_id)
+            pay_frequency = db.get_setting("pay_frequency_days", user_id) or 14
+
+            if next_payday_str:
+                next_payday = datetime.fromisoformat(next_payday_str).date()
+                today = date.today()
+
+                # Auto-roll to next pay period if payday has passed
+                while next_payday <= today:
+                    next_payday = next_payday + timedelta(days=pay_frequency)
+                    # Update stored date for next time
+                    db.set_setting("next_payday_date", next_payday.isoformat(), user_id)
+
+                days_until_paycheck = (next_payday - today).days
+            else:
+                # Legacy: use static days_until_paycheck
+                days_until_paycheck = db.get_setting("days_until_paycheck", user_id)
+
             result = calc.calculate_paycheck_mode(
                 monthly_income=monthly_income,
                 days_until_paycheck=days_until_paycheck
@@ -280,13 +300,30 @@ async def configure_budget(
     try:
         # Validate configuration based on mode
         if config.mode == "paycheck":
-            if not config.monthly_income or not config.days_until_paycheck:
+            if not config.monthly_income:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Paycheck mode requires monthly_income and days_until_paycheck"
+                    detail="Paycheck mode requires monthly_income"
                 )
+
+            # Require either next_payday_date (preferred) or days_until_paycheck (legacy)
+            if not config.next_payday_date and not config.days_until_paycheck:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Paycheck mode requires next_payday_date or days_until_paycheck"
+                )
+
             db.set_setting("monthly_income", config.monthly_income, user_id)
-            db.set_setting("days_until_paycheck", config.days_until_paycheck, user_id)
+
+            # If next_payday_date provided, use it (new approach)
+            if config.next_payday_date:
+                db.set_setting("next_payday_date", config.next_payday_date.isoformat(), user_id)
+                db.set_setting("pay_frequency_days", config.pay_frequency_days or 14, user_id)
+                # Clear legacy setting
+                db.set_setting("days_until_paycheck", None, user_id)
+            else:
+                # Legacy: use days_until_paycheck directly
+                db.set_setting("days_until_paycheck", config.days_until_paycheck, user_id)
 
         elif config.mode == "fixed_pool":
             if config.total_money is None:
@@ -340,6 +377,9 @@ async def get_budget_config(
 
     if mode == "paycheck":
         config["monthly_income"] = db.get_setting("monthly_income", user_id)
+        config["next_payday_date"] = db.get_setting("next_payday_date", user_id)
+        config["pay_frequency_days"] = db.get_setting("pay_frequency_days", user_id)
+        # Also return legacy field for backwards compatibility
         config["days_until_paycheck"] = db.get_setting("days_until_paycheck", user_id)
     else:
         config["total_money"] = db.get_setting("total_money", user_id)

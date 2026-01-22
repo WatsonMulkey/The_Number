@@ -63,28 +63,18 @@
       </v-alert>
 
       <!-- Tomorrow's budget preview (when under budget) -->
-      <v-alert
+      <div
         v-if="!isOverBudget && tomorrowDailyBudget && showTomorrowPreview"
-        type="info"
-        density="comfortable"
-        variant="tonal"
-        class="mt-4 tomorrow-alert"
+        class="mt-4 tomorrow-preview"
         role="status"
         aria-live="polite"
       >
-        <template #prepend>
-          <v-icon aria-hidden="true">mdi-calendar-arrow-right</v-icon>
-        </template>
-
-        <div>
-          <div class="font-weight-medium">
-            If you stop now, tomorrow's budget: ${{ tomorrowDailyBudget.toFixed(2) }}
-          </div>
-          <div v-if="tomorrowDelta > 0" class="text-body-2 text-medium-emphasis mt-1">
-            (up ${{ tomorrowDelta.toFixed(2) }} from today)
-          </div>
-        </div>
-      </v-alert>
+        <v-icon size="small" class="mr-2" aria-hidden="true">mdi-trending-up</v-icon>
+        <span class="tomorrow-text">
+          Tomorrow: <strong>${{ tomorrowDailyBudget.toFixed(2) }}</strong>
+          <span v-if="tomorrowDelta > 0" class="delta-text">(+${{ tomorrowDelta.toFixed(2) }})</span>
+        </span>
+      </div>
     </div>
   </v-card>
 </template>
@@ -208,22 +198,43 @@ const showTomorrowPreview = computed(() => {
   color: #F57C00;
 }
 
-/* Tomorrow's preview alert */
-.tomorrow-alert {
-  border-radius: 12px;
-  background-color: rgba(135, 152, 106, 0.12) !important;
-  border: 2px solid rgba(135, 152, 106, 0.3);
-  text-align: left;
+/* Tomorrow's preview - subtle inline display */
+.tomorrow-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 20px;
+  max-width: fit-content;
+  margin: 0 auto;
 }
 
-.tomorrow-alert :deep(.v-icon) {
-  color: var(--color-sage-green-dark, #6B7D5B);
+.tomorrow-preview .v-icon {
+  color: var(--color-success, #4CAF50);
+}
+
+.tomorrow-text {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+.tomorrow-text strong {
+  color: var(--color-soft-charcoal);
+}
+
+.delta-text {
+  color: var(--color-success, #4CAF50);
+  font-weight: 500;
 }
 
 @media (max-width: 600px) {
-  .overspend-alert .font-weight-medium,
-  .tomorrow-alert .font-weight-medium {
+  .overspend-alert .font-weight-medium {
     font-size: 0.875rem;
+  }
+
+  .tomorrow-text {
+    font-size: 0.8rem;
   }
 }
 </style>

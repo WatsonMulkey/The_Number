@@ -100,7 +100,9 @@ export interface Transaction {
 export interface BudgetConfig {
   mode: 'paycheck' | 'fixed_pool'
   monthly_income?: number
-  days_until_paycheck?: number
+  days_until_paycheck?: number  // Deprecated - use next_payday_date
+  next_payday_date?: string     // Preferred - date of next paycheck
+  pay_frequency_days?: number   // 7 = weekly, 14 = biweekly, 30 = monthly
   total_money?: number
   target_end_date?: string
   daily_spending_limit?: number

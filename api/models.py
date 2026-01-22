@@ -88,7 +88,9 @@ class BudgetModeConfig(BaseModel):
     """Configuration for budget mode."""
     mode: str = Field(..., pattern="^(paycheck|fixed_pool)$", description="Budget mode: 'paycheck' or 'fixed_pool'")
     monthly_income: Optional[float] = Field(None, gt=0, description="Monthly income (paycheck mode only)")
-    days_until_paycheck: Optional[int] = Field(None, gt=0, le=365, description="Days until next paycheck (paycheck mode only)")
+    days_until_paycheck: Optional[int] = Field(None, gt=0, le=365, description="Days until next paycheck (deprecated, use next_payday_date)")
+    next_payday_date: Optional[datetime] = Field(None, description="Date of next paycheck (paycheck mode) - days are calculated dynamically")
+    pay_frequency_days: Optional[int] = Field(None, gt=0, le=31, description="Pay frequency in days (e.g., 14 for biweekly, 7 for weekly)")
     total_money: Optional[float] = Field(None, ge=0, description="Total money available (fixed_pool mode only)")
     target_end_date: Optional[datetime] = Field(None, description="Target end date for fixed pool (Option B)")
     daily_spending_limit: Optional[float] = Field(None, gt=0, description="Daily spending limit for fixed pool (Option C)")

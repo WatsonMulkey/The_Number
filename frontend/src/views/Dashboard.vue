@@ -534,16 +534,22 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
   color: white !important;
 }
 
-/* Carousel navigation arrows */
+/* Carousel navigation arrows - smaller to avoid text overlap */
 :deep(.v-window__controls) {
   background: transparent;
+  padding: 0 4px;
 }
 
-:deep(.v-btn--icon.v-btn--density-default) {
-  width: 48px !important;
-  height: 48px !important;
-  min-width: 48px !important;
-  background-color: rgba(255, 255, 255, 0.8) !important;
+:deep(.v-window__controls .v-btn) {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
   border: 1px solid var(--color-sage-green);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+:deep(.v-window__controls .v-btn .v-icon) {
+  font-size: 18px;
 }
 </style>

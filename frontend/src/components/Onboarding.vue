@@ -998,9 +998,9 @@ async function completeOnboarding() {
     const budgetConfig: any = { mode: budgetMode.value }
     if (budgetMode.value === 'paycheck') {
       budgetConfig.monthly_income = monthlyIncome.value
-      budgetConfig.days_until_paycheck = daysUntilPaycheck.value
-      budgetConfig.pay_frequency = payFrequency.value
-      budgetConfig.next_paycheck_date = new Date(nextPaycheckDate.value).toISOString()
+      // Send the actual date so the API can calculate days dynamically
+      budgetConfig.next_payday_date = new Date(nextPaycheckDate.value).toISOString()
+      budgetConfig.pay_frequency_days = payFrequency.value === 'biweekly' ? 14 : payFrequency.value === 'weekly' ? 7 : 30
     } else {
       budgetConfig.total_money = totalMoney.value
       // Include fixed pool mode options

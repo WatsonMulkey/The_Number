@@ -58,12 +58,22 @@
               class="mb-4"
             />
             <v-text-field
-              v-model.number="config.days_until_paycheck"
-              type="number"
-              label="Days Until Next Paycheck"
+              v-model="config.next_payday_date"
+              type="date"
+              label="Next Payday Date"
               variant="outlined"
-              :rules="[rules.positiveInteger]"
+              :rules="[rules.required]"
+              :min="todayDate"
               required
+              class="mb-4"
+              hint="Days remaining will update automatically"
+              persistent-hint
+            />
+            <v-select
+              v-model="config.pay_frequency_days"
+              :items="payFrequencyOptions"
+              label="Pay Frequency"
+              variant="outlined"
               class="mb-4"
             />
           </div>
@@ -160,10 +170,16 @@
               {{ currentConfig.monthly_income.toFixed(2) }}
             </v-list-item-subtitle>
           </v-list-item>
-          <v-list-item v-if="currentConfig.days_until_paycheck">
+          <v-list-item v-if="currentConfig.next_payday_date">
+            <v-list-item-title>Next Payday</v-list-item-title>
+            <v-list-item-subtitle>
+              {{ new Date(currentConfig.next_payday_date).toLocaleDateString() }}
+            </v-list-item-subtitle>
+          </v-list-item>
+          <v-list-item v-else-if="currentConfig.days_until_paycheck">
             <v-list-item-title>Days Until Paycheck</v-list-item-title>
             <v-list-item-subtitle>
-              {{ currentConfig.days_until_paycheck }}
+              {{ currentConfig.days_until_paycheck }} (static - update to use date)
             </v-list-item-subtitle>
           </v-list-item>
           <v-list-item v-if="currentConfig.total_money !== undefined">
@@ -252,7 +268,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { budgetApi } from '@/services/api'
 import { useBudgetStore } from '@/stores/budget'
 import { useValidation } from '@/composables/useValidation'
@@ -263,10 +279,22 @@ const { rules } = useValidation()
 
 const budgetConfigForm = ref()
 
+// Get today's date for min date validation
+const todayDate = computed(() => {
+  return new Date().toISOString().split('T')[0]
+})
+
+const payFrequencyOptions = [
+  { title: 'Weekly', value: 7 },
+  { title: 'Biweekly', value: 14 },
+  { title: 'Monthly', value: 30 },
+]
+
 const config = ref({
   mode: 'paycheck' as 'paycheck' | 'fixed_pool',
   monthly_income: 0,
-  days_until_paycheck: 14,
+  next_payday_date: '',
+  pay_frequency_days: 14,
   total_money: 0,
   fixed_pool_mode: 'target_date' as 'target_date' | 'daily_limit',
   target_end_date: '',
@@ -288,10 +316,19 @@ async function loadCurrentConfig() {
     const response = await budgetApi.getBudgetConfig()
     if (response.data.configured) {
       currentConfig.value = response.data
+      // Calculate default next payday from days_until_paycheck if no date stored
+      let nextPaydayDate = response.data.next_payday_date
+      if (!nextPaydayDate && response.data.days_until_paycheck) {
+        const futureDate = new Date()
+        futureDate.setDate(futureDate.getDate() + response.data.days_until_paycheck)
+        nextPaydayDate = futureDate.toISOString()
+      }
+
       config.value = {
         mode: response.data.mode,
         monthly_income: response.data.monthly_income || 0,
-        days_until_paycheck: response.data.days_until_paycheck || 14,
+        next_payday_date: nextPaydayDate ? nextPaydayDate.split('T')[0] : '',
+        pay_frequency_days: response.data.pay_frequency_days || 14,
         total_money: response.data.total_money || 0,
         fixed_pool_mode: (response.data.target_end_date ? 'target_date' : 'daily_limit') as 'target_date' | 'daily_limit',
         target_end_date: response.data.target_end_date ? response.data.target_end_date.split('T')[0] : '',
@@ -319,7 +356,9 @@ async function saveBudgetConfig() {
 
     if (config.value.mode === 'paycheck') {
       payload.monthly_income = config.value.monthly_income
-      payload.days_until_paycheck = config.value.days_until_paycheck
+      // Send the actual date so API calculates days dynamically
+      payload.next_payday_date = new Date(config.value.next_payday_date).toISOString()
+      payload.pay_frequency_days = config.value.pay_frequency_days
     } else {
       payload.total_money = config.value.total_money
       // Include fixed pool mode options
