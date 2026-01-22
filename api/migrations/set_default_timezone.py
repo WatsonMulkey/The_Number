@@ -9,6 +9,7 @@ Usage:
     python -m api.migrations.set_default_timezone
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -20,9 +21,28 @@ from src.database import EncryptedDatabase
 DEFAULT_TIMEZONE = "America/Denver"  # MST
 
 
+def get_production_db() -> EncryptedDatabase:
+    """Get database instance using production configuration."""
+    encryption_key = os.getenv("DB_ENCRYPTION_KEY")
+    if not encryption_key:
+        raise RuntimeError(
+            "DB_ENCRYPTION_KEY environment variable not set. "
+            "Run this script in the production environment."
+        )
+
+    # Use the same path logic as api/main.py
+    fly_data_path = Path("/data/budget.db")
+    if fly_data_path.parent.exists():
+        db_path = str(fly_data_path)
+    else:
+        db_path = str(Path(__file__).parent.parent / "budget.db")
+
+    return EncryptedDatabase(db_path=db_path, encryption_key=encryption_key)
+
+
 def migrate():
     """Set default timezone for all users who don't have one."""
-    db = EncryptedDatabase()
+    db = get_production_db()
 
     # Get all users
     import sqlite3
