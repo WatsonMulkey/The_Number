@@ -61,6 +61,30 @@
           </div>
         </div>
       </v-alert>
+
+      <!-- Tomorrow's budget preview (when under budget) -->
+      <v-alert
+        v-if="!isOverBudget && tomorrowDailyBudget && showTomorrowPreview"
+        type="info"
+        density="comfortable"
+        variant="tonal"
+        class="mt-4 tomorrow-alert"
+        role="status"
+        aria-live="polite"
+      >
+        <template #prepend>
+          <v-icon aria-hidden="true">mdi-calendar-arrow-right</v-icon>
+        </template>
+
+        <div>
+          <div class="font-weight-medium">
+            If you stop now, tomorrow's budget: ${{ tomorrowDailyBudget.toFixed(2) }}
+          </div>
+          <div v-if="tomorrowDelta > 0" class="text-body-2 text-medium-emphasis mt-1">
+            (up ${{ tomorrowDelta.toFixed(2) }} from today)
+          </div>
+        </div>
+      </v-alert>
     </div>
   </v-card>
 </template>
@@ -77,6 +101,7 @@ const props = defineProps<{
   daysRemaining?: number
   adjustedDailyBudget?: number
   originalDailyBudget?: number
+  tomorrowDailyBudget?: number
 }>()
 
 const formattedNumber = computed(() => {
@@ -100,6 +125,16 @@ const spendingPercentage = computed(() => {
 const budgetDelta = computed(() => {
   if (!props.adjustedDailyBudget || !props.originalDailyBudget) return 0
   return props.originalDailyBudget - props.adjustedDailyBudget
+})
+
+const tomorrowDelta = computed(() => {
+  if (!props.tomorrowDailyBudget) return 0
+  return props.tomorrowDailyBudget - props.theNumber
+})
+
+// Only show tomorrow preview if it's meaningfully different (more than $0.50 change)
+const showTomorrowPreview = computed(() => {
+  return props.tomorrowDailyBudget && Math.abs(tomorrowDelta.value) > 0.5
 })
 </script>
 
@@ -173,8 +208,21 @@ const budgetDelta = computed(() => {
   color: #F57C00;
 }
 
+/* Tomorrow's preview alert */
+.tomorrow-alert {
+  border-radius: 12px;
+  background-color: rgba(135, 152, 106, 0.12) !important;
+  border: 2px solid rgba(135, 152, 106, 0.3);
+  text-align: left;
+}
+
+.tomorrow-alert :deep(.v-icon) {
+  color: var(--color-sage-green-dark, #6B7D5B);
+}
+
 @media (max-width: 600px) {
-  .overspend-alert .font-weight-medium {
+  .overspend-alert .font-weight-medium,
+  .tomorrow-alert .font-weight-medium {
     font-size: 0.875rem;
   }
 }

@@ -214,24 +214,29 @@ async def get_the_number(
         remaining_today = result["daily_limit"] - today_spending
         is_over_budget = remaining_today < 0
 
-        # Calculate adjusted daily budget if over budget
+        # Calculate adjusted/tomorrow daily budget
         adjusted_daily_budget = None
         original_daily_budget = None
+        tomorrow_daily_budget = None
         days_remaining = result.get("days_remaining")
+        remaining_money = result.get("remaining_money", 0)
 
-        if is_over_budget and days_remaining and days_remaining > 1:
-            original_daily_budget = result["daily_limit"]
-
-            # Calculate remaining money after today's spending
-            remaining_money = result.get("remaining_money", 0)
+        # Only calculate if we have more than 1 day remaining
+        if days_remaining and days_remaining > 1:
+            # Calculate what tomorrow's budget would be based on today's spending
             remaining_after_today = remaining_money - today_spending
+            tomorrow_budget = remaining_after_today / (days_remaining - 1)
 
-            # Spread across remaining days (excluding today)
-            adjusted = remaining_after_today / (days_remaining - 1)
-
-            # Only return if positive (recoverable overspend)
-            if adjusted > 0:
-                adjusted_daily_budget = round(adjusted, 2)
+            if is_over_budget:
+                # Overspend: show adjusted budget (what you now have to work with)
+                original_daily_budget = result["daily_limit"]
+                if tomorrow_budget > 0:
+                    adjusted_daily_budget = round(tomorrow_budget, 2)
+            else:
+                # Underspend or on-budget: show tomorrow's preview
+                # Only show if tomorrow's budget differs meaningfully from today's
+                if tomorrow_budget > 0:
+                    tomorrow_daily_budget = round(tomorrow_budget, 2)
 
         return BudgetNumberResponse(
             the_number=result["daily_limit"],
@@ -245,7 +250,8 @@ async def get_the_number(
             remaining_today=remaining_today,
             is_over_budget=is_over_budget,
             adjusted_daily_budget=adjusted_daily_budget,
-            original_daily_budget=original_daily_budget
+            original_daily_budget=original_daily_budget,
+            tomorrow_daily_budget=tomorrow_daily_budget
         )
 
     except HTTPException:

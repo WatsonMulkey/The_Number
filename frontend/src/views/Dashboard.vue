@@ -41,6 +41,9 @@
             :remaining-today="budgetStore.budgetNumber.remaining_today"
             :is-over-budget="budgetStore.budgetNumber.is_over_budget"
             :days-remaining="budgetStore.budgetNumber.days_remaining"
+            :adjusted-daily-budget="budgetStore.budgetNumber.adjusted_daily_budget"
+            :original-daily-budget="budgetStore.budgetNumber.original_daily_budget"
+            :tomorrow-daily-budget="budgetStore.budgetNumber.tomorrow_daily_budget"
           />
         </v-window-item>
 

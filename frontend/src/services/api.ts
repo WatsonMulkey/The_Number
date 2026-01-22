@@ -70,6 +70,7 @@ export interface BudgetNumber {
   is_over_budget: boolean
   adjusted_daily_budget?: number
   original_daily_budget?: number
+  tomorrow_daily_budget?: number
 }
 
 export interface Expense {
