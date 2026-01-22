@@ -101,7 +101,14 @@ const formattedNumber = computed(() => {
 const subtitle = computed(() => {
   if (props.mode === 'paycheck') {
     const days = props.daysRemaining || 0
-    return `per day for the next ${days.toFixed(0)} days`
+    if (days <= 0) {
+      return 'payday!'
+    }
+    // Calculate the last day before payday (today + days - 1)
+    const lastDay = new Date()
+    lastDay.setDate(lastDay.getDate() + days - 1)
+    const dayName = lastDay.toLocaleDateString('en-US', { weekday: 'long' })
+    return `per day through ${dayName}`
   } else {
     return 'per day with current budget'
   }

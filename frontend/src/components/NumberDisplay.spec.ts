@@ -39,16 +39,17 @@ describe('NumberDisplay Component', () => {
   })
 
   describe('Mode-specific Subtitle', () => {
-    it('should show paycheck mode subtitle with days remaining', () => {
+    it('should show paycheck mode subtitle with day name', () => {
       const wrapper = mount(NumberDisplay, {
         props: {
           theNumber: 100,
           mode: 'paycheck',
-          daysRemaining: 15,
+          daysRemaining: 5,
         },
       })
 
-      expect(wrapper.text()).toContain('per day for the next 15 days')
+      // Should show "per day through [DayName]"
+      expect(wrapper.text()).toContain('per day through')
     })
 
     it('should show fixed pool mode subtitle', () => {
@@ -62,15 +63,16 @@ describe('NumberDisplay Component', () => {
       expect(wrapper.text()).toContain('per day with current budget')
     })
 
-    it('should handle missing days remaining in paycheck mode', () => {
+    it('should show payday message when days remaining is 0', () => {
       const wrapper = mount(NumberDisplay, {
         props: {
           theNumber: 100,
           mode: 'paycheck',
+          daysRemaining: 0,
         },
       })
 
-      expect(wrapper.text()).toContain('per day for the next 0 days')
+      expect(wrapper.text()).toContain('payday!')
     })
   })
 
