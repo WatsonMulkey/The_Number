@@ -9,7 +9,7 @@ import os
 import sys
 import logging
 from pathlib import Path
-from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Request
+from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from typing import List, Optional
@@ -159,6 +159,7 @@ async def health_check():
 
 @app.get("/api/number", response_model=BudgetNumberResponse)
 async def get_the_number(
+    response: Response,
     user_id: int = Depends(get_current_user_id),
     db: EncryptedDatabase = Depends(get_db)
 ):
@@ -167,7 +168,14 @@ async def get_the_number(
 
     This is the main feature of the app!
     Requires authentication.
+
+    Note: This endpoint uses the user's configured timezone for date calculations.
+    If no timezone is set, defaults to America/Denver (MST).
     """
+    # Prevent caching - this data must always be fresh
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+
     try:
         # Get budget mode configuration for this user
         budget_mode = db.get_setting("budget_mode", user_id)
@@ -178,6 +186,9 @@ async def get_the_number(
                 detail="Budget mode not configured. Please configure your budget first."
             )
 
+        # Get user's timezone for date calculations (default: MST)
+        user_timezone = db.get_setting("user_timezone", user_id)
+
         # Load expenses into calculator
         calc = BudgetCalculator()
         expenses = db.get_expenses(user_id)
@@ -186,7 +197,9 @@ async def get_the_number(
 
         # Calculate "The Number" based on mode
         if budget_mode == "paycheck":
-            from datetime import datetime, date, timedelta
+            from datetime import datetime, timedelta
+            from api.utils.dates import get_user_today
+
             monthly_income = db.get_setting("monthly_income", user_id)
 
             # Try new approach: calculate from next_payday_date
@@ -195,7 +208,8 @@ async def get_the_number(
 
             if next_payday_str:
                 next_payday = datetime.fromisoformat(next_payday_str).date()
-                today = date.today()
+                # Use user's timezone for "today" instead of server time
+                today = get_user_today(user_timezone)
 
                 # Auto-roll to next pay period if payday has passed
                 while next_payday <= today:
@@ -229,8 +243,8 @@ async def get_the_number(
             )
 
 
-        # Get today's spending
-        today_spending = db.get_total_spending_today(user_id)
+        # Get today's spending (using user's timezone for day boundaries)
+        today_spending = db.get_total_spending_today(user_id, user_timezone)
         remaining_today = result["daily_limit"] - today_spending
         is_over_budget = remaining_today < 0
 
@@ -348,6 +362,12 @@ async def configure_budget(
 
         # Save budget mode
         db.set_setting("budget_mode", config.mode, user_id)
+
+        # Save user timezone if provided (for correct day boundary calculations)
+        if config.user_timezone:
+            from api.utils.dates import validate_timezone
+            validated_tz = validate_timezone(config.user_timezone)
+            db.set_setting("user_timezone", validated_tz, user_id)
 
         return {"message": f"Budget configured successfully in {config.mode} mode"}
 

@@ -216,7 +216,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useBudgetStore } from '@/stores/budget'
 import { useAuthStore } from '@/stores/auth'
 import { useValidation } from '@/composables/useValidation'
@@ -232,6 +232,9 @@ const spendingAmount = ref<number | null>(null)
 const spendingDescription = ref('')
 const transactionType = ref<'in' | 'out'>('out')
 const currentSlide = ref(0)
+
+// Track the last date we fetched data (for day-change detection)
+const lastFetchDate = ref<string | null>(null)
 
 const recentTransactions = computed(() =>
   budgetStore.transactions.slice(0, 5)
@@ -250,6 +253,10 @@ async function loadDashboard() {
     console.log('📊 Fetching budget number...')
     await budgetStore.fetchNumber()
     console.log('📊 Budget number fetched:', budgetStore.budgetNumber)
+
+    // Track when we last fetched data (for day-change detection)
+    lastFetchDate.value = new Date().toDateString()
+
     // Only fetch transactions if we have a configured budget
     if (budgetStore.budgetNumber) {
       console.log('📊 Fetching transactions...')
@@ -321,6 +328,27 @@ async function onOnboardingComplete() {
 
 onMounted(() => {
   loadDashboard()
+})
+
+// Day-change detection: refresh data when user returns to the app on a new day
+// This ensures the budget resets correctly at midnight in the user's timezone
+function handleVisibilityChange() {
+  if (document.visibilityState === 'visible' && lastFetchDate.value) {
+    const today = new Date().toDateString()
+    if (lastFetchDate.value !== today) {
+      console.log('🌅 Day changed since last fetch - refreshing data')
+      console.log(`   Last fetch: ${lastFetchDate.value}, Today: ${today}`)
+      loadDashboard()
+    }
+  }
+}
+
+// Set up visibility change listener
+document.addEventListener('visibilitychange', handleVisibilityChange)
+
+// Clean up listener on unmount
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 
 // Watch for authentication changes and reload dashboard when user logs in

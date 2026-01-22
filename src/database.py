@@ -469,29 +469,44 @@ class EncryptedDatabase:
             cursor.execute("DELETE FROM transactions WHERE id = ? AND user_id = ?", (transaction_id, user_id))
             conn.commit()
 
-    def get_total_spending_today(self, user_id: int) -> float:
+    def get_total_spending_today(self, user_id: int, user_timezone: str | None = None) -> float:
         """
-        Get NET spending for today for a specific user.
+        Get NET spending for today for a specific user, using their timezone.
 
         Calculates: total expenses - total income for today.
         This means "Money In" transactions offset spending.
 
+        Args:
+            user_id: The user's ID
+            user_timezone: User's timezone string (e.g., "America/Denver").
+                          If None, uses default (America/Denver for MST).
+
         Returns:
             Net spending amount (can be negative if income > expenses)
+
+        Note:
+            Uses timezone-aware day boundaries to correctly identify "today"
+            regardless of server timezone. Transactions are stored in UTC
+            and queried using the user's local day boundaries converted to UTC.
         """
-        today = datetime.now().date().isoformat()
+        # Import here to avoid circular imports
+        from api.utils.dates import get_user_day_boundaries_utc
+
+        start_utc, end_utc = get_user_day_boundaries_utc(user_timezone)
 
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             # Calculate net spending: expenses add, income subtracts
+            # Query using UTC boundaries that correspond to user's local "today"
             cursor.execute("""
                 SELECT COALESCE(SUM(
                     CASE WHEN category = 'income' THEN -amount ELSE amount END
                 ), 0) as net_spending
                 FROM transactions
                 WHERE user_id = ?
-                  AND DATE(date) = DATE(?)
-            """, (user_id, today))
+                  AND datetime(date) >= datetime(?)
+                  AND datetime(date) <= datetime(?)
+            """, (user_id, start_utc.isoformat(), end_utc.isoformat()))
             result = cursor.fetchone()
             return result[0] if result[0] else 0.0
 

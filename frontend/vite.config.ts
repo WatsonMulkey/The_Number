@@ -43,7 +43,9 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/the-number-budget\.fly\.dev\/api\/.*/i,
+            // Cache API responses EXCEPT /api/number (which must always be fresh)
+            // The negative lookahead (?!number) excludes /api/number from caching
+            urlPattern: /^https:\/\/the-number-budget\.fly\.dev\/api\/(?!number).*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',

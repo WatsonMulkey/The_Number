@@ -730,6 +730,9 @@ const loading = ref(false)
 const showError = ref(false)
 const errorMessage = ref('')
 
+// Auto-detect user's timezone for correct day boundary calculations
+const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+
 // Computed
 const totalExpenses = computed(() =>
   expenses.value.reduce((sum, exp) => sum + exp.amount, 0)
@@ -995,7 +998,11 @@ async function completeOnboarding() {
 
   try {
     // 1. Save budget configuration
-    const budgetConfig: any = { mode: budgetMode.value }
+    const budgetConfig: any = {
+      mode: budgetMode.value,
+      // Include user's timezone for correct day boundary calculations
+      user_timezone: userTimezone
+    }
     if (budgetMode.value === 'paycheck') {
       budgetConfig.monthly_income = monthlyIncome.value
       // Send the actual date so the API can calculate days dynamically

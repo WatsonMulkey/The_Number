@@ -94,6 +94,7 @@ class BudgetModeConfig(BaseModel):
     total_money: Optional[float] = Field(None, ge=0, description="Total money available (fixed_pool mode only)")
     target_end_date: Optional[datetime] = Field(None, description="Target end date for fixed pool (Option B)")
     daily_spending_limit: Optional[float] = Field(None, gt=0, description="Daily spending limit for fixed pool (Option C)")
+    user_timezone: Optional[str] = Field(None, description="User's timezone (e.g., 'America/Denver'). Auto-detected from browser if not set.")
 
     class Config:
         json_schema_extra = {
