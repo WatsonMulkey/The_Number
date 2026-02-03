@@ -1,5 +1,29 @@
 <template>
   <div class="dashboard">
+    <!-- Pool Contribution Prompt Dialog -->
+    <v-dialog v-model="showPoolPrompt" max-width="400" persistent>
+      <v-card>
+        <v-card-title class="text-center pa-4" style="background-color: #E9F5DB;">
+          <v-icon color="success" size="large" class="mr-2">mdi-party-popper</v-icon>
+          Congratulations!
+        </v-card-title>
+        <v-card-text class="pa-6 text-center">
+          <p class="text-body-1 mb-4">You have money that carried over from your last pay period!</p>
+          <p class="text-h3 font-weight-bold my-4" style="color: #4CAF50;">
+            ${{ budgetStore.budgetNumber?.pending_pool_contribution?.toFixed(2) }}
+          </p>
+          <p class="text-body-2 text-medium-emphasis">Would you like to add it to your savings pool?</p>
+        </v-card-text>
+        <v-card-actions class="justify-center pb-4">
+          <v-btn variant="text" @click="declinePoolContribution">No Thanks</v-btn>
+          <v-btn color="primary" variant="elevated" @click="acceptPoolContribution">Add to Pool</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Add to Pool Modal -->
+    <AddToPoolModal v-model="showAddToPoolModal" @added="onPoolAdded" />
+
     <!-- Hero Section removed - Onboarding component has its own branded header -->
 
     <!-- Error Alert (only show when not in onboarding) -->
@@ -45,6 +69,42 @@
             :original-daily-budget="budgetStore.budgetNumber.original_daily_budget"
             :tomorrow-daily-budget="budgetStore.budgetNumber.tomorrow_daily_budget"
           />
+
+          <!-- Pool Section (shows when pool has balance) -->
+          <div v-if="budgetStore.budgetNumber.pool_balance > 0" class="pool-section text-center mt-4">
+            <div class="pool-balance mb-2">
+              <v-icon size="small" class="mr-1">mdi-piggy-bank</v-icon>
+              <span class="text-body-1">Pool: <strong>${{ budgetStore.budgetNumber.pool_balance.toFixed(2) }}</strong></span>
+              <v-chip
+                v-if="budgetStore.budgetNumber.pool_enabled"
+                color="success"
+                size="x-small"
+                class="ml-2"
+              >Active</v-chip>
+            </div>
+            <v-switch
+              v-model="poolEnabled"
+              :label="poolEnabled ? 'Pool funds included' : 'Pool funds excluded'"
+              color="primary"
+              density="compact"
+              hide-details
+              class="d-inline-flex justify-center"
+              @update:model-value="togglePoolEnabled"
+            />
+          </div>
+
+          <!-- Add to Pool Button (always visible for paycheck mode) -->
+          <div v-if="budgetStore.budgetNumber.mode === 'paycheck'" class="text-center mt-3">
+            <v-btn
+              variant="outlined"
+              size="small"
+              color="primary"
+              @click="showAddToPoolModal = true"
+            >
+              <v-icon size="small" class="mr-1">mdi-plus</v-icon>
+              Add to Pool
+            </v-btn>
+          </div>
         </v-window-item>
 
         <!-- Slide 2: Budget Details -->
@@ -222,6 +282,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useValidation } from '@/composables/useValidation'
 import NumberDisplay from '@/components/NumberDisplay.vue'
 import Onboarding from '@/components/Onboarding.vue'
+import AddToPoolModal from '@/components/AddToPoolModal.vue'
 
 const budgetStore = useBudgetStore()
 const authStore = useAuthStore()
@@ -235,6 +296,11 @@ const currentSlide = ref(0)
 
 // Track the last date we fetched data (for day-change detection)
 const lastFetchDate = ref<string | null>(null)
+
+// Pool feature state
+const showPoolPrompt = ref(false)
+const showAddToPoolModal = ref(false)
+const poolEnabled = ref(false)
 
 const recentTransactions = computed(() =>
   budgetStore.transactions.slice(0, 5)
@@ -325,6 +391,63 @@ async function onOnboardingComplete() {
   await loadDashboard()
   console.log('🎉 Dashboard reloaded after onboarding')
 }
+
+// Pool feature methods
+async function acceptPoolContribution() {
+  try {
+    await budgetStore.acceptPoolContribution()
+    showPoolPrompt.value = false
+  } catch (e) {
+    console.error('Failed to accept pool contribution:', e)
+  }
+}
+
+async function declinePoolContribution() {
+  try {
+    await budgetStore.declinePoolContribution()
+    showPoolPrompt.value = false
+  } catch (e) {
+    console.error('Failed to decline pool contribution:', e)
+  }
+}
+
+async function togglePoolEnabled(enabled: boolean | null) {
+  if (enabled === null) return
+  try {
+    await budgetStore.togglePool(enabled)
+  } catch (e) {
+    console.error('Failed to toggle pool:', e)
+    // Revert local state on error
+    poolEnabled.value = !enabled
+  }
+}
+
+function onPoolAdded() {
+  // Modal handles the API call, just close it
+  showAddToPoolModal.value = false
+}
+
+// Sync pool enabled state with API response
+watch(
+  () => budgetStore.budgetNumber?.pool_enabled,
+  (enabled) => {
+    if (enabled !== undefined) {
+      poolEnabled.value = enabled
+    }
+  },
+  { immediate: true }
+)
+
+// Show pool prompt when there's a pending contribution
+watch(
+  () => budgetStore.budgetNumber?.pending_pool_contribution,
+  (pending) => {
+    if (pending && pending > 0) {
+      showPoolPrompt.value = true
+    }
+  },
+  { immediate: true }
+)
 
 onMounted(() => {
   loadDashboard()
@@ -579,5 +702,25 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
 
 :deep(.v-window__controls .v-btn .v-icon) {
   font-size: 18px;
+}
+
+/* Pool Section Styles */
+.pool-section {
+  background: linear-gradient(135deg, rgba(233, 245, 219, 0.5) 0%, rgba(255, 255, 255, 0.8) 100%);
+  border-radius: 12px;
+  padding: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.pool-balance {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.pool-balance strong {
+  color: var(--color-success);
+  font-size: 1.1rem;
 }
 </style>

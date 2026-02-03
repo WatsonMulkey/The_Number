@@ -37,7 +37,8 @@ from api.models import (
     ExpenseCreate, ExpenseResponse, ExpenseUpdate, TransactionCreate, TransactionResponse,
     BudgetModeConfig, BudgetNumberResponse, ImportExpensesResponse, ErrorResponse,
     UserRegister, UserLogin, UserResponse, TokenResponse,
-    ForgotPasswordRequest, ForgotPasswordResponse, ResetPasswordRequest, ResetPasswordResponse
+    ForgotPasswordRequest, ForgotPasswordResponse, ResetPasswordRequest, ResetPasswordResponse,
+    PoolToggleRequest, PoolAddRequest, PoolResponse
 )
 from api.auth import (
     hash_password, verify_password, create_access_token, get_current_user_id, check_rate_limit,
@@ -213,6 +214,40 @@ async def get_the_number(
 
                 # Auto-roll to next pay period if payday has passed
                 while next_payday <= today:
+                    # BEFORE advancing, calculate leftover from the previous cycle
+                    # This enables the pool feature
+                    previous_cycle_start = next_payday - timedelta(days=pay_frequency)
+
+                    # Check if we already processed this payday (avoid double-counting)
+                    last_processed = db.get_setting("last_processed_payday", user_id)
+                    if last_processed != next_payday.isoformat():
+                        # Calculate leftover for this cycle
+                        total_expenses = sum(exp["amount"] for exp in expenses)
+                        cycle_days = pay_frequency
+
+                        # Get transactions during that cycle
+                        transactions_total = db.get_transactions_sum_for_period(
+                            user_id,
+                            datetime.combine(previous_cycle_start, datetime.min.time()),
+                            datetime.combine(next_payday, datetime.min.time())
+                        )
+
+                        # Calculate what the daily budget was for that cycle
+                        remaining_for_cycle = monthly_income - total_expenses
+                        expected_budget = remaining_for_cycle  # Total available for the cycle
+
+                        # Leftover = what we had - what we spent
+                        leftover = expected_budget - transactions_total
+
+                        if leftover > 0:
+                            # Accumulate pending contribution (handles multiple missed paydays)
+                            current_pending = float(db.get_setting("pending_pool_contribution", user_id) or 0)
+                            db.set_setting("pending_pool_contribution", current_pending + leftover, user_id)
+
+                        # Track that we processed this payday
+                        db.set_setting("last_processed_payday", next_payday.isoformat(), user_id)
+
+                    # Advance to next payday
                     next_payday = next_payday + timedelta(days=pay_frequency)
                     # Update stored date for next time
                     db.set_setting("next_payday_date", next_payday.isoformat(), user_id)
@@ -243,27 +278,43 @@ async def get_the_number(
             )
 
 
+        # Get pool settings
+        pool_enabled = db.get_setting("pool_enabled", user_id) == True
+        pool_balance = float(db.get_setting("pool_balance", user_id) or 0)
+        pending_pool = float(db.get_setting("pending_pool_contribution", user_id) or 0)
+
+        # Base daily limit from calculator
+        base_daily_limit = result["daily_limit"]
+        days_remaining = result.get("days_remaining")
+        remaining_money = result.get("remaining_money", 0)
+
+        # If pool is enabled and has balance, factor it into the daily budget
+        the_number = base_daily_limit
+        if pool_enabled and pool_balance > 0 and days_remaining and days_remaining > 0:
+            # Add pool to remaining money, recalculate daily limit
+            remaining_with_pool = remaining_money + pool_balance
+            the_number = remaining_with_pool / days_remaining
+
         # Get today's spending (using user's timezone for day boundaries)
         today_spending = db.get_total_spending_today(user_id, user_timezone)
-        remaining_today = result["daily_limit"] - today_spending
+        remaining_today = the_number - today_spending
         is_over_budget = remaining_today < 0
 
         # Calculate adjusted/tomorrow daily budget
         adjusted_daily_budget = None
         original_daily_budget = None
         tomorrow_daily_budget = None
-        days_remaining = result.get("days_remaining")
-        remaining_money = result.get("remaining_money", 0)
 
         # Only calculate if we have more than 1 day remaining
         if days_remaining and days_remaining > 1:
             # Calculate what tomorrow's budget would be based on today's spending
-            remaining_after_today = remaining_money - today_spending
+            effective_remaining = remaining_money + pool_balance if pool_enabled else remaining_money
+            remaining_after_today = effective_remaining - today_spending
             tomorrow_budget = remaining_after_today / (days_remaining - 1)
 
             if is_over_budget:
                 # Overspend: show adjusted budget (what you now have to work with)
-                original_daily_budget = result["daily_limit"]
+                original_daily_budget = the_number
                 if tomorrow_budget > 0:
                     adjusted_daily_budget = round(tomorrow_budget, 2)
             else:
@@ -273,7 +324,7 @@ async def get_the_number(
                     tomorrow_daily_budget = round(tomorrow_budget, 2)
 
         return BudgetNumberResponse(
-            the_number=result["daily_limit"],
+            the_number=the_number,
             mode=budget_mode,
             total_income=result.get("total_income"),
             total_money=result.get("total_money"),
@@ -285,7 +336,10 @@ async def get_the_number(
             is_over_budget=is_over_budget,
             adjusted_daily_budget=adjusted_daily_budget,
             original_daily_budget=original_daily_budget,
-            tomorrow_daily_budget=tomorrow_daily_budget
+            tomorrow_daily_budget=tomorrow_daily_budget,
+            pool_balance=pool_balance,
+            pool_enabled=pool_enabled,
+            pending_pool_contribution=pending_pool if pending_pool > 0 else None
         )
 
     except HTTPException:
@@ -741,6 +795,121 @@ async def delete_transaction(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error deleting transaction: {str(e)}"
         )
+
+
+# ============================================================================
+# POOL ENDPOINTS
+# ============================================================================
+
+@app.post("/api/pool/accept", response_model=PoolResponse)
+async def accept_pool_contribution(
+    user_id: int = Depends(get_current_user_id),
+    db: EncryptedDatabase = Depends(get_db)
+):
+    """
+    Accept pending pool contribution from payday rollover.
+
+    Moves the pending contribution to the pool balance.
+    Requires authentication.
+    """
+    pending = float(db.get_setting("pending_pool_contribution", user_id) or 0)
+    if pending <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No pending contribution to accept"
+        )
+
+    current_balance = float(db.get_setting("pool_balance", user_id) or 0)
+    new_balance = current_balance + pending
+
+    db.set_setting("pool_balance", new_balance, user_id)
+    db.set_setting("pending_pool_contribution", 0, user_id)
+
+    logger.info(f"User {user_id} accepted pool contribution: ${pending:.2f}, new balance: ${new_balance:.2f}")
+
+    return PoolResponse(pool_balance=new_balance)
+
+
+@app.post("/api/pool/decline")
+async def decline_pool_contribution(
+    user_id: int = Depends(get_current_user_id),
+    db: EncryptedDatabase = Depends(get_db)
+):
+    """
+    Decline pending pool contribution.
+
+    Clears the pending contribution without adding to pool.
+    Requires authentication.
+    """
+    pending = float(db.get_setting("pending_pool_contribution", user_id) or 0)
+    db.set_setting("pending_pool_contribution", 0, user_id)
+
+    logger.info(f"User {user_id} declined pool contribution: ${pending:.2f}")
+
+    return {"status": "declined", "amount_declined": pending}
+
+
+@app.post("/api/pool/toggle", response_model=PoolResponse)
+async def toggle_pool(
+    request: PoolToggleRequest,
+    user_id: int = Depends(get_current_user_id),
+    db: EncryptedDatabase = Depends(get_db)
+):
+    """
+    Toggle pool enabled/disabled for daily budget calculation.
+
+    When enabled, pool balance is factored into the daily budget.
+    Requires authentication.
+    """
+    db.set_setting("pool_enabled", request.enabled, user_id)
+    pool_balance = float(db.get_setting("pool_balance", user_id) or 0)
+
+    logger.info(f"User {user_id} toggled pool: enabled={request.enabled}")
+
+    return PoolResponse(pool_balance=pool_balance)
+
+
+@app.post("/api/pool/add", response_model=PoolResponse)
+async def add_to_pool(
+    request: PoolAddRequest,
+    user_id: int = Depends(get_current_user_id),
+    db: EncryptedDatabase = Depends(get_db)
+):
+    """
+    Manually add money to the pool.
+
+    Requires authentication.
+    """
+    current_balance = float(db.get_setting("pool_balance", user_id) or 0)
+    new_balance = current_balance + request.amount
+
+    db.set_setting("pool_balance", new_balance, user_id)
+
+    logger.info(f"User {user_id} added ${request.amount:.2f} to pool, new balance: ${new_balance:.2f}")
+
+    return PoolResponse(pool_balance=new_balance)
+
+
+@app.get("/api/pool")
+async def get_pool_status(
+    user_id: int = Depends(get_current_user_id),
+    db: EncryptedDatabase = Depends(get_db)
+):
+    """
+    Get current pool status.
+
+    Returns pool balance, enabled status, and any pending contribution.
+    Requires authentication.
+    """
+    pool_balance = float(db.get_setting("pool_balance", user_id) or 0)
+    pool_enabled = db.get_setting("pool_enabled", user_id) == True
+    pending = float(db.get_setting("pending_pool_contribution", user_id) or 0)
+
+    return {
+        "pool_balance": pool_balance,
+        "pool_enabled": pool_enabled,
+        "pending_pool_contribution": pending if pending > 0 else None
+    }
 
 
 # ============================================================================

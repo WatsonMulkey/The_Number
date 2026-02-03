@@ -71,6 +71,10 @@ export interface BudgetNumber {
   adjusted_daily_budget?: number
   original_daily_budget?: number
   tomorrow_daily_budget?: number
+  // Pool feature fields
+  pool_balance: number
+  pool_enabled: boolean
+  pending_pool_contribution?: number | null
 }
 
 export interface Expense {
@@ -140,6 +144,13 @@ export const budgetApi = {
   createTransaction: (transaction: Omit<Transaction, 'id' | 'date' | 'created_at'>) =>
     api.post<Transaction>('/api/transactions', transaction),
   deleteTransaction: (id: number) => api.delete(`/api/transactions/${id}`),
+
+  // Pool feature
+  getPoolStatus: () => api.get<{ pool_balance: number; pool_enabled: boolean; pending_pool_contribution: number | null }>('/api/pool'),
+  acceptPoolContribution: () => api.post<{ pool_balance: number }>('/api/pool/accept'),
+  declinePoolContribution: () => api.post<{ status: string; amount_declined: number }>('/api/pool/decline'),
+  togglePool: (enabled: boolean) => api.post<{ pool_balance: number }>('/api/pool/toggle', { enabled }),
+  addToPool: (amount: number) => api.post<{ pool_balance: number }>('/api/pool/add', { amount }),
 }
 
 // Password reset types

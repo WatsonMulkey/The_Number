@@ -127,6 +127,10 @@ class BudgetNumberResponse(BaseModel):
     adjusted_daily_budget: Optional[float] = Field(None, description="Recalculated daily budget if over budget today")
     original_daily_budget: Optional[float] = Field(None, description="Original daily budget before adjustment")
     tomorrow_daily_budget: Optional[float] = Field(None, description="Preview of tomorrow's daily budget if you stop spending now")
+    # Pool feature fields
+    pool_balance: float = Field(default=0, description="Cumulative savings pool balance")
+    pool_enabled: bool = Field(default=False, description="Whether pool is factored into daily budget")
+    pending_pool_contribution: Optional[float] = Field(None, description="Leftover from payday awaiting user decision")
 
     class Config:
         json_schema_extra = {
@@ -139,7 +143,10 @@ class BudgetNumberResponse(BaseModel):
                 "days_remaining": 14,
                 "today_spending": 12.00,
                 "remaining_today": 26.50,
-                "is_over_budget": False
+                "is_over_budget": False,
+                "pool_balance": 80.00,
+                "pool_enabled": True,
+                "pending_pool_contribution": None
             }
         }
 
@@ -236,3 +243,22 @@ class ResetPasswordRequest(BaseModel):
 class ResetPasswordResponse(BaseModel):
     """Response model for reset password."""
     message: str = Field(..., description="Success message")
+
+
+# ============================================================================
+# POOL FEATURE MODELS
+# ============================================================================
+
+class PoolToggleRequest(BaseModel):
+    """Request model for toggling pool enabled/disabled."""
+    enabled: bool = Field(..., description="Whether to enable pool in daily budget calculation")
+
+
+class PoolAddRequest(BaseModel):
+    """Request model for manually adding to pool."""
+    amount: float = Field(..., gt=0, le=MAX_AMOUNT, description="Amount to add to pool")
+
+
+class PoolResponse(BaseModel):
+    """Response model for pool operations."""
+    pool_balance: float = Field(..., description="Current pool balance after operation")

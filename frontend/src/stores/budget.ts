@@ -174,6 +174,56 @@ export const useBudgetStore = defineStore('budget', () => {
     }
   }
 
+  // Pool feature actions
+
+  /** Accept pending pool contribution from payday rollover */
+  async function acceptPoolContribution() {
+    error.value = null
+    try {
+      await budgetApi.acceptPoolContribution()
+      await fetchNumber()
+    } catch (e: any) {
+      error.value = e.response?.data?.detail || 'Failed to accept pool contribution'
+      throw e
+    }
+  }
+
+  /** Decline pending pool contribution */
+  async function declinePoolContribution() {
+    error.value = null
+    try {
+      await budgetApi.declinePoolContribution()
+      await fetchNumber()
+    } catch (e: any) {
+      error.value = e.response?.data?.detail || 'Failed to decline pool contribution'
+      throw e
+    }
+  }
+
+  /** Toggle pool enabled/disabled for daily budget calculation */
+  async function togglePool(enabled: boolean) {
+    error.value = null
+    try {
+      await budgetApi.togglePool(enabled)
+      await fetchNumber()
+    } catch (e: any) {
+      error.value = e.response?.data?.detail || 'Failed to toggle pool'
+      throw e
+    }
+  }
+
+  /** Manually add money to the pool */
+  async function addToPool(amount: number) {
+    error.value = null
+    try {
+      await budgetApi.addToPool(amount)
+      await fetchNumber()
+    } catch (e: any) {
+      error.value = e.response?.data?.detail || 'Failed to add to pool'
+      throw e
+    }
+  }
+
   return {
     // State
     budgetNumber,
@@ -201,5 +251,11 @@ export const useBudgetStore = defineStore('budget', () => {
     fetchTransactions,
     recordTransaction,
     clearAppBadge,
+
+    // Pool feature actions
+    acceptPoolContribution,
+    declinePoolContribution,
+    togglePool,
+    addToPool,
   }
 })
