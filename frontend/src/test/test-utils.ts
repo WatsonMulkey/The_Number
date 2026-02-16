@@ -81,6 +81,17 @@ export const mockBudgetNumber = {
   today_spending: 50,
   remaining_today: 50,
   is_over_budget: false,
+  pool_balance: 0,
+  pool_enabled: false,
+  pending_pool_contribution: null as number | null,
+}
+
+// Mock budget number with pool data
+export const mockBudgetNumberWithPool = {
+  ...mockBudgetNumber,
+  pool_balance: 150,
+  pool_enabled: true,
+  pending_pool_contribution: 45.50,
 }
 
 // Mock expense data

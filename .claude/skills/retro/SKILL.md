@@ -74,3 +74,11 @@ This skill should run BEFORE:
 - Planning sessions - Inform scope and timeline decisions
 
 Keep the retro brief and actionable - focus on what directly impacts the current task.
+
+## Supermemory Fallback
+
+If supermemory is unavailable or returns errors:
+1. Check for local learnings files in `~/.claude/scribe/learnings/` directory
+2. Read any `.md` files there for past session learnings and anti-patterns
+3. When documenting new learnings (step 5), write to `~/.claude/scribe/learnings/retro-{date}.md` instead of supermemory
+4. Format: use the same structure as the Output Format section above

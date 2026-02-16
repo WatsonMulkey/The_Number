@@ -170,34 +170,47 @@ const budgetStore = useBudgetStore()
 const showAuthModal = ref(false)
 const isMobile = ref(false)
 
+// Breakpoint constant for mobile detection
+const MOBILE_BREAKPOINT = 768
+
 // Hide navigation during onboarding (when budget not configured but user is authenticated)
 const isOnboarding = computed(() => {
   return authStore.isAuthenticated && !budgetStore.budgetNumber && !budgetStore.loadingNumber
 })
 
-// Active nav value for mobile bottom nav
-const activeNav = computed({
-  get: () => $route.name as string,
-  set: () => {
-    // Navigation handled by :to prop on buttons
-  }
-})
+// Active nav value for mobile bottom nav (read-only - navigation handled by router)
+const activeNav = computed(() => $route.name as string)
 
+// Debounce utility for resize handler
+let resizeTimeout: ReturnType<typeof setTimeout> | null = null
 function checkMobile() {
-  isMobile.value = window.innerWidth < 768
+  if (resizeTimeout) {
+    clearTimeout(resizeTimeout)
+  }
+  resizeTimeout = setTimeout(() => {
+    isMobile.value = window.innerWidth < MOBILE_BREAKPOINT
+  }, 100)
+}
+
+// Initial check without debounce
+function checkMobileImmediate() {
+  isMobile.value = window.innerWidth < MOBILE_BREAKPOINT
 }
 
 onMounted(async () => {
   // Check for existing auth session
   await authStore.checkAuth()
 
-  // Check screen size
-  checkMobile()
+  // Check screen size immediately, then debounce subsequent resize events
+  checkMobileImmediate()
   window.addEventListener('resize', checkMobile)
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', checkMobile)
+  if (resizeTimeout) {
+    clearTimeout(resizeTimeout)
+  }
 })
 
 async function handleLogout() {
@@ -320,8 +333,8 @@ async function handleAuthSuccess() {
 }
 
 .avatar-mobile {
-  top: 12px;
-  right: 12px;
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  right: calc(12px + env(safe-area-inset-right, 0px));
 }
 
 .avatar-button {

@@ -55,8 +55,14 @@ htmlcov/
 *.log
 monomythism-website/
 
+# Separate project repos (have their own git)
+foil-industries-v2/
+foil-engineering/
+
 # Unrelated projects
 resume-tailor/
 temp-*/
 output/
 workflow init/
+.vercel
+.env*.local

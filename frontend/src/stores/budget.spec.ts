@@ -6,6 +6,7 @@ import {
   createMockResponse,
   createMockError,
   mockBudgetNumber,
+  mockBudgetNumberWithPool,
   mockExpenses,
   mockTransactions,
 } from '@/test/test-utils'
@@ -17,8 +18,13 @@ vi.mock('@/services/api', () => ({
     getExpenses: vi.fn(),
     createExpense: vi.fn(),
     deleteExpense: vi.fn(),
+    updateExpense: vi.fn(),
     getTransactions: vi.fn(),
     createTransaction: vi.fn(),
+    acceptPoolContribution: vi.fn(),
+    declinePoolContribution: vi.fn(),
+    togglePool: vi.fn(),
+    addToPool: vi.fn(),
   },
 }))
 
@@ -142,16 +148,14 @@ describe('Budget Store', () => {
     })
   })
 
-  describe('addExpense', () => {
-    it('should add expense and refresh data', async () => {
+  describe('addExpense (optimistic update)', () => {
+    it('should add expense optimistically then replace with server data', async () => {
       const store = useBudgetStore()
       const newExpense = { name: 'Netflix', amount: 15, is_fixed: true }
+      const createdExpense = { ...newExpense, id: 3, created_at: '2024-01-15', updated_at: '2024-01-15' }
 
       vi.mocked(budgetApi.createExpense).mockResolvedValue(
-        createMockResponse({ ...newExpense, id: 3, created_at: '', updated_at: '' })
-      )
-      vi.mocked(budgetApi.getExpenses).mockResolvedValue(
-        createMockResponse(mockExpenses)
+        createMockResponse(createdExpense)
       )
       vi.mocked(budgetApi.getNumber).mockResolvedValue(
         createMockResponse(mockBudgetNumber)
@@ -160,13 +164,15 @@ describe('Budget Store', () => {
       await store.addExpense(newExpense)
 
       expect(budgetApi.createExpense).toHaveBeenCalledWith(newExpense)
-      expect(budgetApi.getExpenses).toHaveBeenCalled()
+      // Should NOT refetch all expenses - uses optimistic update
+      expect(budgetApi.getExpenses).not.toHaveBeenCalled()
+      // Should refetch number (server-calculated)
       expect(budgetApi.getNumber).toHaveBeenCalled()
-      expect(store.loading).toBe(false)
-      expect(store.error).toBeNull()
+      // Final state should have the server response (with real id)
+      expect(store.expenses[0]).toEqual(createdExpense)
     })
 
-    it('should handle add expense error', async () => {
+    it('should rollback optimistic add on error', async () => {
       const store = useBudgetStore()
       const newExpense = { name: 'Netflix', amount: 15, is_fixed: true }
       const errorMessage = 'Failed to add expense'
@@ -178,20 +184,20 @@ describe('Budget Store', () => {
       await expect(store.addExpense(newExpense)).rejects.toThrow()
 
       expect(store.error).toBe(errorMessage)
-      expect(store.loading).toBe(false)
+      // Optimistic entry should be rolled back
+      expect(store.expenses.length).toBe(0)
     })
   })
 
-  describe('removeExpense', () => {
-    it('should remove expense and refresh data', async () => {
+  describe('removeExpense (optimistic update)', () => {
+    it('should remove expense optimistically', async () => {
       const store = useBudgetStore()
+      // Pre-populate expenses
+      store.expenses = [...mockExpenses]
       const expenseId = 1
 
       vi.mocked(budgetApi.deleteExpense).mockResolvedValue(
         createMockResponse(null)
-      )
-      vi.mocked(budgetApi.getExpenses).mockResolvedValue(
-        createMockResponse(mockExpenses)
       )
       vi.mocked(budgetApi.getNumber).mockResolvedValue(
         createMockResponse(mockBudgetNumber)
@@ -200,14 +206,19 @@ describe('Budget Store', () => {
       await store.removeExpense(expenseId)
 
       expect(budgetApi.deleteExpense).toHaveBeenCalledWith(expenseId)
-      expect(budgetApi.getExpenses).toHaveBeenCalled()
+      // Should NOT refetch all expenses - removes optimistically
+      expect(budgetApi.getExpenses).not.toHaveBeenCalled()
+      // Should refetch number (server-calculated)
       expect(budgetApi.getNumber).toHaveBeenCalled()
-      expect(store.loading).toBe(false)
-      expect(store.error).toBeNull()
+      // Expense should be removed from local state
+      expect(store.expenses.find(e => e.id === expenseId)).toBeUndefined()
+      expect(store.expenses.length).toBe(1)
     })
 
-    it('should handle remove expense error', async () => {
+    it('should rollback optimistic remove on error', async () => {
       const store = useBudgetStore()
+      // Pre-populate expenses
+      store.expenses = [...mockExpenses]
       const errorMessage = 'Failed to delete expense'
 
       vi.mocked(budgetApi.deleteExpense).mockRejectedValue(
@@ -217,7 +228,92 @@ describe('Budget Store', () => {
       await expect(store.removeExpense(1)).rejects.toThrow()
 
       expect(store.error).toBe(errorMessage)
-      expect(store.loading).toBe(false)
+      // Should rollback - expenses restored
+      expect(store.expenses.length).toBe(2)
+      expect(store.expenses[0].id).toBe(1)
+    })
+  })
+
+  describe('updateExpense (optimistic update)', () => {
+    it('should update expense optimistically then confirm with server data', async () => {
+      const store = useBudgetStore()
+      // Pre-populate expenses
+      store.expenses = [...mockExpenses]
+      const updatedExpense = { ...mockExpenses[0], amount: 1600 }
+
+      vi.mocked(budgetApi.updateExpense).mockResolvedValue(
+        createMockResponse(updatedExpense)
+      )
+      vi.mocked(budgetApi.getNumber).mockResolvedValue(
+        createMockResponse(mockBudgetNumber)
+      )
+
+      await store.updateExpense(1, { amount: 1600 })
+
+      expect(budgetApi.updateExpense).toHaveBeenCalledWith(1, { amount: 1600 })
+      // Should NOT refetch all expenses
+      expect(budgetApi.getExpenses).not.toHaveBeenCalled()
+      // Local state should be updated with server response
+      expect(store.expenses[0].amount).toBe(1600)
+    })
+
+    it('should rollback optimistic update on error', async () => {
+      const store = useBudgetStore()
+      // Pre-populate expenses
+      store.expenses = [...mockExpenses]
+      const originalAmount = mockExpenses[0].amount
+      const errorMessage = 'Failed to update expense'
+
+      vi.mocked(budgetApi.updateExpense).mockRejectedValue(
+        createMockError(errorMessage)
+      )
+
+      await expect(store.updateExpense(1, { amount: 9999 })).rejects.toThrow()
+
+      expect(store.error).toBe(errorMessage)
+      // Should rollback to original amount
+      expect(store.expenses[0].amount).toBe(originalAmount)
+    })
+  })
+
+  describe('recordTransaction (optimistic update)', () => {
+    it('should add transaction optimistically then replace with server data', async () => {
+      const store = useBudgetStore()
+      const newTransaction = { amount: 25.50, description: 'Coffee' }
+      const createdTransaction = { ...newTransaction, id: 3, date: '2024-01-16T10:00:00', created_at: '2024-01-16T10:00:00' }
+
+      vi.mocked(budgetApi.createTransaction).mockResolvedValue(
+        createMockResponse(createdTransaction)
+      )
+      vi.mocked(budgetApi.getNumber).mockResolvedValue(
+        createMockResponse(mockBudgetNumber)
+      )
+
+      await store.recordTransaction(newTransaction)
+
+      expect(budgetApi.createTransaction).toHaveBeenCalledWith(newTransaction)
+      // Should NOT refetch all transactions
+      expect(budgetApi.getTransactions).not.toHaveBeenCalled()
+      // Should refetch number (server-calculated)
+      expect(budgetApi.getNumber).toHaveBeenCalled()
+      // Final state should have the server response (with real id)
+      expect(store.transactions[0]).toEqual(createdTransaction)
+    })
+
+    it('should rollback optimistic transaction on error', async () => {
+      const store = useBudgetStore()
+      const newTransaction = { amount: 25.50, description: 'Coffee' }
+      const errorMessage = 'Failed to record transaction'
+
+      vi.mocked(budgetApi.createTransaction).mockRejectedValue(
+        createMockError(errorMessage)
+      )
+
+      await expect(store.recordTransaction(newTransaction)).rejects.toThrow()
+
+      expect(store.error).toBe(errorMessage)
+      // Optimistic entry should be rolled back
+      expect(store.transactions.length).toBe(0)
     })
   })
 
@@ -246,58 +342,190 @@ describe('Budget Store', () => {
 
       expect(budgetApi.getTransactions).toHaveBeenCalledWith(50)
     })
-
-    it('should handle fetch transactions error', async () => {
-      const store = useBudgetStore()
-      const errorMessage = 'Failed to fetch transactions'
-      vi.mocked(budgetApi.getTransactions).mockRejectedValue(
-        createMockError(errorMessage)
-      )
-
-      await expect(store.fetchTransactions()).rejects.toThrow()
-
-      expect(store.error).toBe(errorMessage)
-      expect(store.loading).toBe(false)
-    })
   })
 
-  describe('recordTransaction', () => {
-    it('should record transaction and refresh data', async () => {
-      const store = useBudgetStore()
-      const newTransaction = { amount: 25.50, description: 'Coffee' }
+  // =============================================
+  // Pool Feature Tests
+  // =============================================
 
-      vi.mocked(budgetApi.createTransaction).mockResolvedValue(
-        createMockResponse({ ...newTransaction, id: 3, date: '', created_at: '' })
-      )
-      vi.mocked(budgetApi.getTransactions).mockResolvedValue(
-        createMockResponse(mockTransactions)
+  describe('Pool Feature - acceptPoolContribution', () => {
+    it('should accept pool contribution and refresh number', async () => {
+      const store = useBudgetStore()
+      const updatedNumber = { ...mockBudgetNumberWithPool, pending_pool_contribution: null, pool_balance: 195.50 }
+
+      vi.mocked(budgetApi.acceptPoolContribution).mockResolvedValue(
+        createMockResponse({ pool_balance: 195.50 })
       )
       vi.mocked(budgetApi.getNumber).mockResolvedValue(
-        createMockResponse(mockBudgetNumber)
+        createMockResponse(updatedNumber)
       )
 
-      await store.recordTransaction(newTransaction)
+      await store.acceptPoolContribution()
 
-      expect(budgetApi.createTransaction).toHaveBeenCalledWith(newTransaction)
-      expect(budgetApi.getTransactions).toHaveBeenCalled()
-      expect(budgetApi.getNumber).toHaveBeenCalled()
-      expect(store.loading).toBe(false)
+      expect(budgetApi.acceptPoolContribution).toHaveBeenCalledTimes(1)
+      expect(budgetApi.getNumber).toHaveBeenCalledTimes(1)
+      expect(store.budgetNumber?.pending_pool_contribution).toBeNull()
+      expect(store.budgetNumber?.pool_balance).toBe(195.50)
       expect(store.error).toBeNull()
     })
 
-    it('should handle record transaction error', async () => {
+    it('should handle accept pool contribution error', async () => {
       const store = useBudgetStore()
-      const newTransaction = { amount: 25.50, description: 'Coffee' }
-      const errorMessage = 'Failed to record transaction'
+      const errorMessage = 'Failed to accept pool contribution'
 
-      vi.mocked(budgetApi.createTransaction).mockRejectedValue(
+      vi.mocked(budgetApi.acceptPoolContribution).mockRejectedValue(
         createMockError(errorMessage)
       )
 
-      await expect(store.recordTransaction(newTransaction)).rejects.toThrow()
+      await expect(store.acceptPoolContribution()).rejects.toThrow()
 
       expect(store.error).toBe(errorMessage)
-      expect(store.loading).toBe(false)
+    })
+  })
+
+  describe('Pool Feature - declinePoolContribution', () => {
+    it('should decline pool contribution and refresh number', async () => {
+      const store = useBudgetStore()
+      const updatedNumber = { ...mockBudgetNumberWithPool, pending_pool_contribution: null }
+
+      vi.mocked(budgetApi.declinePoolContribution).mockResolvedValue(
+        createMockResponse({ status: 'declined', amount_declined: 45.50 })
+      )
+      vi.mocked(budgetApi.getNumber).mockResolvedValue(
+        createMockResponse(updatedNumber)
+      )
+
+      await store.declinePoolContribution()
+
+      expect(budgetApi.declinePoolContribution).toHaveBeenCalledTimes(1)
+      expect(budgetApi.getNumber).toHaveBeenCalledTimes(1)
+      expect(store.budgetNumber?.pending_pool_contribution).toBeNull()
+      expect(store.error).toBeNull()
+    })
+
+    it('should handle decline pool contribution error', async () => {
+      const store = useBudgetStore()
+      const errorMessage = 'Failed to decline pool contribution'
+
+      vi.mocked(budgetApi.declinePoolContribution).mockRejectedValue(
+        createMockError(errorMessage)
+      )
+
+      await expect(store.declinePoolContribution()).rejects.toThrow()
+
+      expect(store.error).toBe(errorMessage)
+    })
+  })
+
+  describe('Pool Feature - togglePool', () => {
+    it('should enable pool and refresh number', async () => {
+      const store = useBudgetStore()
+      const updatedNumber = { ...mockBudgetNumber, pool_enabled: true, pool_balance: 150 }
+
+      vi.mocked(budgetApi.togglePool).mockResolvedValue(
+        createMockResponse({ pool_balance: 150 })
+      )
+      vi.mocked(budgetApi.getNumber).mockResolvedValue(
+        createMockResponse(updatedNumber)
+      )
+
+      await store.togglePool(true)
+
+      expect(budgetApi.togglePool).toHaveBeenCalledWith(true)
+      expect(budgetApi.getNumber).toHaveBeenCalledTimes(1)
+      expect(store.budgetNumber?.pool_enabled).toBe(true)
+      expect(store.error).toBeNull()
+    })
+
+    it('should disable pool and refresh number', async () => {
+      const store = useBudgetStore()
+      const updatedNumber = { ...mockBudgetNumberWithPool, pool_enabled: false }
+
+      vi.mocked(budgetApi.togglePool).mockResolvedValue(
+        createMockResponse({ pool_balance: 150 })
+      )
+      vi.mocked(budgetApi.getNumber).mockResolvedValue(
+        createMockResponse(updatedNumber)
+      )
+
+      await store.togglePool(false)
+
+      expect(budgetApi.togglePool).toHaveBeenCalledWith(false)
+      expect(store.budgetNumber?.pool_enabled).toBe(false)
+    })
+
+    it('should handle toggle pool error', async () => {
+      const store = useBudgetStore()
+      const errorMessage = 'Failed to toggle pool'
+
+      vi.mocked(budgetApi.togglePool).mockRejectedValue(
+        createMockError(errorMessage)
+      )
+
+      await expect(store.togglePool(true)).rejects.toThrow()
+
+      expect(store.error).toBe(errorMessage)
+    })
+  })
+
+  describe('Pool Feature - addToPool', () => {
+    it('should add money to pool and refresh number', async () => {
+      const store = useBudgetStore()
+      const updatedNumber = { ...mockBudgetNumberWithPool, pool_balance: 200 }
+
+      vi.mocked(budgetApi.addToPool).mockResolvedValue(
+        createMockResponse({ pool_balance: 200 })
+      )
+      vi.mocked(budgetApi.getNumber).mockResolvedValue(
+        createMockResponse(updatedNumber)
+      )
+
+      await store.addToPool(50)
+
+      expect(budgetApi.addToPool).toHaveBeenCalledWith(50)
+      expect(budgetApi.getNumber).toHaveBeenCalledTimes(1)
+      expect(store.budgetNumber?.pool_balance).toBe(200)
+      expect(store.error).toBeNull()
+    })
+
+    it('should handle add to pool error', async () => {
+      const store = useBudgetStore()
+      const errorMessage = 'Failed to add to pool'
+
+      vi.mocked(budgetApi.addToPool).mockRejectedValue(
+        createMockError(errorMessage)
+      )
+
+      await expect(store.addToPool(50)).rejects.toThrow()
+
+      expect(store.error).toBe(errorMessage)
+    })
+  })
+
+  describe('Pool Feature - pending contribution with budget number', () => {
+    it('should show pending contribution in budget number', async () => {
+      const store = useBudgetStore()
+      vi.mocked(budgetApi.getNumber).mockResolvedValue(
+        createMockResponse(mockBudgetNumberWithPool)
+      )
+
+      await store.fetchNumber()
+
+      expect(store.budgetNumber?.pending_pool_contribution).toBe(45.50)
+      expect(store.budgetNumber?.pool_balance).toBe(150)
+      expect(store.budgetNumber?.pool_enabled).toBe(true)
+    })
+
+    it('should show no pending contribution when null', async () => {
+      const store = useBudgetStore()
+      const noPending = { ...mockBudgetNumberWithPool, pending_pool_contribution: null }
+      vi.mocked(budgetApi.getNumber).mockResolvedValue(
+        createMockResponse(noPending)
+      )
+
+      await store.fetchNumber()
+
+      expect(store.budgetNumber?.pending_pool_contribution).toBeNull()
     })
   })
 

@@ -11,7 +11,7 @@
         class="the-number"
         :class="{ 'over-budget': isOverBudget }"
       >
-        {{ formattedNumber }}
+        ${{ formattedNumber }}
       </div>
 
       <div class="subtitle-text mt-4">
@@ -25,9 +25,9 @@
         elevation="2"
         color="surface"
       >
-        <div class="text-body-1">Today's Spending: {{ todaySpending.toFixed(2) }}</div>
+        <div class="text-body-1">Today's Spending: ${{ Math.ceil(todaySpending) }}</div>
         <div class="text-body-2 text-medium-emphasis">
-          Remaining: {{ remainingToday?.toFixed(2) }}
+          Remaining: ${{ remainingToday ? Math.ceil(remainingToday) : 0 }}
         </div>
         <v-progress-linear
           :model-value="spendingPercentage"
@@ -54,10 +54,10 @@
 
         <div>
           <div class="font-weight-medium">
-            Your new daily budget is ${{ adjustedDailyBudget.toFixed(2) }}
+            Your new daily budget is ${{ Math.ceil(adjustedDailyBudget) }}
           </div>
           <div class="text-body-2 text-medium-emphasis mt-1">
-            (down ${{ budgetDelta.toFixed(2) }} from ${{ originalDailyBudget?.toFixed(2) }})
+            (down ${{ Math.ceil(budgetDelta) }} from ${{ originalDailyBudget ? Math.ceil(originalDailyBudget) : 0 }})
           </div>
         </div>
       </v-alert>
@@ -71,8 +71,8 @@
       >
         <v-icon size="small" class="mr-2" aria-hidden="true">mdi-trending-up</v-icon>
         <span class="tomorrow-text">
-          Tomorrow: <strong>${{ tomorrowDailyBudget.toFixed(2) }}</strong>
-          <span v-if="tomorrowDelta > 0" class="delta-text">(+${{ tomorrowDelta.toFixed(2) }})</span>
+          Tomorrow: <strong>${{ Math.ceil(tomorrowDailyBudget) }}</strong>
+          <span v-if="tomorrowDelta > 0" class="delta-text">(+${{ Math.ceil(tomorrowDelta) }})</span>
         </span>
       </div>
     </div>
@@ -95,7 +95,7 @@ const props = defineProps<{
 }>()
 
 const formattedNumber = computed(() => {
-  return props.theNumber.toFixed(2)
+  return Math.ceil(props.theNumber).toString()
 })
 
 const subtitle = computed(() => {

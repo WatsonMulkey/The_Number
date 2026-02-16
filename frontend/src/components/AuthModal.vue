@@ -165,13 +165,12 @@ const emailRules = [
 
 const loginPasswordRules = [rules.required]
 
-// Strong password requirements for registration and reset
+// Strong password requirements for registration - extends base minPassword rule
 const registerPasswordRules = [
-  (v: string) => !!v || 'Password is required',
-  (v: string) => v.length >= 8 || 'Password must be at least 8 characters',
-  (v: string) => /[A-Z]/.test(v) || 'Password must contain at least one uppercase letter',
-  (v: string) => /[a-z]/.test(v) || 'Password must contain at least one lowercase letter',
-  (v: string) => /[0-9]/.test(v) || 'Password must contain at least one number'
+  rules.minPassword,
+  (v: string) => !v || /[A-Z]/.test(v) || 'Password must contain at least one uppercase letter',
+  (v: string) => !v || /[a-z]/.test(v) || 'Password must contain at least one lowercase letter',
+  (v: string) => !v || /[0-9]/.test(v) || 'Password must contain at least one number'
 ]
 
 // Password strength calculation

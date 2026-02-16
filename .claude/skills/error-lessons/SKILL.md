@@ -236,3 +236,11 @@ A good error lesson should:
 - Give clear, actionable fix steps
 - Prevent the error from recurring
 - Be discoverable through search (good tags/keywords)
+
+## Supermemory Fallback
+
+If supermemory is unavailable or returns errors:
+1. Check for existing error lessons in `~/.claude/scribe/learnings/` directory
+2. When storing new lessons (step 3), write to `~/.claude/scribe/learnings/error-{date}-{error-type}.md` instead of supermemory
+3. Use the same structured format from step 3 above
+4. Still add to `docs/BEST_PRACTICES.md` if applicable (step 4)

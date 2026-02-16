@@ -61,6 +61,15 @@ class EncryptedDatabase:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
 
+            # Schema version tracking
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS schema_version (
+                    version INTEGER PRIMARY KEY,
+                    applied_at TEXT NOT NULL,
+                    description TEXT
+                )
+            """)
+
             # Users table - must be created first for foreign keys
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS users (
@@ -114,10 +123,52 @@ class EncryptedDatabase:
                 )
             """)
 
+            # Password reset tokens (persistent across restarts)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS reset_tokens (
+                    token TEXT PRIMARY KEY,
+                    username TEXT NOT NULL,
+                    expires_at TEXT NOT NULL
+                )
+            """)
+
             # Migration: Add user_id to existing tables if they don't have it
             self._migrate_add_user_id(cursor)
 
+            # Run versioned migrations
+            self._run_migrations(cursor)
+
             conn.commit()
+
+    def _run_migrations(self, cursor) -> None:
+        """Run versioned migrations in order, tracking which have been applied."""
+        migrations = [
+            (1, "Add indexes for query performance", self._migration_001_add_indexes),
+            (2, "Clean up expired reset tokens", self._migration_002_cleanup_tokens),
+        ]
+
+        for version, description, migrate_fn in migrations:
+            cursor.execute("SELECT 1 FROM schema_version WHERE version = ?", (version,))
+            if cursor.fetchone() is None:
+                migrate_fn(cursor)
+                cursor.execute(
+                    "INSERT INTO schema_version (version, applied_at, description) VALUES (?, ?, ?)",
+                    (version, datetime.now().isoformat(), description)
+                )
+
+    @staticmethod
+    def _migration_001_add_indexes(cursor) -> None:
+        """Add indexes for common query patterns."""
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_expenses_user_id ON expenses(user_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON transactions(user_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_settings_user_key ON settings(user_id, key)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(user_id, date)")
+
+    @staticmethod
+    def _migration_002_cleanup_tokens(cursor) -> None:
+        """Clean up any expired reset tokens on startup."""
+        cursor.execute("DELETE FROM reset_tokens WHERE datetime(expires_at) < datetime('now')")
 
     def _migrate_add_user_id(self, cursor) -> None:
         """Add user_id column to existing tables that don't have it."""
@@ -510,6 +561,35 @@ class EncryptedDatabase:
             result = cursor.fetchone()
             return result[0] if result[0] else 0.0
 
+    def get_transactions_sum_for_period(self, user_id: int, start_date: datetime, end_date: datetime) -> float:
+        """
+        Get total NET spending for a date range for a specific user.
+
+        Calculates: total expenses - total income for the period.
+        This means "Money In" transactions offset spending.
+
+        Args:
+            user_id: The user's ID
+            start_date: Start of period (inclusive)
+            end_date: End of period (exclusive)
+
+        Returns:
+            Net spending amount (can be negative if income > expenses)
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT COALESCE(SUM(
+                    CASE WHEN category = 'income' THEN -amount ELSE amount END
+                ), 0) as net_spending
+                FROM transactions
+                WHERE user_id = ?
+                  AND datetime(date) >= datetime(?)
+                  AND datetime(date) < datetime(?)
+            """, (user_id, start_date.isoformat(), end_date.isoformat()))
+            result = cursor.fetchone()
+            return result[0] if result[0] else 0.0
+
     # ========================================================================
     # USER MANAGEMENT
     # ========================================================================
@@ -638,6 +718,47 @@ class EncryptedDatabase:
                 WHERE id = ?
             """, (new_password_hash, user_id))
 
+            conn.commit()
+
+    # ========================================================================
+    # RESET TOKEN STORAGE (persistent across restarts)
+    # ========================================================================
+
+    def store_reset_token(self, token: str, username: str, expires_at: datetime) -> None:
+        """Store a password reset token in the database."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT OR REPLACE INTO reset_tokens (token, username, expires_at) VALUES (?, ?, ?)",
+                (token, username, expires_at.isoformat())
+            )
+            conn.commit()
+
+    def get_reset_token(self, token: str) -> Optional[Dict[str, Any]]:
+        """Retrieve a reset token if it exists and hasn't expired."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT username, expires_at FROM reset_tokens WHERE token = ? AND datetime(expires_at) > datetime('now')",
+                (token,)
+            )
+            row = cursor.fetchone()
+            if row:
+                return {"username": row[0], "expires_at": row[1]}
+            return None
+
+    def delete_reset_token(self, token: str) -> None:
+        """Delete a reset token after use."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM reset_tokens WHERE token = ?", (token,))
+            conn.commit()
+
+    def cleanup_expired_tokens(self) -> None:
+        """Remove all expired reset tokens."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM reset_tokens WHERE datetime(expires_at) < datetime('now')")
             conn.commit()
 
     def close(self) -> None:

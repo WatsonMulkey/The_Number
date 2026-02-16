@@ -61,6 +61,7 @@
               size="small"
               variant="text"
               color="error"
+              :aria-label="`Delete transaction: ${item.description}`"
               @click="deleteTransaction(item.id)"
             />
           </template>
@@ -73,12 +74,13 @@
       <v-card>
         <v-card-title>Record Spending</v-card-title>
         <v-card-text>
-          <v-form @submit.prevent="addTransaction">
+          <v-form ref="transactionForm" @submit.prevent="addTransaction">
             <v-text-field
               v-model.number="newTransaction.amount"
               type="number"
               label="Amount"
               variant="outlined"
+              :rules="[rules.positive]"
               required
               class="mb-4"
             />
@@ -86,6 +88,8 @@
               v-model="newTransaction.description"
               label="Description"
               variant="outlined"
+              :rules="[rules.required, rules.maxLength(200)]"
+              counter="200"
               required
               class="mb-4"
             />
@@ -93,10 +97,12 @@
               v-model="newTransaction.category"
               label="Category (optional)"
               variant="outlined"
+              :rules="[rules.maxLength(50)]"
+              counter="50"
               class="mb-4"
             />
             <div class="d-flex justify-end gap-2">
-              <v-btn @click="showAddDialog = false">Cancel</v-btn>
+              <v-btn @click="closeDialog">Cancel</v-btn>
               <v-btn
                 type="submit"
                 color="primary"
@@ -116,13 +122,16 @@
 import { ref, computed, onMounted } from 'vue'
 import { useBudgetStore } from '@/stores/budget'
 import { budgetApi, type Transaction } from '@/services/api'
+import { useValidation } from '@/composables/useValidation'
 import { format } from 'date-fns'
 
 const budgetStore = useBudgetStore()
+const { rules } = useValidation()
 const showAddDialog = ref(false)
+const transactionForm = ref<{ validate: () => Promise<{ valid: boolean }> } | null>(null)
 
 const newTransaction = ref({
-  amount: 0,
+  amount: null as number | null,
   description: '',
   category: '',
 })
@@ -158,12 +167,20 @@ function formatDate(dateString: string) {
   return format(new Date(dateString), 'MMM d, yyyy h:mm a')
 }
 
+function closeDialog() {
+  showAddDialog.value = false
+  newTransaction.value = { amount: null, description: '', category: '' }
+  transactionForm.value?.validate() // Reset validation state
+}
+
 async function addTransaction() {
-  if (newTransaction.value.amount <= 0 || !newTransaction.value.description) return
+  if (!transactionForm.value) return
+  const { valid } = await transactionForm.value.validate()
+  if (!valid) return
 
   try {
-    const txn: any = {
-      amount: newTransaction.value.amount,
+    const txn: { amount: number; description: string; category?: string } = {
+      amount: newTransaction.value.amount!,
       description: newTransaction.value.description,
     }
     if (newTransaction.value.category) {
@@ -171,15 +188,9 @@ async function addTransaction() {
     }
 
     await budgetStore.recordTransaction(txn)
-
-    newTransaction.value = {
-      amount: 0,
-      description: '',
-      category: '',
-    }
-    showAddDialog.value = false
-  } catch (e) {
-    console.error('Failed to add transaction:', e)
+    closeDialog()
+  } catch {
+    // Error handled by store
   }
 }
 
@@ -189,8 +200,8 @@ async function deleteTransaction(id: number) {
   try {
     await budgetApi.deleteTransaction(id)
     budgetStore.transactions = budgetStore.transactions.filter((txn: Transaction) => txn.id !== id)
-  } catch (e) {
-    console.error('Failed to delete transaction:', e)
+  } catch {
+    // Error handled silently - user can retry
   }
 }
 

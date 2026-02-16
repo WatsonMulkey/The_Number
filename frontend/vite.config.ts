@@ -45,7 +45,7 @@ export default defineConfig({
           {
             // Cache API responses EXCEPT /api/number (which must always be fresh)
             // The negative lookahead (?!number) excludes /api/number from caching
-            urlPattern: /^https:\/\/the-number-budget\.fly\.dev\/api\/(?!number).*/i,
+            urlPattern: /\/api\/(?!number).*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',

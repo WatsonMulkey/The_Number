@@ -42,3 +42,11 @@ Provide a brief summary (3-5 bullet points) of the most relevant best practices 
 - Links to specific sections in docs/BEST_PRACTICES.md
 
 Keep the review concise and actionable - focus on what's immediately relevant to the current work.
+
+## Supermemory Fallback
+
+If `docs/BEST_PRACTICES.md` doesn't exist in the project, or supermemory is unavailable:
+1. Check for local best practices in `~/.claude/scribe/learnings/` directory
+2. Look for any `best-practices-*.md` or `retro-*.md` files for relevant patterns
+3. When new best practices are identified, write to `~/.claude/scribe/learnings/best-practices-{project}-{date}.md`
+4. Use the same format as the Output Format section above

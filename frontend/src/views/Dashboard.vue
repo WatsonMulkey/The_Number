@@ -10,7 +10,7 @@
         <v-card-text class="pa-6 text-center">
           <p class="text-body-1 mb-4">You have money that carried over from your last pay period!</p>
           <p class="text-h3 font-weight-bold my-4" style="color: #4CAF50;">
-            ${{ budgetStore.budgetNumber?.pending_pool_contribution?.toFixed(2) }}
+            ${{ budgetStore.budgetNumber?.pending_pool_contribution ? Math.ceil(budgetStore.budgetNumber.pending_pool_contribution) : 0 }}
           </p>
           <p class="text-body-2 text-medium-emphasis">Would you like to add it to your savings pool?</p>
         </v-card-text>
@@ -27,15 +27,17 @@
     <!-- Hero Section removed - Onboarding component has its own branded header -->
 
     <!-- Error Alert (only show when not in onboarding) -->
-    <v-alert
-      v-if="budgetStore.error && budgetStore.budgetNumber"
-      type="error"
-      class="mb-4"
-      closable
-      @click:close="budgetStore.error = null"
-    >
-      {{ budgetStore.error }}
-    </v-alert>
+    <div aria-live="polite" role="status">
+      <v-alert
+        v-if="budgetStore.error && budgetStore.budgetNumber"
+        type="error"
+        class="mb-4"
+        closable
+        @click:close="budgetStore.error = null"
+      >
+        {{ budgetStore.error }}
+      </v-alert>
+    </div>
 
     <!-- Loading State -->
     <v-progress-circular
@@ -74,7 +76,7 @@
           <div v-if="budgetStore.budgetNumber.pool_balance > 0" class="pool-section text-center mt-4">
             <div class="pool-balance mb-2">
               <v-icon size="small" class="mr-1">mdi-piggy-bank</v-icon>
-              <span class="text-body-1">Pool: <strong>${{ budgetStore.budgetNumber.pool_balance.toFixed(2) }}</strong></span>
+              <span class="text-body-1">Pool: <strong>${{ Math.ceil(budgetStore.budgetNumber.pool_balance) }}</strong></span>
               <v-chip
                 v-if="budgetStore.budgetNumber.pool_enabled"
                 color="success"
@@ -720,7 +722,19 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
 }
 
 .pool-balance strong {
-  color: var(--color-success);
+  color: var(--color-soft-charcoal);
   font-size: 1.1rem;
+}
+
+.pool-balance .v-icon {
+  color: var(--color-soft-charcoal) !important;
+}
+
+.pool-balance .text-body-1 {
+  color: var(--color-soft-charcoal);
+}
+
+.pool-section :deep(.v-switch .v-label) {
+  color: var(--color-soft-charcoal);
 }
 </style>

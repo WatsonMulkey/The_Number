@@ -1,10 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { budgetApi, type BudgetNumber, type Expense, type ExpenseUpdate, type Transaction } from '@/services/api'
+import { BudgetNumberSchema, ExpenseSchema, TransactionSchema, validateResponse } from '@/services/schemas'
+import { z } from 'zod'
 
 /**
  * Budget store - manages budget number, expenses, and transactions.
- * Provides granular loading states to prevent race conditions.
+ * Uses optimistic updates for instant UI feedback with rollback on error.
+ * Validates API responses with zod schemas.
  */
 export const useBudgetStore = defineStore('budget', () => {
   // State
@@ -69,7 +72,7 @@ export const useBudgetStore = defineStore('budget', () => {
     error.value = null
     try {
       const response = await budgetApi.getNumber()
-      budgetNumber.value = response.data
+      budgetNumber.value = validateResponse(BudgetNumberSchema, response.data, 'BudgetNumber')
       // Update PWA badge with the new number
       await updateAppBadge()
     } catch (e: any) {
@@ -86,7 +89,7 @@ export const useBudgetStore = defineStore('budget', () => {
     error.value = null
     try {
       const response = await budgetApi.getExpenses()
-      expenses.value = response.data
+      expenses.value = validateResponse(z.array(ExpenseSchema), response.data, 'Expenses')
     } catch (e: any) {
       error.value = e.response?.data?.detail || 'Failed to fetch expenses'
       throw e
@@ -95,51 +98,85 @@ export const useBudgetStore = defineStore('budget', () => {
     }
   }
 
-  /** Add a new monthly expense and refresh data */
+  /** Add a new monthly expense with optimistic update */
   async function addExpense(expense: Omit<Expense, 'id' | 'created_at' | 'updated_at'>) {
-    loadingExpenses.value = true
     error.value = null
+
+    // Optimistic: add a placeholder immediately
+    const optimisticId = -(Date.now())
+    const now = new Date().toISOString()
+    const optimistic: Expense = {
+      ...expense,
+      id: optimisticId,
+      created_at: now,
+      updated_at: now,
+    }
+    expenses.value.unshift(optimistic)
+
     try {
-      await budgetApi.createExpense(expense)
-      // Fetch expenses and number in parallel since both need updating
-      await Promise.all([fetchExpenses(), fetchNumber()])
+      const response = await budgetApi.createExpense(expense)
+      const validated = validateResponse(ExpenseSchema, response.data, 'Expense')
+      // Replace optimistic entry with real server response
+      const idx = expenses.value.findIndex(e => e.id === optimisticId)
+      if (idx !== -1) {
+        expenses.value[idx] = validated
+      }
+      // Still need to refetch number since it's server-calculated
+      await fetchNumber()
     } catch (e: any) {
+      // Rollback: remove the optimistic entry
+      expenses.value = expenses.value.filter(e => e.id !== optimisticId)
       error.value = e.response?.data?.detail || 'Failed to add expense'
       throw e
-    } finally {
-      loadingExpenses.value = false
     }
   }
 
-  /** Remove a monthly expense and refresh data */
+  /** Remove a monthly expense with optimistic update */
   async function removeExpense(id: number) {
-    loadingExpenses.value = true
     error.value = null
+
+    // Optimistic: remove immediately, save snapshot for rollback
+    const snapshot = [...expenses.value]
+    expenses.value = expenses.value.filter(e => e.id !== id)
+
     try {
       await budgetApi.deleteExpense(id)
-      // Fetch expenses and number in parallel since both need updating
-      await Promise.all([fetchExpenses(), fetchNumber()])
+      // Still need to refetch number since it's server-calculated
+      await fetchNumber()
     } catch (e: any) {
+      // Rollback
+      expenses.value = snapshot
       error.value = e.response?.data?.detail || 'Failed to delete expense'
       throw e
-    } finally {
-      loadingExpenses.value = false
     }
   }
 
-  /** Update an existing expense and refresh data */
+  /** Update an existing expense with optimistic update */
   async function updateExpense(id: number, updates: ExpenseUpdate) {
-    loadingExpenses.value = true
     error.value = null
+
+    // Optimistic: apply updates immediately, save snapshot for rollback
+    const snapshot = [...expenses.value]
+    const index = expenses.value.findIndex(e => e.id === id)
+    if (index !== -1) {
+      expenses.value[index] = { ...expenses.value[index], ...updates }
+    }
+
     try {
-      await budgetApi.updateExpense(id, updates)
-      // Fetch expenses and number in parallel since both need updating
-      await Promise.all([fetchExpenses(), fetchNumber()])
+      const response = await budgetApi.updateExpense(id, updates)
+      const validated = validateResponse(ExpenseSchema, response.data, 'Expense')
+      // Replace with actual server response
+      const idx = expenses.value.findIndex(e => e.id === id)
+      if (idx !== -1) {
+        expenses.value[idx] = validated
+      }
+      // Still need to refetch number since it's server-calculated
+      await fetchNumber()
     } catch (e: any) {
+      // Rollback
+      expenses.value = snapshot
       error.value = e.response?.data?.detail || 'Failed to update expense'
       throw e
-    } finally {
-      loadingExpenses.value = false
     }
   }
 
@@ -149,7 +186,7 @@ export const useBudgetStore = defineStore('budget', () => {
     error.value = null
     try {
       const response = await budgetApi.getTransactions(limit)
-      transactions.value = response.data
+      transactions.value = validateResponse(z.array(TransactionSchema), response.data, 'Transactions')
     } catch (e: any) {
       error.value = e.response?.data?.detail || 'Failed to fetch transactions'
       throw e
@@ -158,19 +195,36 @@ export const useBudgetStore = defineStore('budget', () => {
     }
   }
 
-  /** Record a new spending transaction and refresh data */
+  /** Record a new spending transaction with optimistic update */
   async function recordTransaction(transaction: Omit<Transaction, 'id' | 'date' | 'created_at'>) {
-    loadingTransactions.value = true
     error.value = null
+
+    // Optimistic: add placeholder immediately
+    const optimisticId = -(Date.now())
+    const now = new Date().toISOString()
+    const optimistic: Transaction = {
+      ...transaction,
+      id: optimisticId,
+      date: now,
+      created_at: now,
+    }
+    transactions.value.unshift(optimistic)
+
     try {
-      await budgetApi.createTransaction(transaction)
-      // Fetch transactions and number in parallel since both need updating
-      await Promise.all([fetchTransactions(), fetchNumber()])
+      const response = await budgetApi.createTransaction(transaction)
+      const validated = validateResponse(TransactionSchema, response.data, 'Transaction')
+      // Replace optimistic entry with real server response
+      const idx = transactions.value.findIndex(t => t.id === optimisticId)
+      if (idx !== -1) {
+        transactions.value[idx] = validated
+      }
+      // Still need to refetch number since it's server-calculated
+      await fetchNumber()
     } catch (e: any) {
+      // Rollback: remove the optimistic entry
+      transactions.value = transactions.value.filter(t => t.id !== optimisticId)
       error.value = e.response?.data?.detail || 'Failed to record transaction'
       throw e
-    } finally {
-      loadingTransactions.value = false
     }
   }
 

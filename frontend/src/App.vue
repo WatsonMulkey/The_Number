@@ -3,7 +3,7 @@
     <ErrorBoundary>
       <a href="#main-content" class="skip-link">Skip to main content</a>
       <NavigationRail />
-      <v-main id="main-content" tabindex="-1" style="background-color: var(--color-warm-white);">
+      <v-main id="main-content" tabindex="-1" role="main" style="background-color: var(--color-warm-white);">
         <v-container fluid>
           <router-view />
         </v-container>
