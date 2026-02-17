@@ -5,6 +5,7 @@ This API provides REST endpoints for the Vue.js frontend,
 wrapping the existing Python backend (database.py, calculator.py).
 """
 
+import json
 import os
 import sys
 import logging
@@ -38,11 +39,11 @@ from api.models import (
     BudgetModeConfig, BudgetNumberResponse, ImportExpensesResponse, ErrorResponse,
     UserRegister, UserLogin, UserResponse, TokenResponse,
     ForgotPasswordRequest, ForgotPasswordResponse, ResetPasswordRequest, ResetPasswordResponse,
-    PoolToggleRequest, PoolAddRequest, PoolResponse
+    PoolToggleRequest, PoolAddRequest, PoolSetRequest, PoolResponse
 )
 from api.auth import (
-    hash_password, verify_password, create_access_token, get_current_user_id, check_rate_limit,
-    generate_reset_token, verify_reset_token, invalidate_reset_token
+    hash_password, verify_password, create_access_token, get_current_user_id, get_admin_user_id,
+    check_rate_limit, generate_reset_token, verify_reset_token, invalidate_reset_token
 )
 
 # Create FastAPI app
@@ -890,6 +891,25 @@ async def add_to_pool(
     return PoolResponse(pool_balance=new_balance)
 
 
+@app.post("/api/pool/set", response_model=PoolResponse)
+async def set_pool_balance(
+    request: PoolSetRequest,
+    user_id: int = Depends(get_current_user_id),
+    db: EncryptedDatabase = Depends(get_db)
+):
+    """
+    Set pool balance to an exact value.
+
+    Allows the user to adjust their pool balance directly (e.g., after dipping into savings).
+    Requires authentication.
+    """
+    db.set_setting("pool_balance", request.balance, user_id)
+
+    logger.info(f"User {user_id} set pool balance to ${request.balance:.2f}")
+
+    return PoolResponse(pool_balance=request.balance)
+
+
 @app.get("/api/pool")
 async def get_pool_status(
     user_id: int = Depends(get_current_user_id),
@@ -931,6 +951,15 @@ async def register(
     # Rate limiting: 5 requests per minute
     check_rate_limit(request, max_requests=5, window_seconds=60)
 
+    # --- BETA GATING (remove after beta) ---
+    beta_codes = os.environ.get("BETA_INVITE_CODES", "")
+    if beta_codes:
+        valid_codes = [c.strip().upper() for c in beta_codes.split(",") if c.strip()]
+        provided = (user_data.invite_code or "").strip().upper()
+        if not provided or provided not in valid_codes:
+            raise HTTPException(status_code=400, detail="Invalid invite code")
+    # --- END BETA GATING ---
+
     try:
         # Check if username already exists
         existing_user = db.get_user_by_username(user_data.username)
@@ -956,6 +985,7 @@ async def register(
         # Create access token
         access_token = create_access_token(data={"user_id": user_id})
 
+        admin_env = os.getenv("ADMIN_USER_ID")
         return TokenResponse(
             access_token=access_token,
             token_type="bearer",
@@ -963,7 +993,8 @@ async def register(
                 id=user["id"],
                 username=user["username"],
                 email=user["email"],
-                created_at=user["created_at"]
+                created_at=user["created_at"],
+                is_admin=bool(admin_env) and str(user["id"]) == admin_env
             )
         )
 
@@ -1013,6 +1044,7 @@ async def login(
         # Create access token
         access_token = create_access_token(data={"user_id": user["id"]})
 
+        admin_env = os.getenv("ADMIN_USER_ID")
         return TokenResponse(
             access_token=access_token,
             token_type="bearer",
@@ -1020,7 +1052,8 @@ async def login(
                 id=user["id"],
                 username=user["username"],
                 email=user["email"],
-                created_at=user["created_at"]
+                created_at=user["created_at"],
+                is_admin=bool(admin_env) and str(user["id"]) == admin_env
             )
         )
 
@@ -1050,11 +1083,20 @@ async def get_current_user(
             detail="User not found"
         )
 
+    # Record activity for DAU/WAU/MAU metrics (never fail auth for metrics)
+    try:
+        from datetime import date
+        db.record_user_activity(user_id, date.today().isoformat())
+    except Exception:
+        pass
+
+    admin_env = os.getenv("ADMIN_USER_ID")
     return UserResponse(
         id=user["id"],
         username=user["username"],
         email=user["email"],
-        created_at=user["created_at"]
+        created_at=user["created_at"],
+        is_admin=bool(admin_env) and str(user["id"]) == admin_env
     )
 
 
@@ -1473,6 +1515,158 @@ async def download_backup(filename: str, user_id: int = Depends(get_current_user
             "Content-Disposition": f"attachment; filename={filename}"
         }
     )
+
+
+# ============================================================================
+# ADMIN METRICS ENDPOINTS
+# ============================================================================
+
+@app.get("/api/admin/metrics")
+async def get_admin_metrics(
+    admin_id: int = Depends(get_admin_user_id),
+    db: EncryptedDatabase = Depends(get_db)
+):
+    """
+    Aggregate usage metrics for admin dashboard. No PII in response.
+    Protected by admin auth.
+    """
+    import sqlite3 as _sqlite3
+    from datetime import date, timedelta
+
+    today = date.today()
+    week_ago = (today - timedelta(days=7)).isoformat()
+    month_ago = (today - timedelta(days=30)).isoformat()
+
+    with _sqlite3.connect(db.db_path) as conn:
+        cursor = conn.cursor()
+
+        # --- Growth ---
+        cursor.execute("SELECT COUNT(*) FROM users")
+        total_users = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM users WHERE created_at >= ?", (week_ago,))
+        signups_this_week = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM users WHERE created_at >= ?", (month_ago,))
+        signups_this_month = cursor.fetchone()[0]
+
+        # --- Engagement (from user_activity table) ---
+        cursor.execute("SELECT COUNT(DISTINCT user_id) FROM user_activity WHERE activity_date = ?", (today.isoformat(),))
+        dau = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(DISTINCT user_id) FROM user_activity WHERE activity_date >= ?", (week_ago,))
+        wau = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(DISTINCT user_id) FROM user_activity WHERE activity_date >= ?", (month_ago,))
+        mau = cursor.fetchone()[0]
+
+        cursor.execute("SELECT AVG(login_count) FROM user_activity WHERE activity_date = ?", (today.isoformat(),))
+        avg_sessions = cursor.fetchone()[0] or 0
+
+        # --- Feature Adoption (decrypt settings) ---
+        cursor.execute("SELECT value FROM settings WHERE key = 'budget_mode'")
+        mode_rows = cursor.fetchall()
+        total_configured = len(mode_rows)
+        paycheck_count = 0
+        fixed_pool_count = 0
+        for (encrypted_val,) in mode_rows:
+            try:
+                val = json.loads(db._decrypt(encrypted_val))
+                if val == "paycheck":
+                    paycheck_count += 1
+                elif val == "fixed_pool":
+                    fixed_pool_count += 1
+            except Exception:
+                pass
+
+        cursor.execute("SELECT value FROM settings WHERE key = 'pool_enabled'")
+        pool_rows = cursor.fetchall()
+        pool_enabled_count = 0
+        for (encrypted_val,) in pool_rows:
+            try:
+                val = json.loads(db._decrypt(encrypted_val))
+                if val is True:
+                    pool_enabled_count += 1
+            except Exception:
+                pass
+
+        # --- Volume ---
+        cursor.execute("SELECT COUNT(*) FROM transactions")
+        total_transactions = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM expenses")
+        total_expenses = cursor.fetchone()[0]
+
+    return {
+        "growth": {
+            "total_users": total_users,
+            "signups_this_week": signups_this_week,
+            "signups_this_month": signups_this_month,
+        },
+        "engagement": {
+            "dau": dau,
+            "wau": wau,
+            "mau": mau,
+            "avg_sessions_per_day": round(avg_sessions, 1),
+        },
+        "depth": {
+            "budget_configured_count": total_configured,
+            "budget_configured_pct": round(total_configured / total_users * 100, 1) if total_users else 0,
+            "paycheck_mode_count": paycheck_count,
+            "fixed_pool_mode_count": fixed_pool_count,
+            "pool_enabled_count": pool_enabled_count,
+        },
+        "volume": {
+            "total_transactions": total_transactions,
+            "total_expenses": total_expenses,
+        },
+    }
+
+
+@app.get("/api/admin/health")
+async def get_admin_health(
+    admin_id: int = Depends(get_admin_user_id),
+    db: EncryptedDatabase = Depends(get_db)
+):
+    """
+    System health metrics for admin dashboard.
+    Protected by admin auth.
+    """
+    import sqlite3 as _sqlite3
+    import shutil
+
+    db_file = Path(db.db_path)
+    db_size = db_file.stat().st_size if db_file.exists() else 0
+
+    row_counts = {}
+    with _sqlite3.connect(db.db_path) as conn:
+        cursor = conn.cursor()
+        for table in ["users", "settings", "expenses", "transactions", "user_activity"]:
+            try:
+                cursor.execute(f"SELECT COUNT(*) FROM {table}")
+                row_counts[table] = cursor.fetchone()[0]
+            except Exception:
+                row_counts[table] = 0
+
+    # Disk usage - check /data (Fly.io volume) or fall back to DB parent dir
+    disk_path = "/data" if Path("/data").exists() else str(db_file.parent)
+    disk = shutil.disk_usage(disk_path)
+
+    return {
+        "database": {
+            "path": str(db_file),
+            "size_bytes": db_size,
+            "size_mb": round(db_size / (1024 * 1024), 2),
+            "row_counts": row_counts,
+        },
+        "disk": {
+            "path": disk_path,
+            "total_bytes": disk.total,
+            "used_bytes": disk.used,
+            "free_bytes": disk.free,
+            "used_pct": round(disk.used / disk.total * 100, 1) if disk.total else 0,
+        },
+    }
 
 
 # ============================================================================

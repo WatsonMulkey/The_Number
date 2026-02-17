@@ -29,6 +29,7 @@ export interface User {
   username: string
   email?: string
   created_at: string
+  is_admin?: boolean
 }
 
 /** Response from login/register endpoints */
@@ -56,11 +57,13 @@ export const useAuthStore = defineStore('auth', () => {
     if (!user.value) return 'TN'
     return user.value.username.substring(0, 2).toUpperCase()
   })
+  /** Whether the current user has admin access */
+  const isAdmin = computed(() => !!user.value?.is_admin)
 
   // Actions
 
   /** Register a new user account */
-  async function register(username: string, password: string, email?: string) {
+  async function register(username: string, password: string, email?: string, inviteCode?: string) {
     loading.value = true
     error.value = null
 
@@ -68,7 +71,8 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await axios.post<AuthResponse>(`${API_URL}/api/auth/register`, {
         username,
         password,
-        email
+        email,
+        invite_code: inviteCode
       })
 
       token.value = response.data.access_token
@@ -185,6 +189,7 @@ export const useAuthStore = defineStore('auth', () => {
     // Computed
     isAuthenticated,
     userInitials,
+    isAdmin,
 
     // Actions
     register,

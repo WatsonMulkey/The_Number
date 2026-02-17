@@ -204,6 +204,29 @@
       </v-card-text>
     </v-card>
 
+    <!-- App Settings -->
+    <v-card v-if="!loading" elevation="2" class="mb-6">
+      <v-card-title>App Settings</v-card-title>
+      <v-card-text>
+        <v-switch
+          v-if="badgeSupported"
+          v-model="badgeEnabled"
+          label="Show budget on app icon"
+          color="primary"
+          density="compact"
+          hide-details
+          @update:model-value="toggleBadge"
+        />
+        <p v-if="badgeSupported" class="text-caption text-medium-emphasis mt-2">
+          Displays your remaining daily budget as a badge on the app icon.
+          {{ badgeEnabled ? '' : 'Requires notification permission.' }}
+        </p>
+        <p v-else class="text-body-2 text-medium-emphasis">
+          App icon badge is not supported on this device.
+        </p>
+      </v-card-text>
+    </v-card>
+
     <!-- Export Data -->
     <v-card v-if="!loading" elevation="2">
       <v-card-title>Export Budget Data</v-card-title>
@@ -310,6 +333,31 @@ const errorMessage = ref('')
 // Export state
 const exportingCsv = ref(false)
 const exportingExcel = ref(false)
+
+// Badge settings
+const badgeSupported = budgetStore.isBadgeSupported()
+const badgeEnabled = ref(
+  localStorage.getItem('badge_enabled') !== 'false' &&
+  'Notification' in window &&
+  Notification.permission === 'granted'
+)
+
+async function toggleBadge(enabled: boolean | null) {
+  if (enabled === null) return
+  if (enabled) {
+    const granted = await budgetStore.requestBadgePermission()
+    if (granted) {
+      localStorage.setItem('badge_enabled', 'true')
+      localStorage.setItem('badge_prompt_dismissed', 'true')
+    } else {
+      // Permission denied — revert toggle
+      badgeEnabled.value = false
+    }
+  } else {
+    localStorage.setItem('badge_enabled', 'false')
+    await budgetStore.clearAppBadge()
+  }
+}
 
 async function loadCurrentConfig() {
   try {

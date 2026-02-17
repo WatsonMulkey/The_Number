@@ -51,6 +51,54 @@
       </v-card-text>
     </v-card>
 
+    <!-- Pool Balance Card -->
+    <v-card
+      v-if="budgetStore.budgetNumber?.pool_balance !== undefined"
+      class="mb-6 pool-card"
+      elevation="2"
+    >
+      <v-card-title>
+        <div class="d-flex justify-space-between align-center">
+          <div class="d-flex align-center">
+            <v-icon class="mr-2" color="success">mdi-piggy-bank</v-icon>
+            <span>Savings Pool</span>
+          </div>
+          <v-chip
+            :color="budgetStore.budgetNumber?.pool_enabled ? 'success' : 'default'"
+            size="small"
+          >
+            {{ budgetStore.budgetNumber?.pool_enabled ? 'Active' : 'Inactive' }}
+          </v-chip>
+        </div>
+      </v-card-title>
+      <v-card-text>
+        <div
+          v-if="!editingPool"
+          class="pool-balance editable-cell"
+          @click="startPoolEdit"
+        >
+          <span class="text-h4">${{ (budgetStore.budgetNumber?.pool_balance ?? 0).toFixed(2) }}</span>
+          <v-icon size="small" class="edit-icon ml-2">mdi-pencil</v-icon>
+        </div>
+        <v-text-field
+          v-else
+          v-model.number="poolEditValue"
+          type="number"
+          variant="outlined"
+          density="compact"
+          prefix="$"
+          hide-details
+          autofocus
+          step="0.01"
+          min="0"
+          class="pool-edit-field"
+          @blur="savePoolEdit"
+          @keyup.enter="savePoolEdit"
+          @keyup.escape="cancelPoolEdit"
+        />
+      </v-card-text>
+    </v-card>
+
     <!-- Expenses List with Inline Editing -->
     <v-card elevation="2">
       <v-card-title>
@@ -153,6 +201,9 @@
     <v-snackbar v-model="showSaveIndicator" :timeout="1500" color="success">
       Expense updated
     </v-snackbar>
+    <v-snackbar v-model="showPoolIndicator" :timeout="1500" color="success">
+      Pool balance updated
+    </v-snackbar>
   </div>
 </template>
 
@@ -177,6 +228,11 @@ const editingField = ref<'name' | 'amount' | null>(null)
 const editValue = ref<string | number>('')
 const originalValue = ref<string | number>('')
 const showSaveIndicator = ref(false)
+const showPoolIndicator = ref(false)
+
+// Pool inline editing state
+const editingPool = ref(false)
+const poolEditValue = ref(0)
 
 const headers = [
   { title: 'Name', key: 'name', sortable: true },
@@ -269,8 +325,38 @@ async function deleteExpense(id: number) {
   }
 }
 
+function startPoolEdit() {
+  poolEditValue.value = budgetStore.budgetNumber?.pool_balance ?? 0
+  editingPool.value = true
+}
+
+function cancelPoolEdit() {
+  editingPool.value = false
+}
+
+async function savePoolEdit() {
+  const current = budgetStore.budgetNumber?.pool_balance ?? 0
+  if (poolEditValue.value === current) {
+    cancelPoolEdit()
+    return
+  }
+  if (typeof poolEditValue.value !== 'number' || poolEditValue.value < 0) {
+    cancelPoolEdit()
+    return
+  }
+  try {
+    await budgetStore.setPoolBalance(poolEditValue.value)
+    showPoolIndicator.value = true
+  } catch (e) {
+    console.error('Failed to set pool balance:', e)
+  } finally {
+    editingPool.value = false
+  }
+}
+
 onMounted(() => {
   budgetStore.fetchExpenses()
+  budgetStore.fetchNumber()
 })
 </script>
 
@@ -317,6 +403,23 @@ onMounted(() => {
 
 .editable-chip:hover {
   opacity: 0.85;
+}
+
+/* Pool card styles */
+.pool-card {
+  border: 1px solid var(--color-sage-green, #a8c5a0);
+}
+
+.pool-balance {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px 4px;
+  border-radius: 4px;
+}
+
+.pool-edit-field {
+  max-width: 200px;
 }
 
 /* Mobile optimizations */

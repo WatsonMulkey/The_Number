@@ -151,6 +151,7 @@ export const budgetApi = {
   declinePoolContribution: () => api.post<{ status: string; amount_declined: number }>('/api/pool/decline'),
   togglePool: (enabled: boolean) => api.post<{ pool_balance: number }>('/api/pool/toggle', { enabled }),
   addToPool: (amount: number) => api.post<{ pool_balance: number }>('/api/pool/add', { amount }),
+  setPoolBalance: (balance: number) => api.post<{ pool_balance: number }>('/api/pool/set', { balance }),
 }
 
 // Password reset types
@@ -187,6 +188,53 @@ export const authApi = {
   /** Reset password using the token from forgotPassword */
   resetPassword: (data: ResetPasswordRequest) =>
     api.post<ResetPasswordResponse>('/api/auth/reset-password', data),
+}
+
+// Admin metrics types
+export interface AdminMetrics {
+  growth: {
+    total_users: number
+    signups_this_week: number
+    signups_this_month: number
+  }
+  engagement: {
+    dau: number
+    wau: number
+    mau: number
+    avg_sessions_per_day: number
+  }
+  depth: {
+    budget_configured_count: number
+    budget_configured_pct: number
+    paycheck_mode_count: number
+    fixed_pool_mode_count: number
+    pool_enabled_count: number
+  }
+  volume: {
+    total_transactions: number
+    total_expenses: number
+  }
+}
+
+export interface AdminHealth {
+  database: {
+    path: string
+    size_bytes: number
+    size_mb: number
+    row_counts: Record<string, number>
+  }
+  disk: {
+    path: string
+    total_bytes: number
+    used_bytes: number
+    free_bytes: number
+    used_pct: number
+  }
+}
+
+export const adminApi = {
+  getMetrics: () => api.get<AdminMetrics>('/api/admin/metrics'),
+  getHealth: () => api.get<AdminHealth>('/api/admin/health'),
 }
 
 export default api

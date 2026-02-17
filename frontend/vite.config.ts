@@ -22,7 +22,7 @@ export default defineConfig({
         background_color: '#E9F5DB',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/TheNumber/',
+        start_url: '/TheNumber/dashboard',
         scope: '/TheNumber/',
         icons: [
           {

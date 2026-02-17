@@ -38,19 +38,45 @@ export const useBudgetStore = defineStore('budget', () => {
 
   // Actions
 
+  /** Check if badge API is available */
+  function isBadgeSupported() {
+    return 'setAppBadge' in navigator
+  }
+
+  /** Check if notification permission is needed for badges */
+  function needsBadgePermission() {
+    return isBadgeSupported() && 'Notification' in window && Notification.permission === 'default'
+  }
+
+  /** Request notification permission (required for iOS badges). Must be called from user gesture. */
+  async function requestBadgePermission(): Promise<boolean> {
+    if (!('Notification' in window)) return false
+    try {
+      const result = await Notification.requestPermission()
+      if (result === 'granted') {
+        await updateAppBadge()
+        return true
+      }
+      return false
+    } catch (e) {
+      console.warn('Notification permission request failed:', e)
+      return false
+    }
+  }
+
   /** Update PWA app badge with the current daily budget number */
   async function updateAppBadge() {
     if (!('setAppBadge' in navigator) || !budgetNumber.value) return
+    if (localStorage.getItem('badge_enabled') === 'false') return
 
     try {
-      const rounded = Math.round(budgetNumber.value.the_number)
+      const rounded = Math.round(budgetNumber.value.remaining_today ?? budgetNumber.value.the_number)
       if (rounded > 0) {
         await (navigator as any).setAppBadge(rounded)
       } else {
         await (navigator as any).clearAppBadge()
       }
     } catch (e) {
-      // Silently fail - not all browsers support this
       console.warn('Badge API failed:', e)
     }
   }
@@ -278,6 +304,18 @@ export const useBudgetStore = defineStore('budget', () => {
     }
   }
 
+  /** Set pool balance to an exact value */
+  async function setPoolBalance(balance: number) {
+    error.value = null
+    try {
+      await budgetApi.setPoolBalance(balance)
+      await fetchNumber()
+    } catch (e: any) {
+      error.value = e.response?.data?.detail || 'Failed to set pool balance'
+      throw e
+    }
+  }
+
   return {
     // State
     budgetNumber,
@@ -305,11 +343,15 @@ export const useBudgetStore = defineStore('budget', () => {
     fetchTransactions,
     recordTransaction,
     clearAppBadge,
+    isBadgeSupported,
+    needsBadgePermission,
+    requestBadgePermission,
 
     // Pool feature actions
     acceptPoolContribution,
     declinePoolContribution,
     togglePool,
     addToPool,
+    setPoolBalance,
   }
 })

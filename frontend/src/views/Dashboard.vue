@@ -58,8 +58,8 @@
     <div v-else>
       <!-- Swipeable Content Area -->
       <v-window v-model="currentSlide" class="main-carousel mb-8" show-arrows continuous>
-        <!-- Slide 1: The Number Display -->
-        <v-window-item :value="0">
+        <!-- Slide: The Number Display -->
+        <v-window-item value="number">
           <NumberDisplay
             :the-number="budgetStore.budgetNumber.the_number"
             :mode="budgetStore.budgetNumber.mode"
@@ -71,46 +71,48 @@
             :original-daily-budget="budgetStore.budgetNumber.original_daily_budget"
             :tomorrow-daily-budget="budgetStore.budgetNumber.tomorrow_daily_budget"
           />
-
-          <!-- Pool Section (shows when pool has balance) -->
-          <div v-if="budgetStore.budgetNumber.pool_balance > 0" class="pool-section text-center mt-4">
-            <div class="pool-balance mb-2">
-              <v-icon size="small" class="mr-1">mdi-piggy-bank</v-icon>
-              <span class="text-body-1">Pool: <strong>${{ Math.ceil(budgetStore.budgetNumber.pool_balance) }}</strong></span>
-              <v-chip
-                v-if="budgetStore.budgetNumber.pool_enabled"
-                color="success"
-                size="x-small"
-                class="ml-2"
-              >Active</v-chip>
-            </div>
-            <v-switch
-              v-model="poolEnabled"
-              :label="poolEnabled ? 'Pool funds included' : 'Pool funds excluded'"
-              color="primary"
-              density="compact"
-              hide-details
-              class="d-inline-flex justify-center"
-              @update:model-value="togglePoolEnabled"
-            />
-          </div>
-
-          <!-- Add to Pool Button (always visible for paycheck mode) -->
-          <div v-if="budgetStore.budgetNumber.mode === 'paycheck'" class="text-center mt-3">
-            <v-btn
-              variant="outlined"
-              size="small"
-              color="primary"
-              @click="showAddToPoolModal = true"
-            >
-              <v-icon size="small" class="mr-1">mdi-plus</v-icon>
-              Add to Pool
-            </v-btn>
-          </div>
         </v-window-item>
 
-        <!-- Slide 2: Budget Details -->
-        <v-window-item :value="1">
+        <!-- Slide: Savings Pool -->
+        <v-window-item v-if="hasPool" value="pool">
+          <v-card elevation="2" class="pool-card pa-6 text-center">
+            <v-icon size="48" class="mb-2" color="primary">mdi-piggy-bank</v-icon>
+            <v-card-title class="text-h5 justify-center mb-2">Savings Pool</v-card-title>
+            <v-card-text>
+              <div class="text-h3 font-weight-bold my-4" style="color: var(--color-soft-charcoal);">
+                ${{ Math.ceil(budgetStore.budgetNumber.pool_balance) }}
+              </div>
+              <v-chip
+                :color="poolEnabled ? 'success' : 'default'"
+                size="small"
+                class="mb-4"
+              >{{ poolEnabled ? 'Active — included in daily budget' : 'Inactive — not included' }}</v-chip>
+              <v-switch
+                v-model="poolEnabled"
+                :label="poolEnabled ? 'Pool funds included' : 'Pool funds excluded'"
+                color="primary"
+                density="compact"
+                hide-details
+                class="d-inline-flex justify-center mb-4"
+                @update:model-value="togglePoolEnabled"
+              />
+              <div v-if="budgetStore.budgetNumber.mode === 'paycheck'">
+                <v-btn
+                  variant="outlined"
+                  size="small"
+                  color="primary"
+                  @click="showAddToPoolModal = true"
+                >
+                  <v-icon size="small" class="mr-1">mdi-plus</v-icon>
+                  Add to Pool
+                </v-btn>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-window-item>
+
+        <!-- Slide: Budget Details -->
+        <v-window-item value="details">
           <v-card elevation="2" class="budget-details-card pa-6">
             <v-card-title class="text-h5 mb-4">Budget Details</v-card-title>
             <v-card-text>
@@ -161,8 +163,8 @@
           </v-card>
         </v-window-item>
 
-        <!-- Slide 3: Recent Transactions -->
-        <v-window-item :value="2">
+        <!-- Slide: Recent Transactions -->
+        <v-window-item value="transactions">
           <v-card elevation="2" class="transactions-card">
             <v-card-title class="text-h5">Recent Transactions</v-card-title>
             <v-card-text class="transactions-list">
@@ -197,24 +199,28 @@
       </v-window>
 
       <!-- Slide Indicators -->
-      <div class="slide-indicators mb-6" role="tablist" aria-label="Dashboard sections">
-        <v-btn
-          v-for="n in 3"
-          :key="n"
-          :icon="currentSlide === n - 1"
-          size="x-small"
-          :color="currentSlide === n - 1 ? 'primary' : 'grey'"
-          @click="currentSlide = n - 1"
-          class="mx-1"
-          role="tab"
-          :aria-selected="currentSlide === n - 1"
-          :aria-label="['The Number Display', 'Budget Details', 'Recent Transactions'][n - 1]"
-          :aria-controls="`slide-${n - 1}`"
-        >
-          <v-icon v-if="currentSlide === n - 1">mdi-circle</v-icon>
-          <v-icon v-else>mdi-circle-outline</v-icon>
-        </v-btn>
+      <div class="slide-indicators mb-6">
+        <span
+          v-for="key in slideKeys"
+          :key="key"
+          class="slide-dot"
+          :class="{ active: currentSlide === key }"
+          @click="currentSlide = key"
+        />
       </div>
+
+      <!-- Badge Permission Prompt -->
+      <v-card
+        v-if="showBadgePrompt"
+        class="badge-prompt mb-4 pa-4 text-center"
+        elevation="1"
+      >
+        <div class="text-body-2 mb-2">Show your daily budget on the app icon?</div>
+        <div class="d-flex justify-center ga-2">
+          <v-btn size="small" variant="text" @click="dismissBadgePrompt">No Thanks</v-btn>
+          <v-btn size="small" color="primary" variant="elevated" @click="enableBadge">Enable</v-btn>
+        </div>
+      </v-card>
 
       <!-- Record Transaction Card (Always Visible Below) -->
       <v-card elevation="2" class="pa-6 record-transaction-card">
@@ -294,7 +300,7 @@ const transactionForm = ref()
 const spendingAmount = ref<number | null>(null)
 const spendingDescription = ref('')
 const transactionType = ref<'in' | 'out'>('out')
-const currentSlide = ref(0)
+const currentSlide = ref('number')
 
 // Track the last date we fetched data (for day-change detection)
 const lastFetchDate = ref<string | null>(null)
@@ -303,10 +309,36 @@ const lastFetchDate = ref<string | null>(null)
 const showPoolPrompt = ref(false)
 const showAddToPoolModal = ref(false)
 const poolEnabled = ref(false)
+const badgePromptDismissed = ref(localStorage.getItem('badge_prompt_dismissed') === 'true')
+
+const showBadgePrompt = computed(() =>
+  !badgePromptDismissed.value &&
+  budgetStore.needsBadgePermission() &&
+  budgetStore.budgetNumber != null
+)
+
+function dismissBadgePrompt() {
+  badgePromptDismissed.value = true
+  localStorage.setItem('badge_prompt_dismissed', 'true')
+}
+
+async function enableBadge() {
+  await budgetStore.requestBadgePermission()
+  dismissBadgePrompt()
+}
 
 const recentTransactions = computed(() =>
   budgetStore.transactions.slice(0, 5)
 )
+
+const hasPool = computed(() => (budgetStore.budgetNumber?.pool_balance ?? 0) > 0)
+
+const slideKeys = computed(() => {
+  const keys: string[] = ['number']
+  if (hasPool.value) keys.push('pool')
+  keys.push('details', 'transactions')
+  return keys
+})
 
 async function loadDashboard() {
   console.log('📊 loadDashboard called')
@@ -618,17 +650,26 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
   overflow-y: auto;
 }
 
-/* Phase 3.1: Touch Target Enlargement */
-/* Slide Indicators */
+/* Slide Indicators - simple dots */
 .slide-indicators {
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 8px;
 }
 
-.slide-indicators .v-btn {
-  min-width: 44px !important;
-  min-height: 44px !important;
+.slide-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-soft-charcoal, #4A5F7A);
+  opacity: 0.25;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.slide-dot.active {
+  opacity: 0.85;
 }
 
 /* Record Transaction Card */
@@ -706,35 +747,32 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
   font-size: 18px;
 }
 
-/* Pool Section Styles */
-.pool-section {
-  background: linear-gradient(135deg, rgba(233, 245, 219, 0.5) 0%, rgba(255, 255, 255, 0.8) 100%);
-  border-radius: 12px;
-  padding: var(--spacing-sm);
-  margin-top: var(--spacing-sm);
-}
-
-.pool-balance {
+/* Pool Card Styles */
+.pool-card {
+  max-width: 800px;
+  margin: 0 auto;
+  background: linear-gradient(135deg,
+    var(--color-sage-green) 0%,
+    rgba(233, 245, 219, 0.85) 100%) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 8px 32px rgba(135, 152, 106, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  min-height: 300px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
-  gap: 4px;
 }
 
-.pool-balance strong {
-  color: var(--color-soft-charcoal);
-  font-size: 1.1rem;
-}
-
-.pool-balance .v-icon {
-  color: var(--color-soft-charcoal) !important;
-}
-
-.pool-balance .text-body-1 {
+.pool-card :deep(.v-switch .v-label) {
   color: var(--color-soft-charcoal);
 }
 
-.pool-section :deep(.v-switch .v-label) {
-  color: var(--color-soft-charcoal);
+/* Badge permission prompt */
+.badge-prompt {
+  max-width: 600px;
+  margin: 0 auto;
+  background-color: rgba(233, 245, 219, 0.6) !important;
+  border: 1px solid rgba(135, 152, 106, 0.2) !important;
+  border-radius: 12px !important;
 }
 </style>

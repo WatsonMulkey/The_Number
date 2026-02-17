@@ -1,7 +1,7 @@
 <template>
-  <!-- Desktop: Left Rail (≥768px) - Hidden during onboarding -->
+  <!-- Desktop: Left Rail (≥768px) - Hidden during onboarding and landing page -->
   <v-navigation-drawer
-    v-if="!isMobile && !isOnboarding"
+    v-if="!isMobile && !isOnboarding && !isLanding"
     permanent
     rail
     :width="96"
@@ -53,12 +53,21 @@
         title="Settings"
         class="floating-item"
       />
+
+      <v-list-item
+        v-if="authStore.user?.is_admin"
+        :to="{ name: 'admin' }"
+        :active="$route.name === 'admin'"
+        prepend-icon="mdi-chart-bar"
+        title="Metrics"
+        class="floating-item"
+      />
     </v-list>
   </v-navigation-drawer>
 
-  <!-- Mobile: Bottom Navigation (<768px) - Hidden during onboarding -->
+  <!-- Mobile: Bottom Navigation (<768px) - Hidden during onboarding and landing page -->
   <v-bottom-navigation
-    v-else-if="!isOnboarding"
+    v-else-if="!isOnboarding && !isLanding"
     v-model="activeNav"
     grow
     class="mobile-nav safe-area-bottom"
@@ -101,8 +110,8 @@
     </v-btn>
   </v-bottom-navigation>
 
-  <!-- Avatar Menu (all screen sizes, repositioned for mobile) -->
-  <div :class="['avatar-container', { 'avatar-mobile': isMobile }]">
+  <!-- Avatar Menu (all screen sizes, repositioned for mobile) - Hidden on landing page -->
+  <div v-if="!isLanding" :class="['avatar-container', { 'avatar-mobile': isMobile }]">
     <v-menu>
       <template v-slot:activator="{ props }">
         <v-btn
@@ -178,6 +187,9 @@ const isOnboarding = computed(() => {
   return authStore.isAuthenticated && !budgetStore.budgetNumber && !budgetStore.loadingNumber
 })
 
+// Hide navigation on landing page
+const isLanding = computed(() => $route.name === 'landing')
+
 // Active nav value for mobile bottom nav (read-only - navigation handled by router)
 const activeNav = computed(() => $route.name as string)
 
@@ -219,8 +231,8 @@ async function handleLogout() {
   // Clear budget store data
   budgetStore.$reset()
 
-  // Reload the page to ensure all cached data is cleared
-  window.location.reload()
+  // Redirect to landing page
+  await $router.push({ name: 'landing' })
 }
 
 async function handleAuthSuccess() {

@@ -61,6 +61,10 @@ class EncryptedDatabase:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
 
+            # Enable WAL mode for better concurrent read/write performance
+            cursor.execute("PRAGMA journal_mode=WAL")
+            cursor.execute("PRAGMA busy_timeout=5000")
+
             # Schema version tracking
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS schema_version (
@@ -145,6 +149,7 @@ class EncryptedDatabase:
         migrations = [
             (1, "Add indexes for query performance", self._migration_001_add_indexes),
             (2, "Clean up expired reset tokens", self._migration_002_cleanup_tokens),
+            (3, "Add user_activity table for engagement metrics", self._migration_003_add_user_activity),
         ]
 
         for version, description, migrate_fn in migrations:
@@ -169,6 +174,20 @@ class EncryptedDatabase:
     def _migration_002_cleanup_tokens(cursor) -> None:
         """Clean up any expired reset tokens on startup."""
         cursor.execute("DELETE FROM reset_tokens WHERE datetime(expires_at) < datetime('now')")
+
+    @staticmethod
+    def _migration_003_add_user_activity(cursor) -> None:
+        """Add user_activity table for engagement metrics (DAU/WAU/MAU)."""
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_activity (
+                user_id INTEGER NOT NULL,
+                activity_date TEXT NOT NULL,
+                login_count INTEGER NOT NULL DEFAULT 1,
+                PRIMARY KEY (user_id, activity_date),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_activity_date ON user_activity(activity_date)")
 
     def _migrate_add_user_id(self, cursor) -> None:
         """Add user_id column to existing tables that don't have it."""
@@ -759,6 +778,18 @@ class EncryptedDatabase:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute("DELETE FROM reset_tokens WHERE datetime(expires_at) < datetime('now')")
+            conn.commit()
+
+    def record_user_activity(self, user_id: int, activity_date: str) -> None:
+        """Record user activity for engagement metrics (DAU/WAU/MAU)."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO user_activity (user_id, activity_date, login_count)
+                VALUES (?, ?, 1)
+                ON CONFLICT(user_id, activity_date) DO UPDATE SET
+                    login_count = login_count + 1
+            """, (user_id, activity_date))
             conn.commit()
 
     def close(self) -> None:

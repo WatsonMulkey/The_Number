@@ -2,7 +2,7 @@
   <v-dialog
     v-model="isOpen"
     max-width="500"
-    persistent
+    :persistent="authStore.loading"
     role="dialog"
     :aria-labelledby="'auth-modal-title'"
   >
@@ -23,6 +23,16 @@
       <v-card-text class="pa-6">
         <!-- Login/Register Form -->
         <v-form v-if="mode === 'login' || mode === 'register'" ref="form" @submit.prevent="handleSubmit">
+          <!-- BETA GATING: Invite code field (remove after beta) -->
+          <v-text-field
+            v-if="mode === 'register'"
+            v-model="inviteCode"
+            label="Invite Code"
+            variant="outlined"
+            :rules="[rules.required]"
+            class="mb-3"
+          />
+
           <v-text-field
             v-model="username"
             label="Username"
@@ -133,9 +143,12 @@ import { ref, watch, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useValidation } from '@/composables/useValidation'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   modelValue: boolean
-}>()
+  initialMode?: 'login' | 'register'
+}>(), {
+  initialMode: 'login'
+})
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
@@ -153,6 +166,7 @@ const mode = ref<'login' | 'register'>('login')
 const username = ref('')
 const email = ref('')
 const password = ref('')
+const inviteCode = ref('') // BETA GATING (remove after beta)
 const showPassword = ref(false)
 const form = ref<any>(null)
 
@@ -217,10 +231,11 @@ watch(() => props.modelValue, (newVal) => {
   isOpen.value = newVal
   if (newVal) {
     // Reset all form fields when opened
-    mode.value = 'login'
+    mode.value = props.initialMode
     username.value = ''
     email.value = ''
     password.value = ''
+    inviteCode.value = ''
     showPassword.value = false
     authStore.clearError()
   }
@@ -246,7 +261,7 @@ async function handleSubmit() {
     if (mode.value === 'login') {
       await authStore.login(username.value, password.value)
     } else {
-      await authStore.register(username.value, password.value, email.value || undefined)
+      await authStore.register(username.value, password.value, email.value || undefined, inviteCode.value || undefined)
     }
 
     // Success - close modal and emit success event

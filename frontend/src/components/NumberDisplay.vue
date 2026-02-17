@@ -95,7 +95,10 @@ const props = defineProps<{
 }>()
 
 const formattedNumber = computed(() => {
-  return Math.ceil(props.theNumber).toString()
+  // Show remaining today (daily limit minus spending) so the number
+  // decreases as the user spends. Falls back to daily limit if no spending data.
+  const displayValue = props.remainingToday ?? props.theNumber
+  return Math.ceil(displayValue).toString()
 })
 
 const subtitle = computed(() => {

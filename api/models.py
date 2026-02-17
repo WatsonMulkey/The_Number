@@ -172,6 +172,7 @@ class UserRegister(BaseModel):
     username: str = Field(..., min_length=3, max_length=50, description="Username")
     password: str = Field(..., min_length=6, max_length=72, description="Password (6-72 characters)")
     email: Optional[str] = Field(None, max_length=100, description="Email (optional)")
+    invite_code: Optional[str] = Field(None, max_length=50, description="Beta invite code")
 
     class Config:
         json_schema_extra = {
@@ -203,6 +204,7 @@ class UserResponse(BaseModel):
     username: str
     email: Optional[str]
     created_at: str
+    is_admin: bool = False
 
     class Config:
         json_schema_extra = {
@@ -257,6 +259,11 @@ class PoolToggleRequest(BaseModel):
 class PoolAddRequest(BaseModel):
     """Request model for manually adding to pool."""
     amount: float = Field(..., gt=0, le=MAX_AMOUNT, description="Amount to add to pool")
+
+
+class PoolSetRequest(BaseModel):
+    """Request model for setting pool balance to an exact value."""
+    balance: float = Field(..., ge=0, le=MAX_AMOUNT, description="New pool balance")
 
 
 class PoolResponse(BaseModel):

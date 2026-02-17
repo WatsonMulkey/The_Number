@@ -99,6 +99,15 @@ def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depends(secu
     return user_id
 
 
+def get_admin_user_id(credentials: HTTPAuthorizationCredentials = Depends(security)) -> int:
+    """Dependency to verify the current user is the admin."""
+    user_id = get_current_user_id(credentials)
+    admin_user_id = os.getenv("ADMIN_USER_ID")
+    if not admin_user_id or str(user_id) != str(admin_user_id):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+    return user_id
+
+
 # ============================================================================
 # PASSWORD RESET
 # ============================================================================

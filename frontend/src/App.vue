@@ -3,7 +3,13 @@
     <ErrorBoundary>
       <a href="#main-content" class="skip-link">Skip to main content</a>
       <NavigationRail />
-      <v-main id="main-content" tabindex="-1" role="main" style="background-color: var(--color-warm-white);">
+      <v-main
+        id="main-content"
+        tabindex="-1"
+        role="main"
+        style="background-color: var(--color-warm-white);"
+        :class="{ 'landing-layout': isLanding }"
+      >
         <v-container fluid>
           <router-view />
         </v-container>
@@ -13,8 +19,13 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import NavigationRail from './components/NavigationRail.vue'
 import ErrorBoundary from './components/ErrorBoundary.vue'
+
+const route = useRoute()
+const isLanding = computed(() => route.name === 'landing')
 </script>
 
 <style>
@@ -132,6 +143,11 @@ body, p, span, div, button, input, textarea, select {
   #main-content {
     padding-bottom: 16px !important; /* Desktop: no bottom nav */
     padding-left: 96px !important; /* Account for fixed navigation rail width */
+  }
+
+  /* Landing page: no nav rail, so no left padding */
+  #main-content.landing-layout {
+    padding-left: 0 !important;
   }
 }
 
