@@ -18,17 +18,29 @@
                 required
               />
             </v-col>
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="3">
               <v-text-field
                 v-model.number="newExpense.amount"
                 type="number"
-                label="Monthly Amount"
+                :label="newExpense.frequency === 'weekly' ? 'Weekly Amount' : 'Monthly Amount'"
                 variant="outlined"
                 :rules="[rules.positive]"
                 required
               />
             </v-col>
             <v-col cols="12" md="2">
+              <v-btn-toggle
+                v-model="newExpense.frequency"
+                mandatory
+                density="compact"
+                color="primary"
+                class="mt-2"
+              >
+                <v-btn value="monthly" size="small">Monthly</v-btn>
+                <v-btn value="weekly" size="small">Weekly</v-btn>
+              </v-btn-toggle>
+            </v-col>
+            <v-col cols="12" md="1">
               <v-checkbox
                 v-model="newExpense.is_fixed"
                 label="Fixed"
@@ -150,7 +162,7 @@
               class="editable-cell"
               @click="startEdit(item.id, 'amount', item.amount)"
             >
-              <span>${{ item.amount.toFixed(2) }}</span>
+              <span>${{ item.amount.toFixed(2) }}{{ item.frequency === 'weekly' ? '/wk' : '/mo' }}</span>
               <v-icon size="small" class="edit-icon">mdi-pencil</v-icon>
             </div>
             <v-text-field
@@ -168,6 +180,19 @@
               @keyup.escape="cancelEdit"
               class="inline-edit-field"
             />
+          </template>
+
+          <!-- Frequency Column (Toggle) -->
+          <template v-slot:item.frequency="{ item }">
+            <v-chip
+              :color="item.frequency === 'weekly' ? 'info' : 'default'"
+              size="small"
+              class="editable-chip"
+              @click="toggleFrequency(item)"
+            >
+              {{ item.frequency === 'weekly' ? 'Weekly' : 'Monthly' }}
+              <v-icon size="x-small" class="ml-1">mdi-swap-horizontal</v-icon>
+            </v-chip>
           </template>
 
           <!-- Editable Type Column (Toggle) -->
@@ -220,6 +245,7 @@ const newExpense = ref({
   name: '',
   amount: 0,
   is_fixed: true,
+  frequency: 'monthly' as 'weekly' | 'monthly',
 })
 
 // Inline editing state
@@ -234,15 +260,21 @@ const showPoolIndicator = ref(false)
 const editingPool = ref(false)
 const poolEditValue = ref(0)
 
+const WEEKLY_TO_MONTHLY = 52 / 12
+
 const headers = [
   { title: 'Name', key: 'name', sortable: true },
   { title: 'Amount', key: 'amount', sortable: true },
+  { title: 'Freq', key: 'frequency', sortable: true },
   { title: 'Type', key: 'is_fixed', sortable: true },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
 const totalExpenses = computed(() => {
-  return budgetStore.expenses.reduce((sum, exp) => sum + exp.amount, 0)
+  return budgetStore.expenses.reduce((sum, exp) => {
+    const monthly = exp.frequency === 'weekly' ? exp.amount * WEEKLY_TO_MONTHLY : exp.amount
+    return sum + monthly
+  }, 0)
 })
 
 function startEdit(id: number, field: 'name' | 'amount', value: string | number) {
@@ -295,6 +327,16 @@ async function toggleType(item: { id: number; is_fixed: boolean }) {
   }
 }
 
+async function toggleFrequency(item: { id: number; frequency: 'weekly' | 'monthly' }) {
+  try {
+    const newFreq = item.frequency === 'weekly' ? 'monthly' : 'weekly'
+    await budgetStore.updateExpense(item.id, { frequency: newFreq })
+    showSaveIndicator.value = true
+  } catch (e) {
+    console.error('Failed to toggle expense frequency:', e)
+  }
+}
+
 async function addExpense() {
   // Validate form before submitting
   const { valid } = await expenseForm.value.validate()
@@ -308,6 +350,7 @@ async function addExpense() {
       name: '',
       amount: 0,
       is_fixed: true,
+      frequency: 'monthly',
     }
     expenseForm.value.resetValidation()
   } catch (e) {

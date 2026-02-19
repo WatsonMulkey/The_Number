@@ -31,7 +31,7 @@ load_dotenv(env_path)
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.database import EncryptedDatabase
-from src.calculator import BudgetCalculator
+from src.calculator import BudgetCalculator, WEEKLY_TO_MONTHLY
 from src.import_expenses import import_expenses_from_file
 from src.export_expenses import export_to_csv, export_to_excel
 from api.models import (
@@ -195,7 +195,8 @@ async def get_the_number(
         calc = BudgetCalculator()
         expenses = db.get_expenses(user_id)
         for exp in expenses:
-            calc.add_expense(exp["name"], exp["amount"], exp["is_fixed"])
+            calc.add_expense(exp["name"], exp["amount"], exp["is_fixed"],
+                             exp.get("frequency", "monthly"))
 
         # Calculate "The Number" based on mode
         if budget_mode == "paycheck":
@@ -222,8 +223,11 @@ async def get_the_number(
                     # Check if we already processed this payday (avoid double-counting)
                     last_processed = db.get_setting("last_processed_payday", user_id)
                     if last_processed != next_payday.isoformat():
-                        # Calculate leftover for this cycle
-                        total_expenses = sum(exp["amount"] for exp in expenses)
+                        # Calculate leftover for this cycle (normalize weekly→monthly)
+                        total_expenses = sum(
+                            exp["amount"] * WEEKLY_TO_MONTHLY if exp.get("frequency") == "weekly" else exp["amount"]
+                            for exp in expenses
+                        )
                         cycle_days = pay_frequency
 
                         # Get transactions during that cycle
@@ -499,7 +503,8 @@ async def create_expense(
             name=expense.name,
             amount=expense.amount,
             user_id=user_id,
-            is_fixed=expense.is_fixed
+            is_fixed=expense.is_fixed,
+            frequency=expense.frequency
         )
 
         # Retrieve the created expense
@@ -565,7 +570,8 @@ async def update_expense(
             user_id=user_id,
             name=expense.name,
             amount=expense.amount,
-            is_fixed=expense.is_fixed
+            is_fixed=expense.is_fixed,
+            frequency=expense.frequency
         )
 
         # Return updated expense
@@ -1619,6 +1625,73 @@ async def get_admin_metrics(
         "volume": {
             "total_transactions": total_transactions,
             "total_expenses": total_expenses,
+        },
+    }
+
+
+@app.get("/api/admin/trends")
+async def get_admin_trends(
+    admin_id: int = Depends(get_admin_user_id),
+    db: EncryptedDatabase = Depends(get_db)
+):
+    """30-day daily trends + week-over-week comparisons for admin dashboard."""
+    import sqlite3 as _sqlite3
+    from datetime import date, timedelta
+
+    today = date.today()
+    start = today - timedelta(days=29)
+
+    # Build date range for gap-filling
+    date_range = [(start + timedelta(days=i)).isoformat() for i in range(30)]
+
+    with _sqlite3.connect(db.db_path) as conn:
+        cursor = conn.cursor()
+
+        # Daily active users from user_activity
+        cursor.execute(
+            "SELECT activity_date, COUNT(DISTINCT user_id) FROM user_activity "
+            "WHERE activity_date >= ? GROUP BY activity_date",
+            (start.isoformat(),)
+        )
+        dau_map = dict(cursor.fetchall())
+
+        # Daily signups from users.created_at
+        cursor.execute(
+            "SELECT DATE(created_at), COUNT(*) FROM users "
+            "WHERE DATE(created_at) >= ? GROUP BY DATE(created_at)",
+            (start.isoformat(),)
+        )
+        signup_map = dict(cursor.fetchall())
+
+        # Daily transactions
+        cursor.execute(
+            "SELECT date, COUNT(*) FROM transactions "
+            "WHERE date >= ? GROUP BY date",
+            (start.isoformat(),)
+        )
+        tx_map = dict(cursor.fetchall())
+
+    # Gap-fill
+    daily_dau = [{"date": d, "value": dau_map.get(d, 0)} for d in date_range]
+    daily_signups = [{"date": d, "value": signup_map.get(d, 0)} for d in date_range]
+    daily_transactions = [{"date": d, "value": tx_map.get(d, 0)} for d in date_range]
+
+    # Week-over-week comparisons
+    def wow(series):
+        this_week = sum(p["value"] for p in series[-7:])
+        last_week = sum(p["value"] for p in series[-14:-7])
+        if last_week == 0:
+            return 100.0 if this_week > 0 else 0.0
+        return round((this_week - last_week) / last_week * 100, 1)
+
+    return {
+        "daily_active_users": daily_dau,
+        "daily_signups": daily_signups,
+        "daily_transactions": daily_transactions,
+        "comparisons": {
+            "dau": wow(daily_dau),
+            "signups": wow(daily_signups),
+            "transactions": wow(daily_transactions),
         },
     }
 

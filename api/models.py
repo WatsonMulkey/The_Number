@@ -19,15 +19,17 @@ from src.calculator import MAX_AMOUNT, MAX_STRING_LENGTH
 class ExpenseCreate(BaseModel):
     """Request model for creating an expense."""
     name: str = Field(..., max_length=MAX_STRING_LENGTH, description="Expense name")
-    amount: float = Field(..., gt=0, le=MAX_AMOUNT, description="Monthly expense amount")
-    is_fixed: bool = Field(..., description="True for fixed monthly expenses, False for variable")
+    amount: float = Field(..., gt=0, le=MAX_AMOUNT, description="Expense amount (per occurrence)")
+    is_fixed: bool = Field(..., description="True for fixed expenses, False for variable")
+    frequency: str = Field(default="monthly", pattern="^(weekly|monthly)$", description="'weekly' or 'monthly'")
 
     class Config:
         json_schema_extra = {
             "example": {
                 "name": "Rent",
                 "amount": 1500.00,
-                "is_fixed": True
+                "is_fixed": True,
+                "frequency": "monthly"
             }
         }
 
@@ -38,6 +40,7 @@ class ExpenseResponse(BaseModel):
     name: str
     amount: float
     is_fixed: bool
+    frequency: str
     created_at: str
     updated_at: str
 
@@ -45,8 +48,9 @@ class ExpenseResponse(BaseModel):
 class ExpenseUpdate(BaseModel):
     """Request model for updating an expense (partial update supported)."""
     name: Optional[str] = Field(None, max_length=MAX_STRING_LENGTH, description="Expense name")
-    amount: Optional[float] = Field(None, gt=0, le=MAX_AMOUNT, description="Monthly expense amount")
-    is_fixed: Optional[bool] = Field(None, description="True for fixed monthly expenses, False for variable")
+    amount: Optional[float] = Field(None, gt=0, le=MAX_AMOUNT, description="Expense amount (per occurrence)")
+    is_fixed: Optional[bool] = Field(None, description="True for fixed expenses, False for variable")
+    frequency: Optional[str] = Field(None, pattern="^(weekly|monthly)$", description="'weekly' or 'monthly'")
 
     class Config:
         json_schema_extra = {

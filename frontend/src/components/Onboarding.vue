@@ -392,7 +392,7 @@
         <v-card variant="outlined" class="mb-4 pa-4 max-w-600 mx-auto">
           <v-form ref="expenseForm" @submit.prevent="addExpense">
             <v-row>
-              <v-col cols="12" sm="5">
+              <v-col cols="12" sm="4">
                 <v-text-field
                   v-model="newExpense.name"
                   label="Expense Name"
@@ -405,11 +405,11 @@
                   required
                 />
               </v-col>
-              <v-col cols="12" sm="4">
+              <v-col cols="12" sm="3">
                 <v-text-field
                   v-model.number="newExpense.amount"
                   type="number"
-                  label="Amount"
+                  :label="newExpense.frequency === 'weekly' ? 'Weekly Amount' : 'Monthly Amount'"
                   variant="outlined"
                   density="compact"
                   :rules="[rules.positive]"
@@ -418,6 +418,17 @@
                 />
               </v-col>
               <v-col cols="12" sm="3">
+                <v-btn-toggle
+                  v-model="newExpense.frequency"
+                  mandatory
+                  density="compact"
+                  color="primary"
+                >
+                  <v-btn value="monthly" size="small">Monthly</v-btn>
+                  <v-btn value="weekly" size="small">Weekly</v-btn>
+                </v-btn-toggle>
+              </v-col>
+              <v-col cols="12" sm="2">
                 <v-btn
                   type="submit"
                   color="primary"
@@ -447,7 +458,7 @@
                 <v-icon>mdi-receipt</v-icon>
               </template>
               <v-list-item-title>{{ expense.name }}</v-list-item-title>
-              <v-list-item-subtitle :aria-label="`${expense.amount.toFixed(0)} dollars and ${Math.round((expense.amount % 1) * 100)} cents`">{{ expense.amount.toFixed(2) }}</v-list-item-subtitle>
+              <v-list-item-subtitle :aria-label="`${expense.amount.toFixed(0)} dollars and ${Math.round((expense.amount % 1) * 100)} cents ${expense.frequency === 'weekly' ? 'per week' : 'per month'}`">${{ expense.amount.toFixed(2) }}{{ expense.frequency === 'weekly' ? '/wk' : '/mo' }}</v-list-item-subtitle>
               <template v-slot:append>
                 <v-btn
                   icon
@@ -722,8 +733,9 @@ const targetEndDate = ref('')
 const dailySpendingLimit = ref(0)
 
 // Expenses
-const expenses = ref<Array<{ name: string; amount: number; is_fixed: boolean }>>([])
-const newExpense = ref({ name: '', amount: 0, is_fixed: true })
+const WEEKLY_TO_MONTHLY = 52 / 12
+const expenses = ref<Array<{ name: string; amount: number; is_fixed: boolean; frequency: 'weekly' | 'monthly' }>>([])
+const newExpense = ref({ name: '', amount: 0, is_fixed: true, frequency: 'monthly' as 'weekly' | 'monthly' })
 
 // UI State
 const loading = ref(false)
@@ -735,7 +747,10 @@ const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
 // Computed
 const totalExpenses = computed(() =>
-  expenses.value.reduce((sum, exp) => sum + exp.amount, 0)
+  expenses.value.reduce((sum, exp) => {
+    const monthly = exp.frequency === 'weekly' ? exp.amount * WEEKLY_TO_MONTHLY : exp.amount
+    return sum + monthly
+  }, 0)
 )
 
 const calculatedNumber = computed(() => {
@@ -849,7 +864,7 @@ async function addExpense() {
 
   if (newExpense.value.name && newExpense.value.amount > 0) {
     expenses.value.push({ ...newExpense.value })
-    newExpense.value = { name: '', amount: 0, is_fixed: true }
+    newExpense.value = { name: '', amount: 0, is_fixed: true, frequency: 'monthly' }
     expenseForm.value.resetValidation()
   }
 }

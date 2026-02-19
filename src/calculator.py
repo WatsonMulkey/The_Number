@@ -15,6 +15,9 @@ MAX_STRING_LENGTH = 200  # Maximum length for user input strings
 MAX_AMOUNT = 10_000_000  # Maximum dollar amount ($10 million)
 MAX_DAYS_UNTIL_PAYCHECK = 365  # Maximum days (1 year)
 
+# Frequency normalization
+WEEKLY_TO_MONTHLY = 52 / 12  # ~4.333
+
 
 @dataclass
 class Expense:
@@ -22,12 +25,22 @@ class Expense:
     name: str
     amount: float
     is_fixed: bool  # True for monthly fixed expenses, False for variable
+    frequency: str = "monthly"  # 'weekly' or 'monthly'
 
     def __post_init__(self):
         if self.amount < 0:
             raise ValueError(f"Expense amount cannot be negative: {self.amount}")
         if self.amount > MAX_AMOUNT:
             raise ValueError(f"Expense amount exceeds maximum (${MAX_AMOUNT:,}): {self.amount}")
+        if self.frequency not in ("weekly", "monthly"):
+            raise ValueError(f"Frequency must be 'weekly' or 'monthly': {self.frequency}")
+
+    @property
+    def monthly_amount(self) -> float:
+        """Return the expense amount normalized to monthly."""
+        if self.frequency == "weekly":
+            return self.amount * WEEKLY_TO_MONTHLY
+        return self.amount
 
 
 @dataclass
@@ -52,9 +65,10 @@ class BudgetCalculator:
         self.expenses: List[Expense] = []
         self.transactions: List[Transaction] = []
 
-    def add_expense(self, name: str, amount: float, is_fixed: bool = True) -> None:
+    def add_expense(self, name: str, amount: float, is_fixed: bool = True,
+                    frequency: str = "monthly") -> None:
         """Add a budget expense."""
-        expense = Expense(name=name, amount=amount, is_fixed=is_fixed)
+        expense = Expense(name=name, amount=amount, is_fixed=is_fixed, frequency=frequency)
         self.expenses.append(expense)
 
     def add_transaction(self, amount: float, description: str,
@@ -66,8 +80,8 @@ class BudgetCalculator:
         self.transactions.append(transaction)
 
     def get_total_expenses(self) -> float:
-        """Calculate total monthly expenses."""
-        return sum(expense.amount for expense in self.expenses)
+        """Calculate total monthly expenses (normalizes weekly to monthly)."""
+        return sum(expense.monthly_amount for expense in self.expenses)
 
     def get_today_spending(self) -> float:
         """

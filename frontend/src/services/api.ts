@@ -82,6 +82,7 @@ export interface Expense {
   name: string
   amount: number
   is_fixed: boolean
+  frequency: 'weekly' | 'monthly'
   created_at: string
   updated_at: string
 }
@@ -90,6 +91,7 @@ export interface ExpenseUpdate {
   name?: string
   amount?: number
   is_fixed?: boolean
+  frequency?: 'weekly' | 'monthly'
 }
 
 export interface Transaction {
@@ -232,9 +234,26 @@ export interface AdminHealth {
   }
 }
 
+export interface TrendDataPoint {
+  date: string
+  value: number
+}
+
+export interface AdminTrends {
+  daily_active_users: TrendDataPoint[]
+  daily_signups: TrendDataPoint[]
+  daily_transactions: TrendDataPoint[]
+  comparisons: {
+    dau: number
+    signups: number
+    transactions: number
+  }
+}
+
 export const adminApi = {
   getMetrics: () => api.get<AdminMetrics>('/api/admin/metrics'),
   getHealth: () => api.get<AdminHealth>('/api/admin/health'),
+  getTrends: () => api.get<AdminTrends>('/api/admin/trends'),
 }
 
 export default api

@@ -26,6 +26,7 @@ export const ExpenseSchema = z.object({
   name: z.string(),
   amount: z.number(),
   is_fixed: z.boolean(),
+  frequency: z.enum(['weekly', 'monthly']),
   created_at: z.string(),
   updated_at: z.string(),
 })

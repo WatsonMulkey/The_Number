@@ -150,6 +150,7 @@ class EncryptedDatabase:
             (1, "Add indexes for query performance", self._migration_001_add_indexes),
             (2, "Clean up expired reset tokens", self._migration_002_cleanup_tokens),
             (3, "Add user_activity table for engagement metrics", self._migration_003_add_user_activity),
+            (4, "Add frequency column to expenses", self._migration_004_add_expense_frequency),
         ]
 
         for version, description, migrate_fn in migrations:
@@ -188,6 +189,11 @@ class EncryptedDatabase:
             )
         """)
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_activity_date ON user_activity(activity_date)")
+
+    @staticmethod
+    def _migration_004_add_expense_frequency(cursor) -> None:
+        """Add frequency column to expenses table (weekly/monthly)."""
+        cursor.execute("ALTER TABLE expenses ADD COLUMN frequency TEXT NOT NULL DEFAULT 'monthly'")
 
     def _migrate_add_user_id(self, cursor) -> None:
         """Add user_id column to existing tables that don't have it."""
@@ -295,7 +301,8 @@ class EncryptedDatabase:
             return default
 
     # Expense operations
-    def add_expense(self, name: str, amount: float, user_id: int, is_fixed: bool = True) -> int:
+    def add_expense(self, name: str, amount: float, user_id: int, is_fixed: bool = True,
+                    frequency: str = "monthly") -> int:
         """
         Add an expense to the database for a specific user.
 
@@ -304,6 +311,7 @@ class EncryptedDatabase:
             amount: Expense amount
             user_id: User ID this expense belongs to
             is_fixed: Whether this is a fixed monthly expense
+            frequency: 'weekly' or 'monthly'
 
         Returns:
             ID of created expense
@@ -319,15 +327,17 @@ class EncryptedDatabase:
             raise ValueError("Expense name is required")
         if len(name) > 200:
             raise ValueError("Expense name too long (max 200 characters)")
+        if frequency not in ("weekly", "monthly"):
+            raise ValueError("Frequency must be 'weekly' or 'monthly'")
 
         now = datetime.now().isoformat()
 
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO expenses (user_id, name, amount, is_fixed, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (user_id, name, amount, 1 if is_fixed else 0, now, now))
+                INSERT INTO expenses (user_id, name, amount, is_fixed, frequency, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (user_id, name, amount, 1 if is_fixed else 0, frequency, now, now))
             conn.commit()
             return cursor.lastrowid
 
@@ -353,6 +363,7 @@ class EncryptedDatabase:
                     "name": row["name"],
                     "amount": row["amount"],
                     "is_fixed": bool(row["is_fixed"]),
+                    "frequency": row["frequency"] if "frequency" in row.keys() else "monthly",
                     "created_at": row["created_at"],
                     "updated_at": row["updated_at"]
                 }
@@ -384,15 +395,17 @@ class EncryptedDatabase:
                 "name": row["name"],
                 "amount": row["amount"],
                 "is_fixed": bool(row["is_fixed"]),
+                "frequency": row["frequency"] if "frequency" in row.keys() else "monthly",
                 "created_at": row["created_at"],
                 "updated_at": row["updated_at"]
             }
 
     def update_expense(self, expense_id: int, user_id: int, name: Optional[str] = None,
-                      amount: Optional[float] = None, is_fixed: Optional[bool] = None) -> None:
+                      amount: Optional[float] = None, is_fixed: Optional[bool] = None,
+                      frequency: Optional[str] = None) -> None:
         """Update an expense for a specific user."""
         # Whitelist of allowed columns (security: prevent SQL injection pattern)
-        ALLOWED_COLUMNS = {'name', 'amount', 'is_fixed', 'updated_at'}
+        ALLOWED_COLUMNS = {'name', 'amount', 'is_fixed', 'frequency', 'updated_at'}
 
         updates = []
         params = []
@@ -412,6 +425,11 @@ class EncryptedDatabase:
         if is_fixed is not None:
             updates.append("is_fixed = ?")
             params.append(1 if is_fixed else 0)
+        if frequency is not None:
+            if frequency not in ("weekly", "monthly"):
+                raise ValueError("Frequency must be 'weekly' or 'monthly'")
+            updates.append("frequency = ?")
+            params.append(frequency)
 
         if not updates:
             return
