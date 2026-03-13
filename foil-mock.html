@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FOIL Engineering - Software That Fits Your Context</title>
+    <meta name="description" content="Product consulting, process design, and bespoke software built around your constraints — team size, budget, existing systems. 10+ year product manager in Denver." />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet" />
+
+    <style>
+      /* ================================
+         CSS VARIABLES (from FOIL global.css)
+         ================================ */
+      :root {
+        --color-slate-blue: #4a5f7a;
+        --color-steel-blue: #5b7d99;
+        --color-dusty-blue: #6b8ea8;
+        --color-deep-charcoal: #1a1d21;
+        --color-charcoal: #2b2e33;
+        --color-dark-grey: #35383d;
+        --color-surface-grey: #3f4247;
+        --color-off-white: #f5f5f5;
+        --color-light-grey: #d1d1d1;
+        --color-medium-grey: #9a9a9a;
+        --color-cool-grey: #7a7d82;
+        --color-mustard: #d4a017;
+        --color-gold: #c9a961;
+        --color-ochre: #cc8800;
+        --color-terracotta: #c96a5a;
+        --color-terracotta-light: #d48577;
+        --color-card-light: #f5f5f5;
+        --color-card-dark-text: #2b2e33;
+        --spacing-2xs: 4px;
+        --spacing-xs: 8px;
+        --spacing-sm: 16px;
+        --spacing-md: 24px;
+        --spacing-lg: 36px;
+        --spacing-xl: 54px;
+        --spacing-2xl: 75px;
+        --spacing-3xl: 110px;
+        --spacing-4xl: 140px;
+        --font-family-primary: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --transition-fast: 150ms;
+        --transition-base: 250ms;
+        --transition-slow: 370ms;
+        --transition-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      /* ================================
+         RESET & BASE
+         ================================ */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html { scroll-behavior: smooth; font-size: 16px; }
+      body {
+        font-family: var(--font-family-primary);
+        background-color: var(--color-charcoal);
+        color: var(--color-light-grey);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        position: relative;
+        min-height: 100vh;
+      }
+      body::after {
+        content: '';
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background:
+          radial-gradient(ellipse at center, transparent 0%, transparent 30%, rgba(0,0,0,0.15) 70%, rgba(0,0,0,0.35) 100%),
+          linear-gradient(135deg, rgba(43,46,51,0.86) 0%, rgba(26,29,33,0.88) 100%);
+        z-index: -1;
+        pointer-events: none;
+      }
+
+      h1, h2, h3, h4, h5, h6 { font-weight: 700; line-height: 1.2; color: var(--color-off-white); }
+      h1 { font-size: clamp(46px, 5.2vw, 80px); letter-spacing: -0.03em; line-height: 1.08; }
+      h2 { font-size: clamp(40px, 4.2vw, 60px); letter-spacing: -0.02em; line-height: 1.15; }
+      h3 { font-size: 30px; letter-spacing: -0.01em; line-height: 1.25; }
+      p { line-height: 1.8; }
+      a { color: inherit; text-decoration: none; transition: color var(--transition-base) ease; }
+      a:hover { color: var(--color-mustard); }
+
+      /* ================================
+         LAYOUT
+         ================================ */
+      .section {
+        padding: var(--spacing-3xl) 5%;
+        position: relative;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .section-header { text-align: center; margin-bottom: var(--spacing-2xl); }
+      .section-eyebrow {
+        font-size: 12px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 3px; color: var(--color-gold); opacity: 0.9; margin-bottom: var(--spacing-sm);
+      }
+      .section-title { margin-bottom: var(--spacing-sm); }
+      .section-subtitle {
+        font-size: 18px; color: var(--color-medium-grey);
+        max-width: 620px; margin: 0 auto; line-height: 1.7;
+      }
+
+      /* Section dividers */
+      .section + .section { border-top: 1px solid rgba(74, 95, 122, 0.2); }
+
+      /* ================================
+         HERO
+         ================================ */
+      .hero-section {
+        min-height: 100vh; display: flex; align-items: center; justify-content: center;
+        padding: var(--spacing-4xl) 5% 100px 5%; text-align: center; position: relative;
+      }
+      /* Lens flare */
+      .hero-section::before {
+        content: '';
+        position: fixed; bottom: -15%; left: -12%; width: 85%; height: 120vh;
+        background: radial-gradient(
+          ellipse at center,
+          rgba(212, 160, 23, 0.65) 0%, rgba(201, 169, 97, 0.5) 20%,
+          rgba(212, 133, 0, 0.35) 35%, rgba(74, 95, 122, 0.18) 50%,
+          rgba(74, 95, 122, 0.08) 60%, transparent 75%
+        );
+        filter: blur(120px); opacity: 1; pointer-events: none;
+        animation: pulse-glow 8s ease-in-out infinite; z-index: 0;
+      }
+      @keyframes pulse-glow {
+        0%, 100% { opacity: 0.95; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.08); }
+      }
+
+      .hero-content { position: relative; z-index: 1; max-width: 850px; }
+      .hero-eyebrow {
+        font-size: 13px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 4px; color: rgba(201, 169, 97, 0.9); margin-bottom: var(--spacing-md);
+      }
+      .hero-title { margin-bottom: var(--spacing-lg); }
+      .hero-title .highlight {
+        color: var(--color-mustard);
+        text-shadow: 0 0 20px rgba(212, 160, 23, 0.4), 0 0 40px rgba(212, 160, 23, 0.2), 0 0 60px rgba(212, 160, 23, 0.1);
+        filter: brightness(1.1);
+      }
+      .hero-subtitle {
+        font-size: clamp(19px, 1.9vw, 26px); color: rgba(209, 209, 209, 0.85);
+        max-width: 700px; margin: 0 auto var(--spacing-md); line-height: 1.65;
+      }
+      .hero-support {
+        font-size: 16px; color: var(--color-terracotta-light);
+        font-weight: 600; margin-bottom: var(--spacing-2xl); font-style: italic;
+      }
+      .cta-button {
+        display: inline-block; padding: 26px 68px; background-color: var(--color-mustard);
+        color: var(--color-charcoal); font-size: 16px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 1px; border-radius: 8px;
+        box-shadow: 0 7px 28px rgba(212, 160, 23, 0.3), 0 0 30px rgba(212, 160, 23, 0.25);
+        transition: all 320ms var(--transition-spring);
+      }
+      .cta-button:hover {
+        background-color: var(--color-gold); transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 14px 45px rgba(212, 160, 23, 0.45); color: var(--color-charcoal);
+      }
+
+      /* ================================
+         SERVICE CARDS
+         ================================ */
+      .solutions-section { background-color: rgba(53, 56, 61, 0.3); }
+      .solutions-grid { max-width: 950px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+
+      .tool-card {
+        background-color: var(--color-card-light); padding: 16px 20px;
+        border-radius: 12px; border: 1px solid rgba(74, 95, 122, 0.12);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4); position: relative; overflow: hidden;
+        transition: all var(--transition-slow) var(--transition-spring);
+      }
+      .card-gradient-top {
+        position: absolute; top: 0; left: 0; right: 0; height: 4px;
+        background: linear-gradient(90deg, var(--color-slate-blue) 0%, var(--color-terracotta) 100%);
+        transform: scaleX(0); transform-origin: left; transition: transform 370ms ease;
+      }
+      .tool-card:hover .card-gradient-top { transform: scaleX(1); }
+      .tool-card:hover { transform: translateY(-9px); box-shadow: 0 24px 55px rgba(0,0,0,0.5); border-color: var(--color-slate-blue); }
+
+      .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacing-sm); }
+      .card-title { color: var(--color-card-dark-text); margin-bottom: 6px; }
+      .card-tagline { font-size: 15px; font-weight: 600; font-style: italic; color: var(--color-ochre); margin-bottom: 8px; }
+      .card-skills { display: flex; flex-wrap: wrap; gap: 6px; }
+      .skill-pill {
+        font-size: 10px; padding: 4px 10px; background: rgba(74, 95, 122, 0.15);
+        color: var(--color-steel-blue); border-radius: 12px;
+        border: 1px solid rgba(74, 95, 122, 0.2); font-weight: 600; letter-spacing: 0.3px;
+      }
+
+      /* Expand trigger */
+      .card-expand-trigger {
+        text-align: center; cursor: pointer; padding: 8px 0;
+        color: var(--color-slate-blue); transition: color var(--transition-base) ease;
+      }
+      .card-expand-trigger:hover { color: var(--color-mustard); }
+      .card-expand-trigger svg { transition: transform var(--transition-slow) var(--transition-spring); }
+      .tool-card.is-expanded .card-expand-trigger svg { transform: rotate(180deg); }
+
+      /* Accordion */
+      .card-services {
+        display: grid; grid-template-rows: 0fr;
+        transition: grid-template-rows var(--transition-slow) var(--transition-spring);
+      }
+      .tool-card.is-expanded .card-services { grid-template-rows: 1fr; }
+      .card-services-inner {
+        min-height: 0; overflow: hidden; opacity: 0;
+        transition: opacity var(--transition-base) ease; padding-top: 0;
+      }
+      .tool-card.is-expanded .card-services-inner { opacity: 1; transition-delay: 100ms; padding-top: var(--spacing-sm); }
+
+      .services-heading {
+        font-size: 11px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 2px; color: var(--color-slate-blue); margin-bottom: var(--spacing-sm);
+        padding-bottom: 8px; border-bottom: 1px solid rgba(74, 95, 122, 0.15);
+      }
+      .services-list { display: grid; gap: 12px; }
+      .services-list dt { font-size: 14px; font-weight: 700; color: var(--color-card-dark-text); margin-bottom: 2px; }
+      .services-list dd {
+        font-size: 13px; color: rgba(43, 46, 51, 0.65); line-height: 1.5;
+        margin-left: 0; padding-left: 12px; border-left: 2px solid rgba(212, 160, 23, 0.3);
+      }
+      .services-stack {
+        margin-top: var(--spacing-sm); padding-top: var(--spacing-sm);
+        border-top: 1px solid rgba(74, 95, 122, 0.15);
+        font-size: 12px; font-weight: 600; color: var(--color-slate-blue); font-style: italic;
+      }
+
+      /* ================================
+         PROJECTS
+         ================================ */
+      .projects-section { background-color: rgba(53, 56, 61, 0.15); }
+      .projects-grid { max-width: 950px; margin: 0 auto; }
+      .project-card {
+        display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-xl);
+        background-color: var(--color-card-light); border-radius: 12px;
+        border: 1px solid rgba(74, 95, 122, 0.12); box-shadow: 0 12px 35px rgba(0,0,0,0.4);
+        overflow: hidden; transition: all var(--transition-slow) var(--transition-spring); text-decoration: none;
+      }
+      .project-card:hover { transform: translateY(-6px); box-shadow: 0 24px 55px rgba(0,0,0,0.5); border-color: var(--color-slate-blue); }
+      .project-screenshot {
+        background: rgba(43, 46, 51, 0.6); display: flex; align-items: center;
+        justify-content: center; padding: var(--spacing-lg); min-height: 200px;
+      }
+      .project-screenshot-placeholder {
+        color: var(--color-medium-grey); font-size: 14px; text-align: center; padding: 40px;
+        border: 1px dashed rgba(74, 95, 122, 0.3); border-radius: 8px;
+      }
+      .project-info {
+        padding: var(--spacing-xl) var(--spacing-xl) var(--spacing-xl) 0;
+        display: flex; flex-direction: column; justify-content: center;
+      }
+      .project-name { font-size: 28px; font-weight: 700; color: var(--color-card-dark-text); margin-bottom: var(--spacing-sm); }
+      .project-description { font-size: 16px; color: rgba(43, 46, 51, 0.7); line-height: 1.6; margin-bottom: var(--spacing-lg); }
+      .project-cta {
+        display: inline-block; font-size: 14px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 1px; color: var(--color-slate-blue);
+      }
+      .project-card:hover .project-cta { color: var(--color-mustard); }
+
+      /* ================================
+         ABOUT
+         ================================ */
+      .about-content { max-width: 950px; margin: 0 auto; }
+      .about-bio-layout {
+        display: grid; grid-template-columns: 240px 1fr;
+        gap: var(--spacing-2xl); align-items: start; margin-bottom: var(--spacing-xl);
+      }
+      .about-photo { position: sticky; top: 120px; }
+      .about-photo-placeholder {
+        width: 100%; aspect-ratio: 3 / 4; background: rgba(74, 95, 122, 0.2);
+        border-radius: 12px; border: 2px solid rgba(201, 169, 97, 0.25);
+        display: flex; align-items: center; justify-content: center;
+        color: var(--color-medium-grey); font-size: 14px;
+      }
+      .about-text {
+        font-size: 18px; line-height: 1.8; color: rgba(209, 209, 209, 0.82); margin-bottom: var(--spacing-lg);
+      }
+      .about-text strong { color: var(--color-off-white); }
+      .about-text em { color: var(--color-gold); font-style: italic; }
+
+      /* ================================
+         CONTACT
+         ================================ */
+      .contact-section { background-color: rgba(53, 56, 61, 0.5); }
+      .contact-content { text-align: center; max-width: 600px; margin: 0 auto; }
+      .contact-email {
+        display: inline-block; font-size: 32px; font-weight: 600;
+        color: var(--color-mustard); margin-bottom: var(--spacing-md);
+      }
+      .contact-email:hover { color: var(--color-gold); transform: scale(1.05); }
+      .contact-note { font-size: 16px; color: var(--color-medium-grey); }
+
+      /* ================================
+         FOOTER
+         ================================ */
+      .site-footer {
+        background-color: var(--color-deep-charcoal); border-top: 1px solid rgba(74, 95, 122, 0.15);
+        padding: var(--spacing-xl) 5%; text-align: center;
+      }
+      .site-footer p { font-size: 14px; color: var(--color-cool-grey); }
+
+      /* ================================
+         MOCK BANNER
+         ================================ */
+      .mock-banner {
+        position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+        background: var(--color-terracotta); color: white; text-align: center;
+        padding: 10px; font-size: 14px; font-weight: 700; letter-spacing: 1px;
+      }
+      .mock-banner + .hero-section { margin-top: 40px; }
+
+      /* ================================
+         RESPONSIVE
+         ================================ */
+      @media (max-width: 767px) {
+        .hero-section { min-height: 90vh; }
+        .project-card { grid-template-columns: 1fr; }
+        .project-info { padding: 0 var(--spacing-lg) var(--spacing-lg); }
+        .about-bio-layout { grid-template-columns: 1fr; gap: var(--spacing-lg); }
+        .about-photo { position: static; max-width: 180px; margin: 0 auto; }
+        .about-text { font-size: 16px; }
+        .contact-email { font-size: 24px; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="mock-banner">MOCK PREVIEW — New Copy for foil.engineering</div>
+
+    <!-- HERO SECTION -->
+    <section class="hero-section">
+      <div class="hero-content">
+        <div class="hero-eyebrow">FOIL ENGINEERING</div>
+        <h1 class="hero-title">
+          Your context<br>
+          <i>changes</i><br>
+          <span class="highlight">the right answer.</span>
+        </h1>
+        <p class="hero-subtitle">
+          Small team? Tight budget? Legacy systems? Niche workflow? I build solutions that work within your constraints — not around them.
+        </p>
+        <a href="#services" class="cta-button">See How It Works</a>
+      </div>
+    </section>
+
+    <!-- SERVICES SECTION -->
+    <section id="services" class="section solutions-section">
+      <div class="section-header">
+        <div class="section-eyebrow">HOW I WORK</div>
+        <h2 class="section-title">Services</h2>
+        <p class="section-subtitle">
+          Every engagement starts with your constraints, not a product catalog.
+        </p>
+      </div>
+
+      <div class="solutions-grid">
+        <!-- Product Management Card -->
+        <article class="tool-card">
+          <div class="card-gradient-top"></div>
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Product Management</h3>
+              <p class="card-tagline">"Knowing what to build is harder than building it."</p>
+              <div class="card-skills">
+                <span class="skill-pill">Product Strategy</span>
+                <span class="skill-pill">User Research</span>
+                <span class="skill-pill">Data Analysis</span>
+                <span class="skill-pill">GTM Planning</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-expand-trigger" role="button" tabindex="0" aria-expanded="false" aria-label="Expand details">
+            <svg width="32" height="32" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 8L10 13L15 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="card-services">
+            <div class="card-services-inner">
+              <h5 class="services-heading">Services</h5>
+              <dl class="services-list">
+                <dt>Product Strategy & Vision</dt>
+                <dd>Defining product-market fit, user personas, competitive analysis, and long-term vision.</dd>
+                <dt>0-1 Product Management</dt>
+                <dd>Validating, designing, planning, building, testing, and launching new products and features.</dd>
+                <dt>Agile Team Leadership</dt>
+                <dd>Agile ceremonies and facilitation for cross-functional teams of all sizes.</dd>
+                <dt>Product Coaching</dt>
+                <dd>Working with new Product Managers and stakeholders to better represent product needs and process.</dd>
+                <dt>Metrics & A/B Testing</dt>
+                <dd>Setting up data pipelines, dashboards, and experiments to measure success and inform roadmap decisions.</dd>
+                <dt>Go-to-Market Strategy</dt>
+                <dd>How, where, and when to launch.</dd>
+                <dt>User Research & Testing</dt>
+                <dd>Interviews, surveys, usability testing, and sentiment analysis.</dd>
+                <dt>Roadmap Planning</dt>
+                <dd>Prioritization frameworks, stakeholder alignment, and delivery tracking.</dd>
+              </dl>
+            </div>
+          </div>
+        </article>
+
+        <!-- Service Design Card -->
+        <article class="tool-card">
+          <div class="card-gradient-top"></div>
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Service Design</h3>
+              <p class="card-tagline">"The right process disappears into the work."</p>
+              <div class="card-skills">
+                <span class="skill-pill">Agile Leadership</span>
+                <span class="skill-pill">Process Design</span>
+                <span class="skill-pill">AI Workflow Design</span>
+                <span class="skill-pill">Stakeholder Alignment</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-expand-trigger" role="button" tabindex="0" aria-expanded="false" aria-label="Expand details">
+            <svg width="32" height="32" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 8L10 13L15 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="card-services">
+            <div class="card-services-inner">
+              <h5 class="services-heading">Services</h5>
+              <dl class="services-list">
+                <dt>Process Architecture</dt>
+                <dd>Designing workflows that scale with organizational complexity while staying simple to follow.</dd>
+                <dt>Agile Transformation</dt>
+                <dd>Building frameworks for distributed teams—ceremonies, cadences, and communication patterns that actually work.</dd>
+                <dt>Operational Documentation</dt>
+                <dd>Runbooks, SOPs, and knowledge bases that people reference instead of ignore.</dd>
+                <dt>Issue & Request Systems</dt>
+                <dd>Intake, triage, and resolution workflows that reduce bottlenecks and cycle time.</dd>
+                <dt>Executive Reporting</dt>
+                <dd>Dashboards and reporting pipelines that surface what leadership needs to know.</dd>
+                <dt>Cross-Functional Enablement</dt>
+                <dd>Training materials, onboarding guides, and reference content that empowers teams to self-serve.</dd>
+                <dt>Change Management</dt>
+                <dd>Rolling out new processes with adoption strategies that stick.</dd>
+              </dl>
+            </div>
+          </div>
+        </article>
+
+        <!-- Bespoke Tooling Card -->
+        <article class="tool-card">
+          <div class="card-gradient-top"></div>
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Bespoke Tooling</h3>
+              <p class="card-tagline">"Off-the-shelf software was built for someone else's context."</p>
+              <div class="card-skills">
+                <span class="skill-pill">Python / FastAPI</span>
+                <span class="skill-pill">Vue / Astro</span>
+                <span class="skill-pill">AI / LLMs / RAG</span>
+                <span class="skill-pill">MCP / Agent Tools</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-expand-trigger" role="button" tabindex="0" aria-expanded="false" aria-label="Expand details">
+            <svg width="32" height="32" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 8L10 13L15 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="card-services">
+            <div class="card-services-inner">
+              <h5 class="services-heading">Capabilities</h5>
+              <dl class="services-list">
+                <dt>AI-Native Applications</dt>
+                <dd>Tools built around AI agents from day one — not AI bolted onto existing software. RAG pipelines, MCP integrations, and reliability patterns.</dd>
+                <dt>Internal Tools & Dashboards</dt>
+                <dd>Admin panels, analytics suites, and operational interfaces tailored to your workflow.</dd>
+                <dt>Workflow Automation</dt>
+                <dd>Scripts, integrations, and pipelines that eliminate repetitive manual work.</dd>
+                <dt>Agent Workflow Automation</dt>
+                <dd>AI agents that interact with your tools directly — no click-through UIs, no manual data entry, no copy-paste.</dd>
+                <dt>Data Processing & ETL</dt>
+                <dd>Pipelines that clean, transform, and move data where it needs to go.</dd>
+                <dt>API Development</dt>
+                <dd>RESTful services, integrations, and middleware connecting your systems.</dd>
+                <dt>Prototypes & MVPs</dt>
+                <dd>Functional proof-of-concepts to validate ideas before major investment.</dd>
+              </dl>
+              <p class="services-stack">Stack: Python, FastAPI, Vue 3, SQL, Claude API</p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- PROJECTS SECTION -->
+    <section id="projects" class="section projects-section">
+      <div class="section-header">
+        <div class="section-eyebrow">OUR WORK</div>
+        <h2 class="section-title">Projects</h2>
+      </div>
+      <div class="projects-grid">
+        <a href="#" class="project-card">
+          <div class="project-screenshot">
+            <div class="project-screenshot-placeholder">[The Number app screenshot]</div>
+          </div>
+          <div class="project-info">
+            <h3 class="project-name">The Number</h3>
+            <p class="project-description">No budgeting app worked the way I think about money. So I built one that does. One number, updated daily — how much you can spend right now.</p>
+            <span class="project-cta">Try it &rarr;</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section id="about" class="section about-section">
+      <div class="section-header">
+        <div class="section-eyebrow">WHO WE ARE</div>
+        <h2 class="section-title">About</h2>
+      </div>
+
+      <div class="about-content">
+        <div class="about-bio-layout">
+          <div class="about-photo">
+            <div class="about-photo-placeholder">[Watson headshot]</div>
+          </div>
+
+          <div class="about-bio">
+            <p class="about-text">
+              I'm <strong>Watson</strong>. For 10+ years as a Product Manager I've worked with companies like <strong>Bookshop.org</strong>, <strong>Sony</strong>, <strong>Whirlpool</strong>, and <strong>Discovery Education</strong>. The pattern I kept seeing: teams buy off-the-shelf software, then spend months bending their workflow to fit it. The tool was built for someone else's context.
+            </p>
+            <p class="about-text">
+              Sometimes the fix is a custom tool. Sometimes it's teaching a team how to think about problems differently — setting up an SDLC, restructuring how work flows through the org, or just figuring out where the process is breaking for the people involved. When software <em>is</em> the answer, I build it with <strong>AI-native development workflows</strong> — but a decade of product experience is what makes sure it's the <em>right</em> thing, not just a fast thing.
+            </p>
+            <p class="about-text">
+              The name <strong>FOIL</strong> comes from literary theory — a foil character exists to make the protagonist shine. That's what good tooling does: <em>it amplifies your strengths without getting in the way</em>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT SECTION -->
+    <section id="contact" class="section contact-section">
+      <div class="section-header">
+        <div class="section-eyebrow">GET IN TOUCH</div>
+        <h2 class="section-title">Contact</h2>
+        <p class="section-subtitle">
+          Have a problem that off-the-shelf can't solve? Let's talk about what fits.
+        </p>
+      </div>
+
+      <div class="contact-content">
+        <a href="mailto:watson@foil.engineering" class="contact-email">
+          watson@foil.engineering
+        </a>
+        <p class="contact-note">
+          Currently taking on product consulting, process design, and bespoke tooling projects.
+        </p>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+      <p>&copy; 2026 FOIL Engineering.</p>
+    </footer>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.card-expand-trigger').forEach(trigger => {
+          trigger.addEventListener('click', () => {
+            const card = trigger.closest('.tool-card');
+            const isExpanded = card.classList.toggle('is-expanded');
+            trigger.setAttribute('aria-expanded', String(isExpanded));
+          });
+          trigger.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              trigger.click();
+            }
+          });
+        });
+      });
+    </script>
+
+  </body>
+</html>

@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Website Proposal - Curtis Park Neighbors | FOIL Engineering</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  @page {
+    size: letter;
+    margin: 0;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --slate-blue: #4a5f7a;
+    --charcoal: #2b2e33;
+    --mustard: #d4a017;
+    --gold: #c9a961;
+    --warm-cream: #faf8f5;
+    --warm-sand: #f0ece6;
+    --warm-tan: #e8e4de;
+    --medium-grey: #8a8a8a;
+  }
+
+  body {
+    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: var(--charcoal);
+    background: white;
+    font-size: 13pt;
+    line-height: 1.7;
+    font-weight: 500;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ============ PAGE LAYOUT ============ */
+  .page {
+    page-break-after: always;
+    padding: 52px 68px 56px;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  .page::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--mustard), var(--gold), var(--slate-blue));
+  }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #e5e5e5;
+  }
+
+  .page-header-logo {
+    font-size: 14pt;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .page-header-logo .foil { color: var(--mustard); }
+  .page-header-logo .eng { color: var(--charcoal); font-weight: 400; }
+
+  .page-header-doc {
+    font-size: 10pt;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--medium-grey);
+  }
+
+  /* ============ TYPOGRAPHY ============ */
+  .section-eyebrow {
+    font-size: 10pt;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--gold);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .section-title {
+    font-size: 28pt;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: var(--charcoal);
+    margin-bottom: 10px;
+  }
+
+  .section-divider {
+    width: 44px;
+    height: 3px;
+    background: var(--mustard);
+    margin-bottom: 22px;
+  }
+
+  p {
+    margin-bottom: 14px;
+    line-height: 1.75;
+    color: #444;
+    font-size: 12.5pt;
+  }
+
+  h3 {
+    font-size: 17pt;
+    font-weight: 700;
+    color: var(--charcoal);
+    margin-top: 28px;
+    margin-bottom: 12px;
+  }
+
+  /* ============ FOCUS CARDS ============ */
+  .focus-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 16px 0 8px;
+  }
+
+  .focus-card {
+    background: var(--warm-sand);
+    border: 1px solid var(--warm-tan);
+    border-radius: 8px;
+    padding: 18px 20px;
+    border-left: 3px solid var(--mustard);
+  }
+
+  .focus-card h4 {
+    font-size: 13pt;
+    font-weight: 700;
+    color: var(--charcoal);
+    margin-bottom: 6px;
+  }
+
+  .focus-card p {
+    font-size: 11.5pt;
+    color: #555;
+    margin-bottom: 0;
+    line-height: 1.65;
+    font-weight: 500;
+  }
+
+  /* ============ TIMELINE (horizontal) ============ */
+  .timeline {
+    display: flex;
+    align-items: flex-start;
+    margin: 14px 0 0;
+    position: relative;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    top: 17px;
+    left: 32px;
+    right: 32px;
+    height: 2px;
+    background: linear-gradient(to right, var(--mustard), var(--slate-blue));
+    z-index: 0;
+  }
+
+  .timeline-phase {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+  }
+
+  .timeline-marker {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--mustard);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10pt;
+    font-weight: 700;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 10px;
+  }
+
+  .timeline-content {
+    padding: 0 8px;
+  }
+
+  .timeline-title {
+    font-size: 12pt;
+    font-weight: 700;
+    color: var(--charcoal);
+    margin-bottom: 4px;
+  }
+
+  .timeline-desc {
+    font-size: 10.5pt;
+    color: #555;
+    line-height: 1.55;
+    font-weight: 500;
+  }
+
+  /* ============ COST & TIMELINE BOX ============ */
+  .cost-timeline {
+    display: flex;
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  .info-box {
+    flex: 1;
+    background: var(--warm-sand);
+    border: 1px solid var(--warm-tan);
+    border-radius: 10px;
+    padding: 24px 22px;
+    text-align: center;
+  }
+
+  .info-box-label {
+    font-size: 10pt;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--slate-blue);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .info-box-value {
+    font-size: 30pt;
+    font-weight: 700;
+    color: var(--charcoal);
+    letter-spacing: -0.02em;
+  }
+
+  .info-box-detail {
+    font-size: 10pt;
+    color: var(--medium-grey);
+    margin-top: 4px;
+    font-weight: 500;
+  }
+
+  /* ============ WHY FOIL ============ */
+  .why-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 14px 0;
+  }
+
+  .why-card {
+    background: var(--warm-sand);
+    border-radius: 10px;
+    padding: 22px 24px;
+    border: 1px solid var(--warm-tan);
+    border-left: 3px solid var(--slate-blue);
+  }
+
+  .why-card h4 {
+    color: var(--slate-blue);
+    font-size: 15pt;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .why-card p {
+    color: #555;
+    font-size: 13pt;
+    line-height: 1.7;
+    margin-bottom: 0;
+    font-weight: 500;
+  }
+
+  /* ============ NEXT STEPS ============ */
+  .next-steps {
+    background: white;
+    border: 1px solid var(--warm-tan);
+    border-left: 3px solid var(--mustard);
+    border-radius: 0 10px 10px 0;
+    padding: 22px 24px;
+    margin-top: 20px;
+  }
+
+  .next-steps h4 {
+    color: var(--charcoal);
+    font-size: 15pt;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .next-steps p {
+    font-size: 12pt;
+    margin-bottom: 0;
+    line-height: 1.7;
+    font-weight: 500;
+  }
+
+  /* ============ PAGE FOOTER ============ */
+  .page-footer {
+    position: absolute;
+    bottom: 28px;
+    left: 68px;
+    right: 68px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 9pt;
+    color: #bbb;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+  }
+
+  /* ============ PRINT ============ */
+  .focus-grid, .timeline, .why-grid, .cost-timeline {
+    page-break-inside: avoid;
+  }
+
+  @media print {
+    .page {
+      padding: 24px 42px 40px;
+      min-height: auto;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .section-title { font-size: 26pt; margin-bottom: 6px; }
+    p { font-size: 11.5pt; line-height: 1.55; margin-bottom: 8px; }
+    h3 { font-size: 15pt; margin-top: 12px; margin-bottom: 6px; }
+
+    .focus-card { padding: 12px 14px; }
+    .focus-card h4 { font-size: 11.5pt; }
+    .focus-card p { font-size: 10.5pt; line-height: 1.45; }
+    .focus-grid { gap: 9px; margin: 10px 0 4px; }
+
+    .timeline { margin: 6px 0 0; }
+    .timeline-marker { width: 26px; height: 26px; font-size: 8.5pt; margin-bottom: 5px; }
+    .timeline-title { font-size: 9.5pt; margin-bottom: 1px; }
+    .timeline-desc { font-size: 8pt; line-height: 1.35; }
+    .timeline::before { top: 14px; }
+
+    .page-header { margin-bottom: 16px; padding-bottom: 8px; }
+    .section-eyebrow { margin-bottom: 4px; font-size: 9pt; }
+    .section-divider { margin-bottom: 10px; }
+
+    .info-box { padding: 20px 18px; }
+    .info-box-label { font-size: 10pt; }
+    .info-box-value { font-size: 28pt; }
+    .info-box-detail { font-size: 10pt; }
+    .cost-timeline { margin: 16px 0; }
+
+    .why-card { padding: 18px 20px; }
+    .why-card h4 { font-size: 14pt; }
+    .why-card p { font-size: 12pt; }
+    .why-grid { margin: 12px 0; }
+
+    .next-steps { padding: 18px 20px; margin-top: 16px; }
+    .next-steps h4 { font-size: 14pt; }
+    .next-steps p { font-size: 11.5pt; }
+
+    .page-footer { bottom: 18px; left: 42px; right: 42px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ====================== PAGE 1 ====================== -->
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-logo"><span class="foil">FOIL</span> <span class="eng">Engineering</span></div>
+    <div class="page-header-doc">foil.engineering &mdash; curtispark.org</div>
+  </div>
+
+  <div class="section-eyebrow">Our Approach</div>
+  <div class="section-title">A Site That Works for You</div>
+  <div class="section-divider"></div>
+
+  <p>The Curtis Park website should be a hub that supports the ambitions and needs of the board and the residents of Curtis Park. Updating the site so it's easily usable by all community members &mdash; and easily maintained by members of the board &mdash; is the main goal.</p>
+
+  <p>FOIL will improve the things that need improving (accessibility for screen readers, navigation, visual consistency), make suggestions and execute on potential upgrades, and make sure there's documentation and clear instructions so the board can maintain the website on their own. I'll also provide several post-engagement sessions for new improvements, questions, or QA check-ins.</p>
+
+  <p>The site is in good shape overall, and this is a smart time to address a few concerns while they're still small. More importantly, making sure the board has the ability and the confidence to make changes as needed is a top priority.</p>
+
+  <h3>What We'll Focus On</h3>
+
+  <div class="focus-grid">
+    <div class="focus-card">
+      <h4>Keep What Works</h4>
+      <p>The historic papers, event calendar, payment processing, and self-service content updates are all important &mdash; they stay, and they get better.</p>
+    </div>
+    <div class="focus-card">
+      <h4>Ease of Use</h4>
+      <p>Every neighbor who visits the site should be able to find what they need without guesswork. Clear navigation and functionality, and a simple layout.</p>
+    </div>
+    <div class="focus-card">
+      <h4>Accessibility</h4>
+      <p>Adding alt text to images, improving labels, and making the site work well with screen readers so it's usable by everyone in the community.</p>
+    </div>
+    <div class="focus-card">
+      <h4>Look &amp; Feel</h4>
+      <p>Visual updates, better navigation, and smarter feature placement &mdash; so the site feels current and the most important things are easy to find.</p>
+    </div>
+  </div>
+
+  <h3>How We'll Work Together</h3>
+
+  <div class="timeline">
+    <div class="timeline-phase">
+      <div class="timeline-marker">1</div>
+      <div class="timeline-content">
+        <div class="timeline-title">Interview &amp; Consultation</div>
+        <div class="timeline-desc">We walk through the site together. What's working, what's frustrating, what's missing. We agree on what "done" looks like before any work begins.</div>
+      </div>
+    </div>
+    <div class="timeline-phase">
+      <div class="timeline-marker">2</div>
+      <div class="timeline-content">
+        <div class="timeline-title">Work &amp; Iterations</div>
+        <div class="timeline-desc">I build, you see progress along the way. Regular check-ins so nothing is a surprise. Questions and feedback happen in real time.</div>
+      </div>
+    </div>
+    <div class="timeline-phase">
+      <div class="timeline-marker">3</div>
+      <div class="timeline-content">
+        <div class="timeline-title">Review &amp; Revisions</div>
+        <div class="timeline-desc">Full walkthrough of the finished site. We test everything together and make adjustments before anything goes live.</div>
+      </div>
+    </div>
+    <div class="timeline-phase">
+      <div class="timeline-marker">4</div>
+      <div class="timeline-content">
+        <div class="timeline-title">Handover</div>
+        <div class="timeline-desc">Your team gets hands-on training for managing content, posting updates, and making changes. The goal is you won't need me &mdash; but I'm here if you do.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>foil.engineering &mdash; February 2026</span>
+    <span>Page 1</span>
+  </div>
+</div>
+
+<!-- ====================== PAGE 2 ====================== -->
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-logo"><span class="foil">FOIL</span> <span class="eng">Engineering</span></div>
+    <div class="page-header-doc">foil.engineering &mdash; curtispark.org</div>
+  </div>
+
+  <div class="section-eyebrow">Investment</div>
+  <div class="section-title">Cost &amp; Timeline</div>
+  <div class="section-divider"></div>
+
+  <div class="cost-timeline">
+    <div class="info-box">
+      <div class="info-box-label">Project Cost</div>
+      <div class="info-box-value">$4,000</div>
+      <div class="info-box-detail">Fixed price &mdash; no surprise invoices</div>
+    </div>
+    <div class="info-box">
+      <div class="info-box-label">Timeline</div>
+      <div class="info-box-value">4 Weeks</div>
+      <div class="info-box-detail">From first meeting to handover</div>
+    </div>
+  </div>
+
+  <p style="margin-bottom: 28px;">This is a fixed-price engagement. The scope gets confirmed during our initial consultation, and the price doesn't change after that. You'll know exactly what you're getting and exactly what it costs before we start.</p>
+
+  <h3 style="font-size: 22pt; margin-bottom: 16px;">Why FOIL Engineering?</h3>
+
+  <div class="why-grid">
+    <div class="why-card">
+      <h4>Solve the Right Problems</h4>
+      <p>I'm not here to sell bells and whistles. I started with an honest look at your site &mdash; not a sales pitch. If you don't need it, I won't build it.</p>
+    </div>
+    <div class="why-card">
+      <h4>Denver Local</h4>
+      <p>I love Denver and the community of its neighborhoods, and being able to contribute to the legacy of Curtis Park would be an honor and a privilege.</p>
+    </div>
+  </div>
+
+  <div class="next-steps">
+    <h4>Next Steps</h4>
+    <p>If this sounds like the right fit, let's schedule a conversation. No commitment required &mdash; we'll talk through your priorities and make sure we're aligned before anything starts. We're committed to delivering the web experience that you want and the residents of Curtis Park deserve. Reach out at <strong>watson@foilengineering.com</strong> or visit <strong>foil.engineering</strong>.</p>
+  </div>
+
+  <div class="page-footer">
+    <span>foil.engineering &mdash; February 2026</span>
+    <span>Page 2</span>
+  </div>
+</div>
+
+</body>
+</html>

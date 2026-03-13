@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Website Redesign Proposal - Curtis Park Neighbors | FOIL Engineering</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  @page {
+    size: letter;
+    margin: 0;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --slate-blue: #4a5f7a;
+    --steel-blue: #5b7d99;
+    --dusty-blue: #6b8ea8;
+    --charcoal: #2b2e33;
+    --dark-grey: #35383d;
+    --surface-grey: #e8e4de;
+    --mustard: #d4a017;
+    --gold: #c9a961;
+    --ochre: #cc8800;
+    --off-white: #faf8f5;
+    --light-grey: #d1d1d1;
+    --medium-grey: #8a8a8a;
+    --card-light: #f5f5f5;
+    --terracotta: #c96a5a;
+    --warm-cream: #faf8f5;
+    --warm-sand: #f0ece6;
+    --warm-tan: #e8e4de;
+  }
+
+  body {
+    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: var(--charcoal);
+    background: white;
+    font-size: 10pt;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ============ CONTENT PAGES ============ */
+  .page {
+    page-break-after: always;
+    padding: 44px 64px 48px;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  .page::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--mustard), var(--gold), var(--slate-blue));
+  }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e5e5;
+  }
+
+  .page-header-logo {
+    font-size: 11pt;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .page-header-logo .foil { color: var(--mustard); }
+  .page-header-logo .eng { color: var(--charcoal); font-weight: 400; }
+
+  .page-header-doc {
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--medium-grey);
+  }
+
+  /* ============ SECTION STYLES ============ */
+  .section-eyebrow {
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--gold);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .section-title {
+    font-size: 22pt;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: var(--charcoal);
+    margin-bottom: 10px;
+  }
+
+  .section-subtitle {
+    font-size: 10pt;
+    color: #666;
+    margin-bottom: 18px;
+    max-width: 520px;
+    line-height: 1.6;
+  }
+
+  .section-divider {
+    width: 40px;
+    height: 2px;
+    background: var(--mustard);
+    margin-bottom: 18px;
+  }
+
+  h3 {
+    font-size: 12pt;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--charcoal);
+    margin-top: 10px;
+    margin-bottom: 6px;
+  }
+
+  h4 {
+    font-size: 10pt;
+    font-weight: 700;
+    color: var(--slate-blue);
+    margin-top: 12px;
+    margin-bottom: 5px;
+  }
+
+  p {
+    margin-bottom: 8px;
+    line-height: 1.6;
+    color: #444;
+    font-size: 9.5pt;
+  }
+
+  /* ============ SCORE CARDS ============ */
+  .score-row {
+    display: flex;
+    gap: 16px;
+    margin: 20px 0 10px;
+  }
+
+  .score-card {
+    flex: 1;
+    background: var(--warm-sand);
+    border-radius: 8px;
+    padding: 18px 16px;
+    text-align: center;
+    color: var(--charcoal);
+    border: 1px solid var(--warm-tan);
+  }
+
+  .score-card-label {
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--slate-blue);
+    margin-bottom: 4px;
+  }
+
+  .score-card-value {
+    font-size: 22pt;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .score-card-detail {
+    font-size: 7.5pt;
+    color: var(--medium-grey);
+    margin-top: 3px;
+  }
+
+  .score-critical .score-card-value { color: var(--terracotta); }
+  .score-warning .score-card-value { color: var(--ochre); }
+  .score-good .score-card-value { color: #38a169; }
+
+  /* ============ IMPORTANCE SCALE ============ */
+  .importance-scale {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0 0 32px;
+    padding: 0 4px;
+    position: relative;
+  }
+
+  .importance-scale::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 40px;
+    right: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--terracotta), var(--ochre), var(--warm-tan));
+    transform: translateY(-50%);
+    z-index: 0;
+  }
+
+  .importance-label {
+    font-size: 7pt;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--medium-grey);
+    background: white;
+    padding: 0 6px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ============ TIMELINE (vertical) ============ */
+  .timeline {
+    margin: 18px 0 0;
+    position: relative;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--mustard), var(--slate-blue));
+  }
+
+  .timeline-phase {
+    display: flex;
+    gap: 18px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  .timeline-marker {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--mustard);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9pt;
+    font-weight: 700;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .timeline-content {
+    flex: 1;
+    padding-top: 4px;
+  }
+
+  .timeline-title {
+    font-size: 11pt;
+    font-weight: 700;
+    color: var(--charcoal);
+    margin-bottom: 3px;
+  }
+
+  .timeline-desc {
+    font-size: 9.5pt;
+    color: #555;
+    line-height: 1.6;
+  }
+
+  /* ============ DELIVERABLES ============ */
+  .deliverables-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 8px 0 12px;
+  }
+
+  .deliverable-card {
+    background: white;
+    border: 1px solid var(--warm-tan);
+    border-radius: 8px;
+    padding: 10px 14px;
+    border-top: 3px solid var(--mustard);
+  }
+
+  .deliverable-card h4 {
+    margin-top: 0;
+    margin-bottom: 6px;
+    font-size: 9.5pt;
+    color: var(--charcoal);
+  }
+
+  .deliverable-card ul {
+    margin: 0;
+    padding-left: 14px;
+    font-size: 8pt;
+    color: #555;
+    line-height: 1.55;
+  }
+
+  .deliverable-card .card-icon {
+    font-size: 7pt;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--slate-blue);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  /* ============ COST & TIMELINE BOX ============ */
+  .cost-timeline {
+    display: flex;
+    gap: 12px;
+    margin: 10px 0;
+  }
+
+  .cost-box, .timeline-box {
+    flex: 1;
+    background: var(--warm-sand);
+    border: 1px solid var(--warm-tan);
+    border-radius: 8px;
+    padding: 12px 18px;
+    text-align: center;
+  }
+
+  .cost-box-label, .timeline-box-label {
+    font-size: 7pt;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--slate-blue);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .cost-box-value, .timeline-box-value {
+    font-size: 18pt;
+    font-weight: 700;
+    color: var(--charcoal);
+    letter-spacing: -0.02em;
+  }
+
+  .cost-box-detail, .timeline-box-detail {
+    font-size: 7.5pt;
+    color: var(--medium-grey);
+    margin-top: 3px;
+  }
+
+  /* ============ WHY FOIL ============ */
+  .why-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin: 6px 0;
+  }
+
+  .why-card {
+    background: var(--warm-sand);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--charcoal);
+    border: 1px solid var(--warm-tan);
+    border-left: 3px solid var(--slate-blue);
+  }
+
+  .why-card h4 {
+    color: var(--slate-blue);
+    margin-top: 0;
+    margin-bottom: 4px;
+    font-size: 10pt;
+  }
+
+  .why-card p {
+    color: #555;
+    font-size: 8.5pt;
+    line-height: 1.55;
+    margin-bottom: 0;
+  }
+
+  /* ============ NEXT STEPS ============ */
+  .next-steps {
+    background: white;
+    border: 1px solid var(--warm-tan);
+    border-left: 3px solid var(--mustard);
+    border-radius: 0 8px 8px 0;
+    padding: 10px 16px;
+    margin-top: 8px;
+  }
+
+  .next-steps h4 {
+    color: var(--charcoal);
+    margin-top: 0;
+    margin-bottom: 6px;
+    font-size: 10pt;
+  }
+
+  .next-steps p {
+    font-size: 9pt;
+    margin-bottom: 0;
+  }
+
+  /* ============ PAGE FOOTER ============ */
+  .page-footer {
+    position: absolute;
+    bottom: 24px;
+    left: 56px;
+    right: 56px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 7pt;
+    color: #bbb;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+  }
+
+  /* ============ AVOID PAGE BREAKS ============ */
+  .score-row, .deliverables-grid, .timeline, .why-grid, .cost-timeline {
+    page-break-inside: avoid;
+  }
+
+  .keep-together {
+    page-break-inside: avoid;
+  }
+</style>
+</head>
+<body>
+
+<!-- ====================== PAGE 1: COVER / INTRO ====================== -->
+<div class="page" style="display: flex; flex-direction: column; justify-content: center;">
+  <div class="page-header">
+    <div class="page-header-logo"><span class="foil">FOIL</span> <span class="eng">Engineering</span></div>
+    <div class="page-header-doc">Proposal &mdash; curtispark.org</div>
+  </div>
+
+  <div style="max-width: 560px; margin-top: 80px;">
+    <div class="section-eyebrow">Our Approach</div>
+    <div class="section-title" style="font-size: 26pt; line-height: 1.2; margin-bottom: 16px;">A Site That Works for You</div>
+    <div class="section-divider" style="margin-bottom: 28px;"></div>
+
+    <p style="font-size: 11pt; line-height: 1.75; color: #444;">Based on my understanding of your need, this can be a relatively straightforward project. Making sure the Curtis Park neighborhood site works well for you and the residents of Curtis Park doesn't necessarily mean a lot of flash or style.</p>
+
+    <p style="font-size: 11pt; line-height: 1.75; color: #444;">Updating the site to improve its accessibility for visitors who use screen readers, making sure the event calendar is functional and easy to update, and providing the board with the tools and resources they need to easily make updates and changes are our big priorities.</p>
+  </div>
+
+  <div class="page-footer">
+    <span>Prepared by FOIL Engineering &mdash; February 2026</span>
+    <span>Page 1</span>
+  </div>
+</div>
+
+<!-- ====================== PAGE 2: WHAT WE FOUND + HOW WE'LL WORK ====================== -->
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-logo"><span class="foil">FOIL</span> <span class="eng">Engineering</span></div>
+    <div class="page-header-doc">Proposal &mdash; curtispark.org</div>
+  </div>
+
+  <div class="section-eyebrow">Site Audit Highlights</div>
+  <div class="section-title">What We Found</div>
+  <div class="section-divider"></div>
+
+  <p>We ran a full technical audit of curtispark.org. The good news: the site loads fast, the content strategy is solid, and the community information is well-organized. But several issues are holding it back &mdash; here are the ones that matter most.</p>
+
+  <div class="score-row">
+    <div class="score-card score-critical">
+      <div class="score-card-label">Accessibility</div>
+      <div class="score-card-value">91%</div>
+      <div class="score-card-detail">of images missing alt text</div>
+    </div>
+    <div class="score-card score-warning">
+      <div class="score-card-label">Donations</div>
+      <div class="score-card-value">Off-Site</div>
+      <div class="score-card-detail">Redirects visitors to Square</div>
+    </div>
+    <div class="score-card score-warning">
+      <div class="score-card-label">Content Bugs</div>
+      <div class="score-card-value">4</div>
+      <div class="score-card-detail">Broken links, duplicate copy, dead buttons</div>
+    </div>
+    <div class="score-card score-critical">
+      <div class="score-card-label">SEO</div>
+      <div class="score-card-value">Poor</div>
+      <div class="score-card-detail">Boilerplate meta description, no schema</div>
+    </div>
+  </div>
+
+  <div class="importance-scale">
+    <span class="importance-label">Most Important</span>
+    <span class="importance-label">Less Important</span>
+  </div>
+
+  <div class="section-eyebrow">Project Timeline</div>
+  <div class="section-title" style="font-size: 17pt;">How We'll Work Together</div>
+  <div class="section-divider"></div>
+
+  <div class="timeline">
+    <div class="timeline-phase">
+      <div class="timeline-marker">1</div>
+      <div class="timeline-content">
+        <div class="timeline-title">Interview &amp; Consultation</div>
+        <div class="timeline-desc">We walk through the site together. What's working, what's frustrating, what's missing. You'll get a homepage mockup for review &mdash; we agree on exactly what "done" looks like before any work begins.</div>
+      </div>
+    </div>
+    <div class="timeline-phase">
+      <div class="timeline-marker">2</div>
+      <div class="timeline-content">
+        <div class="timeline-title">Build &amp; Collaborate</div>
+        <div class="timeline-desc">Design and development with regular check-ins. You'll see progress throughout &mdash; not just at the end. Questions and feedback happen in real time.</div>
+      </div>
+    </div>
+    <div class="timeline-phase">
+      <div class="timeline-marker">3</div>
+      <div class="timeline-content">
+        <div class="timeline-title">Review &amp; Refine</div>
+        <div class="timeline-desc">Full walkthrough of the finished site. We test everything together: accessibility, mobile, donation flow, content editing. Adjustments happen here before launch.</div>
+      </div>
+    </div>
+    <div class="timeline-phase">
+      <div class="timeline-marker">4</div>
+      <div class="timeline-content">
+        <div class="timeline-title">Handover &amp; Training</div>
+        <div class="timeline-desc">Your team gets hands-on training for managing content, posting updates, and uploading newsletters. After handover, we're still available for questions &mdash; but the goal is you won't need us.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>Prepared by FOIL Engineering &mdash; February 2026</span>
+    <span>Page 2</span>
+  </div>
+</div>
+
+<!-- ====================== PAGE 3: DELIVERABLES + COST + WHY + NEXT STEPS ====================== -->
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-logo"><span class="foil">FOIL</span> <span class="eng">Engineering</span></div>
+    <div class="page-header-doc">Proposal &mdash; curtispark.org</div>
+  </div>
+
+  <div class="section-eyebrow">Scope of Work</div>
+  <div class="section-title" style="font-size: 17pt;">Proposed Deliverables</div>
+  <p style="font-size: 8.5pt; color: #888; margin-bottom: 10px; max-width: 480px;">Final scope confirmed during our initial consultation. Every item below is based on a verified audit of your live site &mdash; not a generic checklist.</p>
+
+  <div class="deliverables-grid">
+    <div class="deliverable-card">
+      <div class="card-icon">Inclusive &amp; Accessible</div>
+      <h4>Accessibility &amp; Content</h4>
+      <ul>
+        <li>Add alt text to all images (WCAG compliance)</li>
+        <li>Fix duplicate card copy (Maintaining Historic Homes)</li>
+        <li>Fix broken image link (Resources card)</li>
+        <li>Fix non-functional Learn More button</li>
+        <li>Clean up empty heading tags</li>
+        <li>Fix contact form labeling</li>
+      </ul>
+    </div>
+    <div class="deliverable-card">
+      <div class="card-icon">Discoverable Online</div>
+      <h4>Search &amp; Analytics</h4>
+      <ul>
+        <li>Replace boilerplate meta description with real content</li>
+        <li>Add structured data (Organization, WebSite schema)</li>
+        <li>Set up Google Analytics &amp; Search Console</li>
+        <li>Consistent card layouts &amp; visual cleanup</li>
+        <li>Remove &ldquo;Powered by WordPress.com&rdquo; branding</li>
+      </ul>
+    </div>
+    <div class="deliverable-card">
+      <div class="card-icon">Refreshed &amp; Streamlined</div>
+      <h4>Design &amp; Structure</h4>
+      <ul>
+        <li>Reorganize homepage &mdash; move Historic Homes to dedicated subpage</li>
+        <li>Improved donation page &mdash; clearer messaging, prominent CTA</li>
+        <li>Modern email signup form (replace Google Groups mailto: links)</li>
+        <li>Real neighborhood photography &mdash; no stock images</li>
+        <li>Mobile-friendly design improvements</li>
+      </ul>
+    </div>
+    <div class="deliverable-card">
+      <div class="card-icon">Built for Independence</div>
+      <h4>New Pages &amp; Training</h4>
+      <ul>
+        <li>Volunteer opportunities page</li>
+        <li>Curtis Park Times archive &amp; downloads</li>
+        <li>Hands-on content editing training for your team</li>
+        <li>Written quick-start guide for ongoing management</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="cost-timeline">
+    <div class="cost-box">
+      <div class="cost-box-label">Project Cost</div>
+      <div class="cost-box-value">$3,500 &ndash; $4,000</div>
+      <div class="cost-box-detail">Fixed price &mdash; no surprise invoices</div>
+    </div>
+    <div class="timeline-box">
+      <div class="timeline-box-label">Estimated Timeline</div>
+      <div class="timeline-box-value">2 &ndash; 6 Weeks</div>
+      <div class="timeline-box-detail">Depends on content review &amp; feedback cycles</div>
+    </div>
+  </div>
+
+  <h3>Why FOIL Engineering</h3>
+
+  <div class="why-grid">
+    <div class="why-card">
+      <h4>Audit First, Then Build</h4>
+      <p>We studied your live site before writing this proposal. Every deliverable traces back to a verified problem &mdash; not a generic checklist.</p>
+    </div>
+    <div class="why-card">
+      <h4>Denver Local, Not a Vendor</h4>
+      <p>I live in Denver and know the neighborhood. This isn't a remote engagement from across the country &mdash; it's a local builder invested in getting this right for your community.</p>
+    </div>
+    <div class="why-card">
+      <h4>Here After Handover</h4>
+      <p>After the project wraps, we're still available for questions, quick fixes, and guidance. No retainer required &mdash; just a local partner you can reach out to.</p>
+    </div>
+  </div>
+
+  <div class="next-steps">
+    <h4>Next Steps</h4>
+    <p>If this sounds like the right fit, let's schedule the initial consultation. No commitment required &mdash; we'll talk through your priorities, finalize scope, and make sure we're aligned before anything starts. Reach out at <strong>watson@foilengineering.com</strong> or visit <strong>foil.engineering</strong>.</p>
+  </div>
+
+  <div class="page-footer">
+    <span>Prepared by FOIL Engineering &mdash; February 2026</span>
+    <span>Page 3</span>
+  </div>
+</div>
+
+</body>
+</html>
