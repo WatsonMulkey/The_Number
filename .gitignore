@@ -58,6 +58,10 @@ monomythism-website/
 # Separate project repos (have their own git)
 foil-industries-v2/
 foil-engineering/
+sample-vault/
+buyer-mode/
+rag-vault/
+site-assessor/
 
 # Unrelated projects
 resume-tailor/
@@ -66,3 +70,24 @@ output/
 workflow init/
 .vercel
 .env*.local
+
+# Screenshots and iterative artifacts
+*.png
+.playwright-mcp/
+screenshots/
+
+# Build artifacts
+frontend/.astro/
+
+# One-off utility scripts
+disk_analysis.py
+migrate_photos.bat
+migrate_photos.py
+move_llm_to_d.py
+qa_test_production.py
+
+# Data/report artifacts
+duplicates_report.json
+ableton_inventory.json
+qa_test_results.json
+nul
