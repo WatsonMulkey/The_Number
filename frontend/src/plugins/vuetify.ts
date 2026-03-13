@@ -20,10 +20,13 @@ export default createVuetify({
       theNumberTheme: {
         dark: false,
         colors: {
-          primary: '#87986A', // Sage green from design
+          primary: '#6b7a52', // Sage green from design (darkened for WCAG AA contrast)
           secondary: '#625B71',
           background: 'rgba(135, 152, 106, 0.83)',
           surface: '#FFFFFF',
+          'on-background': '#1C1B1F',
+          'on-surface': '#1C1B1F',
+          'on-primary': '#FFFFFF',
           'primary-container': '#EADDFF',
           'on-primary-container': '#4F378A',
           'secondary-container': '#E8DEF8',

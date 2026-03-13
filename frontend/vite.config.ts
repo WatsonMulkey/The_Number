@@ -13,7 +13,7 @@ export default defineConfig({
     vuetify({ autoImport: true }),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico'],
+      includeAssets: [],
       manifest: {
         name: 'The Number - Daily Budget Tracker',
         short_name: 'The Number',

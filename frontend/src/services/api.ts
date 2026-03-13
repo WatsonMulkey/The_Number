@@ -64,12 +64,12 @@ export interface BudgetNumber {
   total_expenses: number
   remaining_money?: number
   days_remaining?: number
-  total_money?: number
+  total_money?: number | null
   today_spending: number
   remaining_today: number
   is_over_budget: boolean
-  adjusted_daily_budget?: number
-  original_daily_budget?: number
+  adjusted_daily_budget?: number | null
+  original_daily_budget?: number | null
   tomorrow_daily_budget?: number
   // Pool feature fields
   pool_balance: number

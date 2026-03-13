@@ -50,7 +50,7 @@ const isLanding = computed(() => route.name === 'landing')
   --color-terracotta: #c96a5a;
 
   /* Functional Colors */
-  --color-success: #87986a;
+  --color-success: #6b7a52;
   --color-error: #c96a5a;
   --color-text-primary: #2b2e33;
   --color-text-secondary: #3a3d42;  /* WCAG fix: Changed from #5a5d62 for 6.8:1 contrast on sage green */

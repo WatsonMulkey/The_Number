@@ -78,4 +78,14 @@ router.beforeEach(async (to, _from, next) => {
   next()
 })
 
+// Handle stale chunk errors after deployment (cached hash mismatches)
+router.onError((error, to) => {
+  if (
+    error.message.includes('Failed to fetch dynamically imported module') ||
+    error.message.includes('Unable to preload CSS')
+  ) {
+    window.location.href = to.fullPath
+  }
+})
+
 export default router

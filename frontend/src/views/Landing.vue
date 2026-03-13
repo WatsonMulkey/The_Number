@@ -1,114 +1,113 @@
 <template>
   <div class="landing">
     <!-- Hero Section -->
-    <section class="hero">
+    <section class="hero" aria-labelledby="hero-title">
       <div class="hero-content">
-        <h1 class="hero-headline">Know Your Number</h1>
+        <h1 id="hero-title" class="hero-headline">Know Your Number</h1>
         <p class="hero-subline">
           The daily budget app that answers one question:
           <strong>how much can I spend today?</strong>
         </p>
         <div class="hero-body">
           <p>
-            If you also have no idea how much you're going to spend on entertainment or gas or groceries;
-            then The Number could be the budget app you're looking for. The Number just takes your available
-            money (paycheck or fixed pool) accounts for your expenses, then tells you how much you can spend
-            on a daily basis and not bust your budget.
-          </p>
-          <p>
-            Track your purchases in the app, and see how your budget for tomorrow goes up and down.
+            Enter your income, log what you spend, and The Number tells you exactly what's left for today.
           </p>
         </div>
         <v-btn
           size="x-large"
           color="primary"
           class="hero-cta"
+          aria-label="Join the Beta — Opens registration form"
           @click="openRegister"
         >
           Join the Beta
         </v-btn>
+        <p class="hero-trust">
+          <v-icon size="16" aria-hidden="true">mdi-shield-check-outline</v-icon>
+          No bank link. No tracking. Just a username and password.
+        </p>
       </div>
     </section>
 
     <!-- How It Works -->
-    <section class="how-it-works">
-      <h2 class="section-title">How It Works</h2>
-      <div class="steps">
-        <div class="step">
+    <section class="how-it-works" aria-labelledby="how-it-works-title">
+      <h2 id="how-it-works-title" class="section-title">How It Works</h2>
+      <ol class="steps">
+        <li class="step">
           <div class="step-icon">
-            <v-icon size="40" color="primary">mdi-calendar-clock</v-icon>
+            <v-icon size="40" color="primary" aria-hidden="true">mdi-calendar-clock</v-icon>
           </div>
           <h3 class="step-title">1. Set your income and payday</h3>
           <p class="step-desc">
             Tell us how much you make and when you get paid. We handle the math from there.
           </p>
-        </div>
-        <div class="step">
+        </li>
+        <li class="step">
           <div class="step-icon">
-            <v-icon size="40" color="primary">mdi-receipt-text-outline</v-icon>
+            <v-icon size="40" color="primary" aria-hidden="true">mdi-receipt-text-outline</v-icon>
           </div>
           <h3 class="step-title">2. Log what you spend</h3>
           <p class="step-desc">
             Quick-add purchases as you go. No categories to fuss with, just the amount.
           </p>
-        </div>
-        <div class="step">
+        </li>
+        <li class="step">
           <div class="step-icon">
-            <v-icon size="40" color="primary">mdi-pound</v-icon>
+            <v-icon size="40" color="primary" aria-hidden="true">mdi-pound</v-icon>
           </div>
           <h3 class="step-title">3. See your number</h3>
           <p class="step-desc">
             One number tells you exactly what you can spend today, and updates in real time.
           </p>
-        </div>
-      </div>
+        </li>
+      </ol>
     </section>
 
     <!-- Features -->
-    <section class="features">
-      <h2 class="section-title">Built for Real Life</h2>
-      <div class="feature-grid">
-        <div class="feature-card">
-          <v-icon size="32" color="primary" class="feature-icon">mdi-shield-lock-outline</v-icon>
+    <section class="features" aria-labelledby="features-title">
+      <h2 id="features-title" class="section-title">Built for Real Life</h2>
+      <ul class="feature-grid">
+        <li class="feature-card">
+          <v-icon size="32" color="primary" class="feature-icon" aria-hidden="true">mdi-shield-lock-outline</v-icon>
           <h3 class="feature-title">Privacy First</h3>
           <p class="feature-desc">
             No bank account, no phone number, no location tracking, no app store. Just an optional email address for password resetting.
           </p>
-        </div>
-        <div class="feature-card">
-          <v-icon size="32" color="primary" class="feature-icon">mdi-update</v-icon>
+        </li>
+        <li class="feature-card">
+          <v-icon size="32" color="primary" class="feature-icon" aria-hidden="true">mdi-update</v-icon>
           <h3 class="feature-title">Real-time daily budget</h3>
           <p class="feature-desc">
             Your number recalculates after every purchase, so you always know where you stand.
           </p>
-        </div>
-        <div class="feature-card">
-          <v-icon size="32" color="primary" class="feature-icon">mdi-weather-sunset-up</v-icon>
+        </li>
+        <li class="feature-card">
+          <v-icon size="32" color="primary" class="feature-icon" aria-hidden="true">mdi-weather-sunset-up</v-icon>
           <h3 class="feature-title">Tomorrow preview</h3>
           <p class="feature-desc">
             See how today's spending affects tomorrow's budget before you swipe.
           </p>
-        </div>
-        <div class="feature-card">
-          <v-icon size="32" color="primary" class="feature-icon">mdi-piggy-bank-outline</v-icon>
+        </li>
+        <li class="feature-card">
+          <v-icon size="32" color="primary" class="feature-icon" aria-hidden="true">mdi-piggy-bank-outline</v-icon>
           <h3 class="feature-title">Savings pool</h3>
           <p class="feature-desc">
             Unspent budget carries forward automatically. Underspend today, and have more tomorrow!
           </p>
-        </div>
-        <div class="feature-card">
-          <v-icon size="32" color="primary" class="feature-icon">mdi-cellphone-check</v-icon>
+        </li>
+        <li class="feature-card">
+          <v-icon size="32" color="primary" class="feature-icon" aria-hidden="true">mdi-cellphone-check</v-icon>
           <h3 class="feature-title">Install from your browser</h3>
           <p class="feature-desc">
             Install it like a native app from your browser. No app store required.
           </p>
-        </div>
-      </div>
+        </li>
+      </ul>
     </section>
 
     <!-- FAQ -->
-    <section class="faq">
-      <h2 class="section-title">Frequently Asked Questions</h2>
+    <section class="faq" aria-labelledby="faq-title">
+      <h2 id="faq-title" class="section-title">Frequently Asked Questions</h2>
       <v-expansion-panels variant="accordion" class="faq-panels">
         <v-expansion-panel>
           <v-expansion-panel-title>How do I install The Number?</v-expansion-panel-title>
@@ -135,21 +134,25 @@
     </section>
 
     <!-- CTA Footer -->
-    <section class="cta-footer">
-      <h2 class="cta-headline">Ready to take control?</h2>
+    <section class="cta-footer" aria-labelledby="cta-title">
+      <h2 id="cta-title" class="cta-headline">Ready to take control?</h2>
       <v-btn
         size="x-large"
         color="primary"
         class="hero-cta"
+        aria-label="Join the Beta — Opens registration form"
         @click="openRegister"
       >
         Join the Beta
       </v-btn>
       <p class="cta-login">
         Already have an account?
-        <a href="#" class="login-link" @click.prevent="openLogin">Log in</a>
+        <a href="#" class="login-link" aria-label="Log in to your account" @click.prevent="openLogin">Log in</a>
       </p>
     </section>
+
+    <!-- Screen reader announcement for auth modal -->
+    <span class="sr-only" aria-live="polite">{{ authAnnouncement }}</span>
 
     <!-- Auth Modal -->
     <AuthModal
@@ -161,13 +164,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import AuthModal from '@/components/AuthModal.vue'
 
 const router = useRouter()
 const showAuthModal = ref(false)
 const authMode = ref<'login' | 'register'>('register')
+const authAnnouncement = ref('')
 
 function openRegister() {
   authMode.value = 'register'
@@ -178,6 +182,16 @@ function openLogin() {
   authMode.value = 'login'
   showAuthModal.value = true
 }
+
+watch(showAuthModal, (isOpen) => {
+  if (isOpen) {
+    authAnnouncement.value = authMode.value === 'register'
+      ? 'Registration form opened'
+      : 'Login form opened'
+  } else {
+    authAnnouncement.value = ''
+  }
+})
 
 async function handleAuthSuccess() {
   await router.push({ name: 'dashboard' })
@@ -246,6 +260,17 @@ async function handleAuthSuccess() {
   background-color: var(--color-soft-charcoal) !important;
 }
 
+.hero-trust {
+  margin-top: var(--spacing-sm);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
 /* How It Works */
 .how-it-works {
   padding: var(--spacing-xl) 0;
@@ -264,6 +289,9 @@ async function handleAuthSuccess() {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--spacing-md);
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
 }
 
 .step {
@@ -304,6 +332,9 @@ async function handleAuthSuccess() {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--spacing-md);
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
 }
 
 .feature-card {
@@ -395,7 +426,23 @@ async function handleAuthSuccess() {
   line-height: 1.6;
 }
 
-/* Responsive */
+/* Responsive - Tablet */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .hero-headline {
+    font-size: 3rem;
+  }
+
+  .steps {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-sm);
+  }
+
+  .feature-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Responsive - Mobile */
 @media (max-width: 767px) {
   .hero-headline {
     font-size: 2.5rem;
@@ -413,5 +460,18 @@ async function handleAuthSuccess() {
   .feature-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Visually hidden but accessible to screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 </style>

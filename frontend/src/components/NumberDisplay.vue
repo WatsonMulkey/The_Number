@@ -89,8 +89,8 @@ const props = defineProps<{
   remainingToday?: number
   isOverBudget?: boolean
   daysRemaining?: number
-  adjustedDailyBudget?: number
-  originalDailyBudget?: number
+  adjustedDailyBudget?: number | null
+  originalDailyBudget?: number | null
   tomorrowDailyBudget?: number
 }>()
 

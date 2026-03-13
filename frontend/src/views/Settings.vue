@@ -173,7 +173,7 @@
           <v-list-item v-if="currentConfig.next_payday_date">
             <v-list-item-title>Next Payday</v-list-item-title>
             <v-list-item-subtitle>
-              {{ new Date(currentConfig.next_payday_date).toLocaleDateString() }}
+              {{ new Date(currentConfig.next_payday_date + 'T12:00:00').toLocaleDateString() }}
             </v-list-item-subtitle>
           </v-list-item>
           <v-list-item v-else-if="currentConfig.days_until_paycheck">
@@ -191,7 +191,7 @@
           <v-list-item v-if="currentConfig.target_end_date">
             <v-list-item-title>Target End Date</v-list-item-title>
             <v-list-item-subtitle>
-              {{ new Date(currentConfig.target_end_date).toLocaleDateString() }}
+              {{ new Date(currentConfig.target_end_date + 'T12:00:00').toLocaleDateString() }}
             </v-list-item-subtitle>
           </v-list-item>
           <v-list-item v-if="currentConfig.daily_spending_limit">
