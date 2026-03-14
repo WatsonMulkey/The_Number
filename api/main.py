@@ -1310,19 +1310,23 @@ async def export_budget_data(format: str, user_id: int = Depends(get_current_use
 
     db = get_db()
 
-    # Get budget configuration
+    # Get budget configuration via get_setting (settings are encrypted)
+    setting_keys = [
+        "budget_mode", "monthly_income", "next_payday_date", "pay_frequency_days",
+        "days_until_paycheck", "total_money", "target_end_date", "daily_spending_limit",
+        "user_timezone", "pool_enabled", "pool_balance", "pending_pool_contribution",
+    ]
     settings = {}
-    for row in db.execute('SELECT key, value FROM settings WHERE user_id = ?', (user_id,)):
-        settings[row[0]] = row[1]
+    for key in setting_keys:
+        val = db.get_setting(key, user_id)
+        if val is not None:
+            settings[key] = val
 
-    # Get expenses
-    expenses = list(db.execute('SELECT name, amount, is_fixed FROM expenses WHERE user_id = ? ORDER BY name', (user_id,)))
+    # Get expenses via get_expenses (returns list of dicts)
+    expenses_raw = db.get_expenses(user_id)
 
-    # Get transactions
-    transactions = list(db.execute(
-        'SELECT date, amount, description, category FROM transactions WHERE user_id = ? ORDER BY date DESC',
-        (user_id,)
-    ))
+    # Get transactions via get_transactions (returns list of dicts)
+    transactions_raw = db.get_transactions(user_id)
 
     if format == 'csv':
         # Create CSV with multiple sections
@@ -1338,18 +1342,18 @@ async def export_budget_data(format: str, user_id: int = Depends(get_current_use
 
         # Expenses Section
         writer.writerow(['MONTHLY EXPENSES'])
-        writer.writerow(['Name', 'Amount', 'Type'])
-        for exp in expenses:
-            exp_type = 'Fixed' if exp[2] else 'Variable'
-            writer.writerow([exp[0], f'${exp[1]:.2f}', exp_type])
+        writer.writerow(['Name', 'Amount', 'Type', 'Frequency'])
+        for exp in expenses_raw:
+            exp_type = 'Fixed' if exp.get('is_fixed') else 'Variable'
+            writer.writerow([exp['name'], f'${exp["amount"]:.2f}', exp_type, exp.get('frequency', 'monthly')])
         writer.writerow([])
 
         # Transactions Section
         writer.writerow(['TRANSACTIONS'])
         writer.writerow(['Date', 'Amount', 'Description', 'Category'])
-        for txn in transactions:
-            category = txn[3] if txn[3] else ''
-            writer.writerow([txn[0], f'${txn[1]:.2f}', txn[2], category])
+        for txn in transactions_raw:
+            category = txn.get('category', '') or ''
+            writer.writerow([txn.get('date', ''), f'${txn["amount"]:.2f}', txn.get('description', ''), category])
 
         # Return CSV file
         output.seek(0)
@@ -1396,18 +1400,20 @@ async def export_budget_data(format: str, user_id: int = Depends(get_current_use
         ws_expenses['A3'] = 'Name'
         ws_expenses['B3'] = 'Amount'
         ws_expenses['C3'] = 'Type'
-        for col in ['A3', 'B3', 'C3']:
+        ws_expenses['D3'] = 'Frequency'
+        for col in ['A3', 'B3', 'C3', 'D3']:
             ws_expenses[col].font = Font(bold=True)
 
         row = 4
         total = 0
-        for exp in expenses:
-            exp_type = 'Fixed' if exp[2] else 'Variable'
-            ws_expenses[f'A{row}'] = exp[0]
-            ws_expenses[f'B{row}'] = exp[1]
+        for exp in expenses_raw:
+            exp_type = 'Fixed' if exp.get('is_fixed') else 'Variable'
+            ws_expenses[f'A{row}'] = exp['name']
+            ws_expenses[f'B{row}'] = exp['amount']
             ws_expenses[f'B{row}'].number_format = '$#,##0.00'
             ws_expenses[f'C{row}'] = exp_type
-            total += exp[1]
+            ws_expenses[f'D{row}'] = exp.get('frequency', 'monthly')
+            total += exp['amount']
             row += 1
 
         # Add total
@@ -1429,12 +1435,12 @@ async def export_budget_data(format: str, user_id: int = Depends(get_current_use
             ws_txns[col].font = Font(bold=True)
 
         row = 4
-        for txn in transactions:
-            ws_txns[f'A{row}'] = txn[0]
-            ws_txns[f'B{row}'] = txn[1]
+        for txn in transactions_raw:
+            ws_txns[f'A{row}'] = txn.get('date', '')
+            ws_txns[f'B{row}'] = txn['amount']
             ws_txns[f'B{row}'].number_format = '$#,##0.00'
-            ws_txns[f'C{row}'] = txn[2]
-            ws_txns[f'D{row}'] = txn[3] if txn[3] else ''
+            ws_txns[f'C{row}'] = txn.get('description', '')
+            ws_txns[f'D{row}'] = txn.get('category', '') or ''
             row += 1
 
         # Auto-size columns
