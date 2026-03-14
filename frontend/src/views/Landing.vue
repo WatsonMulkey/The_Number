@@ -22,6 +22,10 @@
         >
           Join the Beta
         </v-btn>
+        <p class="cta-login">
+          Already have an account?
+          <a href="#" class="login-link" aria-label="Log in to your account" @click.prevent="openLogin">Log in</a>
+        </p>
         <p class="hero-trust">
           <v-icon size="16" aria-hidden="true">mdi-shield-check-outline</v-icon>
           No bank link. No tracking. Just a username and password.
