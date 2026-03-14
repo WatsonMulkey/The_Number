@@ -242,8 +242,6 @@
             :loading="exportingCsv"
             @click="exportData('csv')"
             prepend-icon="mdi-file-delimited"
-            block
-            class="flex-sm-grow-0"
           >
             Download CSV
           </v-btn>
@@ -254,8 +252,6 @@
             :loading="exportingExcel"
             @click="exportData('excel')"
             prepend-icon="mdi-file-excel"
-            block
-            class="flex-sm-grow-0"
           >
             Download Excel
           </v-btn>
