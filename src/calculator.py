@@ -105,19 +105,24 @@ class BudgetCalculator:
                and t.category != 'income'
         )
 
-    def calculate_paycheck_mode(self, monthly_income: float, days_until_paycheck: int) -> Dict[str, float]:
+    def calculate_paycheck_mode(self, monthly_income: float, days_until_paycheck: int,
+                                pay_frequency_days: int = 30) -> Dict[str, float]:
         """
         Calculate daily spending limit based on monthly income and days until next paycheck.
+
+        Pro-rates monthly income and expenses to the pay cycle length so that
+        a biweekly pay period gets ~half the monthly budget, not the full amount.
 
         Args:
             monthly_income: Total monthly income
             days_until_paycheck: Number of days until next paycheck
+            pay_frequency_days: Length of pay cycle in days (e.g., 14 for biweekly, 30 for monthly)
 
         Returns:
             Dictionary with:
                 - total_income: Monthly income
-                - total_expenses: Sum of all expenses
-                - remaining_money: Money left after expenses
+                - total_expenses: Sum of all monthly expenses
+                - remaining_money: Pro-rated money left for this pay cycle
                 - days_remaining: Days until next paycheck
                 - daily_limit: Amount that can be spent per day
         """
@@ -129,7 +134,10 @@ class BudgetCalculator:
             raise ValueError(f"Days until paycheck cannot exceed {MAX_DAYS_UNTIL_PAYCHECK}")
 
         total_expenses = self.get_total_expenses()
-        remaining_money = monthly_income - total_expenses
+        # Pro-rate monthly figures to the pay cycle
+        avg_days_per_month = 30.44
+        cycle_ratio = pay_frequency_days / avg_days_per_month
+        remaining_money = (monthly_income - total_expenses) * cycle_ratio
         is_deficit = remaining_money < 0
         daily_limit = max(0, remaining_money / days_until_paycheck)
 
@@ -290,7 +298,8 @@ class BudgetCalculator:
         if mode == "paycheck":
             result = self.calculate_paycheck_mode(
                 monthly_income=kwargs.get('monthly_income', 0),
-                days_until_paycheck=kwargs.get('days_until_paycheck', 1)
+                days_until_paycheck=kwargs.get('days_until_paycheck', 1),
+                pay_frequency_days=kwargs.get('pay_frequency_days', 30)
             )
         elif mode == "fixed_pool":
             result = self.calculate_fixed_pool_mode(

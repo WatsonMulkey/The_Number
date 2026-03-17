@@ -237,9 +237,10 @@ async def get_the_number(
                             datetime.combine(next_payday, datetime.min.time())
                         )
 
-                        # Calculate what the daily budget was for that cycle
-                        remaining_for_cycle = monthly_income - total_expenses
-                        expected_budget = remaining_for_cycle  # Total available for the cycle
+                        # Calculate what the budget was for that cycle (pro-rate monthly to cycle)
+                        avg_days_per_month = 30.44
+                        remaining_for_cycle = (monthly_income - total_expenses) * (cycle_days / avg_days_per_month)
+                        expected_budget = remaining_for_cycle
 
                         # Leftover = what we had - what we spent
                         leftover = expected_budget - transactions_total
@@ -264,7 +265,8 @@ async def get_the_number(
 
             result = calc.calculate_paycheck_mode(
                 monthly_income=monthly_income,
-                days_until_paycheck=days_until_paycheck
+                days_until_paycheck=days_until_paycheck,
+                pay_frequency_days=int(pay_frequency)
             )
         else:  # fixed_pool
             total_money = db.get_setting("total_money", user_id)
@@ -282,6 +284,15 @@ async def get_the_number(
                 daily_spending_limit=daily_spending_limit
             )
 
+
+        # One-time pool reset: pool balances computed before 2026-03-16 used a buggy
+        # formula that treated monthly surplus as per-cycle surplus, inflating the pool.
+        # Reset pool and pending contributions so users start clean with corrected math.
+        pool_formula_fixed = db.get_setting("pool_formula_fixed", user_id)
+        if not pool_formula_fixed:
+            db.set_setting("pool_balance", 0, user_id)
+            db.set_setting("pending_pool_contribution", 0, user_id)
+            db.set_setting("pool_formula_fixed", True, user_id)
 
         # Get pool settings
         pool_enabled = db.get_setting("pool_enabled", user_id) == True

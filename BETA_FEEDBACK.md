@@ -12,11 +12,11 @@
 ### [2026-03-13] - Beta Tester #1
 **Type**: Bug
 **Severity**: High
-**Status**: Open
+**Status**: Fixed
 
 CSV/Excel export fails on both mobile (iOS 26.3.1) and desktop browser (Chrome 146.0.7680.76). "Failed to export" error.
 
-**Resolution**: TBD
+**Resolution**: Fixed — export endpoint was calling `db.execute()` which doesn't exist on EncryptedDatabase. Rewrote to use `db.get_setting()`, `db.get_expenses()`, `db.get_transactions()`. Deployed 2026-03-13.
 
 ---
 
@@ -38,6 +38,39 @@ App is USD-only ($ symbol throughout). Not broken for dollar users, but could ca
 
 Landing page: no "Already have an account? Log in" link visible until you click "Join the Beta". There is one at the bottom of the page but not near the top CTA. Inconsistent — brain itch.
 
+**Resolution**: Fixed — added "Already have an account? Log in" link under hero CTA. Deployed 2026-03-13.
+
+---
+
+### [2026-03-16] - Beta Tester #2 (Jay)
+**Type**: General Feedback
+**Severity**: N/A
+**Status**: N/A
+
+Positive reception: loved how easy setup was, appreciates the "chill" approach to budgeting. Says it gets them thinking about the big picture and getting more detailed with expenses over time.
+
+---
+
+### [2026-03-16] - Beta Tester #2 (Jay)
+**Type**: Bug
+**Severity**: High
+**Status**: Open
+
+Number appears way too high. Setup: $2,000 every 2 weeks ($4,000/mo), ~$2,300/mo in expenses. Number shows $386/day, which implies ~$12k/mo income with no expenses deducted. Expected: ~$1,700/mo discretionary → ~$56/day.
+
+**Root Cause**: `calculate_paycheck_mode()` divided full monthly surplus ($1,700) by days until next paycheck (~4 days) instead of pro-rating to the pay cycle. For biweekly pay, this overstated The Number by 2.17x (30.44/14). The same bug existed in the pool/leftover calculation, inflating pool contributions by ~$900 per pay period.
+
+**Resolution**: Fixed 2026-03-16. Pro-rated monthly income and expenses to pay cycle length in both `src/calculator.py` and `api/main.py`. Added one-time pool balance reset for all users (flag: `pool_formula_fixed`). Deployed same day.
+
+---
+
+### [2026-03-16] - Beta Tester #2 (Jay)
+**Type**: Feature Request
+**Severity**: Medium
+**Status**: Open
+
+Wants ability to manually adjust The Number downward to save toward goals. Example: rent is $1,500/mo (~$50/day), but wants to budget for $1,800/mo rent (~$60/day) by voluntarily lowering daily spend by $10. Essentially a "savings goal" or "manual override" that reduces The Number to help save for a specific target.
+
 **Resolution**: TBD
 
 ---
@@ -46,10 +79,10 @@ Landing page: no "Already have an account? Log in" link visible until you click 
 
 | Category | Count |
 |----------|-------|
-| Bugs | 1 |
+| Bugs | 2 |
 | UX Issues | 2 |
-| Feature Requests | 0 |
-| General Feedback | 0 |
+| Feature Requests | 1 |
+| General Feedback | 1 |
 
 ---
 

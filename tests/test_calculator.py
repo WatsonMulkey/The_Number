@@ -76,21 +76,45 @@ class TestBudgetCalculator:
         assert calc.get_today_spending() == 40.0
 
     def test_calculate_paycheck_mode(self):
-        """Test paycheck mode calculation."""
+        """Test paycheck mode calculation with monthly pay (30-day cycle)."""
         calc = BudgetCalculator()
         calc.add_expense("Rent", 1500.0)
         calc.add_expense("Utilities", 200.0)
 
         result = calc.calculate_paycheck_mode(
             monthly_income=3000.0,
-            days_until_paycheck=15
+            days_until_paycheck=15,
+            pay_frequency_days=30
         )
 
         assert result["total_income"] == 3000.0
         assert result["total_expenses"] == 1700.0
-        assert result["remaining_money"] == 1300.0
+        # remaining_money is pro-rated: (3000-1700) * 30/30.44 = 1281.21
+        assert result["remaining_money"] == pytest.approx(1281.21, rel=0.01)
         assert result["days_remaining"] == 15
-        assert result["daily_limit"] == pytest.approx(86.67, rel=0.01)
+        # daily_limit: 1281.21 / 15 = 85.41
+        assert result["daily_limit"] == pytest.approx(85.41, rel=0.01)
+        assert result["mode"] == "paycheck"
+
+    def test_calculate_paycheck_mode_biweekly(self):
+        """Test paycheck mode with biweekly pay — the bug that Jay reported."""
+        calc = BudgetCalculator()
+        calc.add_expense("Rent", 1500.0)
+        calc.add_expense("Bills", 800.0)
+
+        # $4000/mo income, $2300/mo expenses, biweekly (14-day) pay cycle
+        result = calc.calculate_paycheck_mode(
+            monthly_income=4000.0,
+            days_until_paycheck=14,
+            pay_frequency_days=14
+        )
+
+        assert result["total_income"] == 4000.0
+        assert result["total_expenses"] == 2300.0
+        # Pro-rated: (4000-2300) * 14/30.44 = 781.87
+        assert result["remaining_money"] == pytest.approx(781.87, rel=0.01)
+        # daily_limit: 781.87 / 14 = 55.85
+        assert result["daily_limit"] == pytest.approx(55.85, rel=0.01)
         assert result["mode"] == "paycheck"
 
     def test_paycheck_mode_negative_income_raises_error(self):
@@ -144,10 +168,12 @@ class TestBudgetCalculator:
         number = calc.get_number(
             mode="paycheck",
             monthly_income=2000.0,
-            days_until_paycheck=10
+            days_until_paycheck=10,
+            pay_frequency_days=30
         )
 
-        assert number == 100.0  # (2000 - 1000) / 10
+        # (2000 - 1000) * (30/30.44) / 10 = 98.56
+        assert number == pytest.approx(98.56, rel=0.01)
 
     def test_get_number_fixed_pool_mode(self):
         """Test get_number method with fixed pool mode."""
