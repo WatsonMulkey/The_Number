@@ -1,6 +1,6 @@
 # ADR 002: MIDI Extract — Architecture Decisions
 
-**Status:** Proposed
+**Status:** Accepted (2026-03-23, post skeptic review)
 **Date:** 2026-03-03
 **Decision Makers:** Watson Mulkey, Claude (with senior-dev-skeptic review)
 

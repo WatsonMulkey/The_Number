@@ -220,19 +220,23 @@ As a user, I want to share my budget with my partner so we can track our finance
 
 ---
 
-### 10. Savings Goals Tracker ⭐
+### 10. Savings Goals / Manual Number Adjustment ⭐
 **Status:** Backlog
 **Complexity:** Medium
 **Time Estimate:** 1 week
+**User Requests:** Jay (Beta #2, 2026-03-16)
 
 **User Story:**
-As a user, I want to set savings goals so I can track progress toward large purchases or emergency funds.
+As a user, I want to manually lower my daily Number to save toward a goal, so I can budget for future expenses (e.g., higher rent, large purchase, emergency fund).
+
+**Jay's Example:** Rent is $1,500/mo (~$50/day). Wants to budget for $1,800/mo rent (~$60/day) by voluntarily lowering daily spend by $10/day, saving $300/mo toward the upgrade.
 
 **Features:**
-- Set goal name and target amount
-- Track progress
-- Visualize with progress bar
-- Allocate money toward goal
+- Set goal name, target amount, and daily/monthly contribution
+- Contribution acts as a phantom expense — lowers The Number automatically
+- Track progress with progress bar
+- Option to "release" saved funds back into daily budget
+- Multiple concurrent goals
 
 ---
 
@@ -364,7 +368,8 @@ Track feature requests from users here:
 | Feature | Requested By | Date | Votes | Status |
 |---------|-------------|------|-------|--------|
 | Email receipts | Watson | 2025-12-15 | 1 | Planned |
-| (Add more as users request) | | | | |
+| Manual Number adjustment / savings goals | Jay (Beta #2) | 2026-03-16 | 1 | Backlog — see #10 |
+| Currency localization (non-USD support) | Beta #1 | 2026-03-13 | 1 | Backlog — see #9 |
 
 ---
 
