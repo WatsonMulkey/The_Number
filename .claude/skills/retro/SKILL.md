@@ -22,33 +22,53 @@ Before creating plans or orchestrating agents, review past sessions to learn fro
 
 ## Instructions
 
-1. **Search supermemory for relevant learnings** related to:
-   - The current task type (e.g., "PDF generation", "testing strategy", "API design")
-   - Past mistakes or anti-patterns documented
-   - Successful approaches that worked well
+### 1. Search local scribe learnings by tag/keyword
 
-2. **Review recent conversation history** for:
-   - Similar tasks attempted previously
-   - Agent collaboration patterns that succeeded or failed
-   - User feedback on past approaches
+The primary knowledge base is in `~/.claude/scribe/learnings/`. These files are large — **do NOT read them in full**. Use Grep to search by tag or keyword.
 
-3. **Extract key lessons** such as:
-   - What was over-engineered or under-scoped?
-   - Which agent recommendations were accepted vs rejected?
-   - What timelines were realistic vs inflated?
-   - Which dependencies or tools caused problems?
-   - What did the user actually value vs what we assumed?
+**Files:**
+- `patterns.md` — Architectural and process patterns (tagged, indexed)
+- `errors.md` — Error patterns and solutions (tagged)
+- `insights.md` — General insights and realizations (tagged)
 
-4. **Apply learnings to current task:**
-   - Adjust scope based on past feedback
-   - Avoid documented anti-patterns
-   - Use proven approaches that worked
-   - Set realistic timelines based on history
+**How to search:** Use Grep with the tag or keyword most relevant to your current task:
+```
+Grep pattern="#max-for-live" path="~/.claude/scribe/learnings/patterns.md"
+Grep pattern="#deployment|#vercel" path="~/.claude/scribe/learnings/errors.md"
+Grep pattern="resume-tailor" path="~/.claude/scribe/learnings/"
+```
 
-5. **Document new learnings** after task completion:
-   - Store what worked well in supermemory
-   - Document what didn't work and why
-   - Update best practices if applicable
+Then read the surrounding context (use -B 5 -A 20) for any matches to get the full pattern.
+
+**Common tags in the learnings files:**
+- Projects: `#the-number`, `#foil-industries`, `#resume-tailor`, `#rag-vault`, `#buyer-mode`, `#mixdiff`, `#audio-scribe`
+- Domains: `#max-for-live`, `#astro`, `#prisma`, `#security`, `#windows`, `#sqlite`, `#css`
+- Types: `#deployment`, `#over-engineering`, `#silent-failure`, `#data-loss`, `#validation`
+- Process: `#testing`, `#code-review`, `#multi-agent-review`, `#refactoring`
+
+### 2. Check the scribe session index for recent context
+
+Scan `~/.claude/scribe/index.md` for sessions related to the current task. The index has one-line summaries — only read the full session handoff if a summary looks directly relevant.
+
+### 3. Review recent conversation history for:
+- Similar tasks attempted previously
+- Agent collaboration patterns that succeeded or failed
+- User feedback on past approaches
+
+### 4. Supplement with supermemory (if available)
+
+Supermemory may have additional context not in local files. Search it for the current task type, but treat local scribe files as the authoritative source.
+
+### 5. Apply learnings to current task:
+- Adjust scope based on past feedback
+- Avoid documented anti-patterns
+- Use proven approaches that worked
+- Set realistic timelines based on history
+
+### 6. Document new learnings after task completion:
+- Append to the appropriate local scribe file (`patterns.md`, `errors.md`, or `insights.md`)
+- Use the established format: `### Title`, `**Date**`, `**Project**`, `**Context**`, body, `**Tags**: #tag1 #tag2`
+- Optionally mirror to supermemory
 
 ## Output Format
 
@@ -61,10 +81,10 @@ Provide a concise summary (3-5 bullet points) of:
 ## Example
 
 **For a new API design task:**
-- ✗ Avoid: Building multiple endpoints before validating one works
-- ✓ Use: FastAPI with encrypted database (proven in backend)
-- 👤 User prefers: Seeing working examples before committing to approach
-- 🔧 Technical: CORS configuration caused issues - document settings upfront
+- Search: `Grep pattern="#deployment|#the-number" path="~/.claude/scribe/learnings/errors.md"`
+- Found: Vercel project confusion pattern — always verify `.vercel/project.json` before deploying
+- Found: SQLite defaults aren't production-ready — enable WAL mode for multi-user
+- Apply: Verify deployment target before starting, configure DB for concurrent access upfront
 
 ## Integration with Other Skills
 
@@ -74,11 +94,3 @@ This skill should run BEFORE:
 - Planning sessions - Inform scope and timeline decisions
 
 Keep the retro brief and actionable - focus on what directly impacts the current task.
-
-## Supermemory Fallback
-
-If supermemory is unavailable or returns errors:
-1. Check for local learnings files in `~/.claude/scribe/learnings/` directory
-2. Read any `.md` files there for past session learnings and anti-patterns
-3. When documenting new learnings (step 5), write to `~/.claude/scribe/learnings/retro-{date}.md` instead of supermemory
-4. Format: use the same structure as the Output Format section above

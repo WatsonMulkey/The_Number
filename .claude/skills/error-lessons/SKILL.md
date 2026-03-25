@@ -31,17 +31,17 @@ ANYTIME you or any agent encounters an error, use this skill to capture and docu
 
 ### 1. Check for Existing Lesson
 
-Before creating a new lesson, search supermemory to avoid duplicates:
+Before creating a new lesson, search local scribe files to avoid duplicates:
 
 ```
-Search supermemory for: "[error type] [key error message text]"
+Grep pattern="[key error message text]" path="~/.claude/scribe/learnings/errors.md"
+Grep pattern="#[category]" path="~/.claude/scribe/learnings/errors.md"
 ```
 
 Examples:
-- "Unknown skill retro"
-- "WeasyPrint Cairo dependency Windows"
-- "CORS configuration FastAPI"
-- "Git embedded repository warning"
+- `Grep pattern="Unknown skill" path="~/.claude/scribe/learnings/errors.md"`
+- `Grep pattern="#weasyprint|#cairo" path="~/.claude/scribe/learnings/errors.md"`
+- `Grep pattern="CORS" path="~/.claude/scribe/learnings/errors.md"`
 
 **If a lesson exists:** Update it with new context or skip if identical.
 
@@ -86,32 +86,37 @@ Document the following information:
 - Dependencies involved
 - Version/environment specifics
 
-### 3. Store Lesson in Supermemory
+### 3. Store Lesson Locally
 
-Use a consistent format for easy retrieval:
+Append the new lesson to `~/.claude/scribe/learnings/errors.md` using the established format:
 
+```markdown
+---
+
+### [Error Title — descriptive, searchable]
+**Date**: YYYY-MM-DD
+**Project**: [project-name]
+**Context**: [One sentence on what you were doing]
+
+**Error**:
+[What went wrong, exact error message, symptoms]
+
+**Root Cause**:
+[Why it happened — the underlying issue]
+
+**Solution**:
+[Step-by-step fix, with code if applicable]
+
+**Prevention**:
+[How to avoid in future]
+
+**Tags**: #error-type #project #tool #category
 ```
-Error Lesson: [Error Type]
 
-Signature: [Exact error message or key excerpt]
-
-Trigger: [What action caused it]
-
-Impact: [Why it matters]
-
-Root Cause: [Underlying issue]
-
-Fix: [How to resolve]
-- Step 1
-- Step 2
-- Step 3
-
-Prevention: [How to avoid in future]
-
-Context: [Tool versions, environment, related info]
-
-Tags: #error #[category] #[tool-name]
-```
+**Tagging discipline** — always include:
+- The project name (e.g., `#the-number`, `#buyer-mode`)
+- The error domain (e.g., `#deployment`, `#dependency`, `#security`, `#windows`)
+- The specific tool/library (e.g., `#vercel`, `#prisma`, `#astro`)
 
 ### 4. Add to docs/BEST_PRACTICES.md (If Applicable)
 
@@ -122,8 +127,8 @@ For common or important errors, consider adding to the "Common Pitfalls" section
 Provide a brief confirmation:
 
 ```
-✅ Error lesson captured: [Error Type]
-- Stored in supermemory with tags: #error #[category]
+Error lesson captured: [Error Type]
+- Stored in ~/.claude/scribe/learnings/errors.md with tags: #[category]
 - [Added to docs/BEST_PRACTICES.md / Skipped - duplicate found]
 ```
 
@@ -237,10 +242,6 @@ A good error lesson should:
 - Prevent the error from recurring
 - Be discoverable through search (good tags/keywords)
 
-## Supermemory Fallback
+## Storage
 
-If supermemory is unavailable or returns errors:
-1. Check for existing error lessons in `~/.claude/scribe/learnings/` directory
-2. When storing new lessons (step 3), write to `~/.claude/scribe/learnings/error-{date}-{error-type}.md` instead of supermemory
-3. Use the same structured format from step 3 above
-4. Still add to `docs/BEST_PRACTICES.md` if applicable (step 4)
+All error lessons are stored locally in `~/.claude/scribe/learnings/errors.md`. This file is the authoritative source — it's always available, version-controllable, and searchable via Grep.
