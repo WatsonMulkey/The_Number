@@ -1,5 +1,7 @@
 # Audio Scribe
 
+## Status: Complete — functional, Phase 2 (Ollama) deferred
+
 ## Project Overview
 Local, offline audio transcription tool using `faster-whisper`. Retro terminal GUI (Tkinter) matching Resume Tailor's aesthetic.
 

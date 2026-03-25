@@ -1,5 +1,7 @@
 # MIDI Extract (mp3-to-midi)
 
+## Status: Paused — draft implementation complete, needs testing
+
 ## Project Overview
 Audio-to-MIDI transcription tool using basic-pitch (Spotify). Retro terminal GUI matching Audio Scribe / Resume Tailor aesthetic.
 

@@ -1,5 +1,7 @@
 # MixDiff
 
+## Status: Active — Phase 1 confirmed working in Ableton, UI polish + remaining tests pending
+
 ## Project Overview
 Max for Live Audio Effect — "changelog for your mix." Captures full-session parameter snapshots on manual trigger, displays human-readable diffs between any two snapshots.
 
@@ -15,7 +17,7 @@ Max for Live Audio Effect — "changelog for your mix." Captures full-session pa
 
 ## Critical Gotchas
 - **NEVER hand-write .amxd from scratch** — these files wrap JSON in a proprietary binary header (undocumented by Cycling '74). Save a blank device from Max editor, then modify the JSON inside.
-- `plugout~` without argument = mono. Always use `plugin~ 2` and `plugout~ 2` for stereo Audio Effects.
+- `plugin~ 2` means "channel 2 only" (NOT "2 channels"). Always use `plugin~ 1 2` and `plugout~ 1 2` for stereo Audio Effects.
 - `live.text` toggle mode fires on both press (1) and release (0). Always guard with `args[0] === 1`.
 - Device UI height locked at 169px.
 - `defer`/`deferlow` doesn't help for JS thread blocking — use `Task` object or `setTimeout` for chunked execution.

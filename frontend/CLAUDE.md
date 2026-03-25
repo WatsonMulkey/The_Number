@@ -1,5 +1,7 @@
 # The Number - Budget PWA
 
+## Status: Active — QA phase, beta feedback
+
 ## Tech Stack
 - **Frontend**: Vue 3 + TypeScript + Vuetify 3
 - **State**: Pinia stores
