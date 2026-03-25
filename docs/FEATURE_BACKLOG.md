@@ -1,26 +1,32 @@
 # The Number - Feature Backlog
 
-**Last Updated:** 2025-12-15
+**Last Updated:** 2026-03-23
 
 This document tracks all planned features, organized by priority and implementation complexity.
 
 ---
 
-## Current Sprint: PWA MVP
+## Current Phase: QA & Beta
 
-**Status:** In Progress
-**Target:** 4 weeks
-**Goal:** Launch installable PWA with core budgeting functionality
+**Status:** Live — beta users testing, collecting feedback
+**Stack:** Vue 3 + TypeScript + Vuetify 3 (frontend), FastAPI + SQLite (backend)
 
-- [x] Plan PWA architecture
-- [ ] Set up Astro.js project structure
-- [ ] Design Figma mockups (User working on this)
-- [ ] Build responsive UI from mockups
-- [ ] Implement REST API (FastAPI)
-- [ ] Add authentication (JWT)
-- [ ] Implement PWA manifest + service worker
-- [ ] Add push notifications
-- [ ] Deploy to production
+### Shipped (MVP+)
+- [x] PWA with install prompt and service worker
+- [x] User auth (JWT, 30-day tokens)
+- [x] Daily budget number calculation
+- [x] Expense management (add/edit/delete, weekly/monthly frequency)
+- [x] Transaction logging
+- [x] Pool/carry-over feature (roll unused daily budget forward)
+- [x] PWA badge (unread notification count)
+- [x] Export (CSV/JSON)
+- [x] Beta invite code gating
+- [x] Landing page with hero CTA
+- [x] Pay frequency support (weekly, biweekly, semi-monthly, monthly)
+
+### In Progress
+- [ ] QA fixes from beta feedback (debug logging enabled)
+- [ ] Verify daily budget calculation across all pay frequencies
 
 ---
 
@@ -334,30 +340,29 @@ RICE = (10 × 0.5 × 1.0) / 0.2 = **25** (Actually high priority because so chea
 
 ## Release Planning
 
-### V1.0 (MVP) - Week 4
+### V1.0 (MVP) — Shipped
 - PWA with core functionality
-- User auth
+- User auth (JWT)
 - Add/view expenses and transactions
-- See daily budget number
+- Daily budget number with pool/carry-over
 - Install on home screen
-- Push notifications
+- Export (CSV/JSON)
 
-### V1.1 - Week 8
-- Email receipt processing
-- Basic charts
-- Recurring transactions
-- Dark mode
+### V1.1 — Next (post-QA)
+- Savings goals / manual Number adjustment (#10 — user-requested)
+- Charts & spending analytics (#2)
+- Recurring transactions (#3)
+- Dark mode (#8)
 
-### V1.2 - Week 12
-- Budget templates
-- Export/reports
-- Multi-device sync improvements
+### V1.2 — Later
+- Currency localization (#9 — user-requested)
+- Budget templates (#4)
+- Email receipt processing (#1)
 
-### V2.0 - Month 6
-- Shared budgets
-- Savings goals
-- Spending challenges
-- Mobile app (if user base justifies)
+### V2.0 — Future
+- Shared budgets (#7)
+- Spending challenges (#12)
+- Bill reminders (#11)
 
 ---
 

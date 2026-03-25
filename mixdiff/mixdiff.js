@@ -77,7 +77,8 @@ var ui = {
     menuA: null,
     menuB: null,
     btnSnapshot: null,
-    btnDiff: null
+    btnDiff: null,
+    btnExpand: null
 };
 
 // ============================================================
@@ -95,6 +96,7 @@ function bang() {
     ui.menuB = getUI("menuB");
     ui.btnSnapshot = getUI("btnSnapshot");
     ui.btnDiff = getUI("btnDiff");
+    ui.btnExpand = getUI("btnExpand");
 
     // Load existing snapshots from dict
     loadFromDict();
@@ -135,35 +137,24 @@ function loadFromDict() {
             return;
         }
 
-        // Load snapshot names (stored as a separate ordered list)
-        var nameList = d.get("_snapshotOrder");
-        if (nameList) {
-            // Dict returns a single string if 1 item, array if multiple
-            if (typeof nameList === "string") {
-                snapshotNames = [nameList];
-            } else {
+        // Load snapshot names (stored as JSON string)
+        var orderStr = d.get("_snapshotOrder");
+        if (orderStr && typeof orderStr === "string") {
+            try {
+                snapshotNames = JSON.parse(orderStr);
+            } catch (e) {
                 snapshotNames = [];
-                for (var i = 0; i < nameList.length; i++) {
-                    snapshotNames.push(nameList[i]);
-                }
             }
         } else {
             snapshotNames = [];
         }
 
-        // Load each snapshot's data
+        // Verify each snapshot key exists in dict
         snapshots = {};
         for (var i = 0; i < snapshotNames.length; i++) {
             var name = snapshotNames[i];
-            var snapshotDict = d.get("snapshots::" + name);
-            if (snapshotDict) {
-                snapshots[name] = {
-                    timestamp: d.get("snapshots::" + name + "::_timestamp"),
-                    data: {}
-                };
-                // The full snapshot data tree lives under snapshots::<name>::data
-                // We'll read it as a nested dict reference
-                snapshots[name]._dictRef = true; // flag: data stays in dict, read on demand
+            if (d.contains("snap_" + name)) {
+                snapshots[name] = { _dictRef: true };
             }
         }
 
@@ -179,14 +170,12 @@ function saveSnapshotToDict(name, timestamp, snapshotData) {
     try {
         var d = new Dict("---mixdiff_data");
 
-        // Store the snapshot data under snapshots::<name>
-        d.set("snapshots::" + name + "::_timestamp", timestamp);
-
-        // Walk the snapshot data tree and store each value
-        saveNestedData(d, "snapshots::" + name + "::data", snapshotData);
+        // Store snapshot as a single JSON string (flat key, no nested :: paths)
+        var payload = JSON.stringify({ timestamp: timestamp, data: snapshotData });
+        d.set("snap_" + name, payload);
 
         // Update the ordered name list
-        d.set("_snapshotOrder", snapshotNames);
+        d.set("_snapshotOrder", JSON.stringify(snapshotNames));
 
         post("MixDiff: Saved snapshot '" + name + "' to dict.\n");
         return true;
@@ -196,34 +185,17 @@ function saveSnapshotToDict(name, timestamp, snapshotData) {
     }
 }
 
-function saveNestedData(dictObj, basePath, data) {
-    var keys = Object.keys(data);
-    for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        var val = data[key];
-        var path = basePath + "::" + key;
-
-        if (typeof val === "object" && val !== null) {
-            // Recurse into nested objects
-            saveNestedData(dictObj, path, val);
-        } else {
-            // Store leaf value
-            dictObj.set(path, val);
-        }
-    }
-}
-
 function deleteSnapshotFromDict(name) {
     try {
         var d = new Dict("---mixdiff_data");
-        d.remove("snapshots::" + name);
+        d.remove("snap_" + name);
 
         // Remove from ordered list
         var idx = snapshotNames.indexOf(name);
         if (idx > -1) {
             snapshotNames.splice(idx, 1);
         }
-        d.set("_snapshotOrder", snapshotNames);
+        d.set("_snapshotOrder", JSON.stringify(snapshotNames));
 
         delete snapshots[name];
         post("MixDiff: Deleted snapshot '" + name + "'.\n");
@@ -237,106 +209,20 @@ function deleteSnapshotFromDict(name) {
 // ============================================================
 
 function readSnapshotData(name) {
-    // Read the full snapshot data tree from dict
-    // Returns a nested JS object: {trackKey: {deviceKey: {paramName: value}}}
+    // Read snapshot from dict — stored as a single JSON string
     try {
         var d = new Dict("---mixdiff_data");
-        var result = {};
-        var basePath = "snapshots::" + name + "::data";
-
-        // Get track keys
-        var trackKeys = d.getkeys(basePath);
-        if (!trackKeys) return result;
-        if (typeof trackKeys === "string") trackKeys = [trackKeys];
-
-        for (var t = 0; t < trackKeys.length; t++) {
-            var trackKey = trackKeys[t];
-            var trackPath = basePath + "::" + trackKey;
-            result[trackKey] = {};
-
-            // Get device keys for this track
-            var deviceKeys = d.getkeys(trackPath);
-            if (!deviceKeys) continue;
-            if (typeof deviceKeys === "string") deviceKeys = [deviceKeys];
-
-            for (var dv = 0; dv < deviceKeys.length; dv++) {
-                var deviceKey = deviceKeys[dv];
-                var devicePath = trackPath + "::" + deviceKey;
-
-                if (deviceKey === "_chains") {
-                    // Handle Rack chains recursively
-                    result[trackKey]["_chains"] = readChainsFromDict(d, devicePath);
-                } else {
-                    result[trackKey][deviceKey] = {};
-
-                    // Get parameter keys for this device
-                    var paramKeys = d.getkeys(devicePath);
-                    if (!paramKeys) continue;
-                    if (typeof paramKeys === "string") paramKeys = [paramKeys];
-
-                    for (var p = 0; p < paramKeys.length; p++) {
-                        var paramKey = paramKeys[p];
-                        if (paramKey === "_chains") {
-                            result[trackKey][deviceKey]["_chains"] =
-                                readChainsFromDict(d, devicePath + "::_chains");
-                        } else {
-                            result[trackKey][deviceKey][paramKey] =
-                                d.get(devicePath + "::" + paramKey);
-                        }
-                    }
-                }
-            }
+        var json = d.get("snap_" + name);
+        if (!json) {
+            post("MixDiff ERROR: Snapshot '" + name + "' not found in dict.\n");
+            return null;
         }
-
-        return result;
+        var parsed = JSON.parse(json);
+        return parsed.data;
     } catch (e) {
         post("MixDiff ERROR reading snapshot '" + name + "': " + e.message + "\n");
         return null;
     }
-}
-
-function readChainsFromDict(dictObj, chainsPath) {
-    var result = {};
-    var chainKeys = dictObj.getkeys(chainsPath);
-    if (!chainKeys) return result;
-    if (typeof chainKeys === "string") chainKeys = [chainKeys];
-
-    for (var c = 0; c < chainKeys.length; c++) {
-        var chainKey = chainKeys[c];
-        var chainPath = chainsPath + "::" + chainKey;
-        result[chainKey] = {};
-
-        var deviceKeys = dictObj.getkeys(chainPath);
-        if (!deviceKeys) continue;
-        if (typeof deviceKeys === "string") deviceKeys = [deviceKeys];
-
-        for (var dv = 0; dv < deviceKeys.length; dv++) {
-            var deviceKey = deviceKeys[dv];
-            var devicePath = chainPath + "::" + deviceKey;
-
-            if (deviceKey === "_chains") {
-                // Nested racks — recurse
-                result[chainKey]["_chains"] = readChainsFromDict(dictObj, devicePath);
-            } else {
-                result[chainKey][deviceKey] = {};
-                var paramKeys = dictObj.getkeys(devicePath);
-                if (!paramKeys) continue;
-                if (typeof paramKeys === "string") paramKeys = [paramKeys];
-
-                for (var p = 0; p < paramKeys.length; p++) {
-                    var paramKey = paramKeys[p];
-                    if (paramKey === "_chains") {
-                        result[chainKey][deviceKey]["_chains"] =
-                            readChainsFromDict(dictObj, devicePath + "::_chains");
-                    } else {
-                        result[chainKey][deviceKey][paramKey] =
-                            dictObj.get(devicePath + "::" + paramKey);
-                    }
-                }
-            }
-        }
-    }
-    return result;
 }
 
 // ============================================================
@@ -538,11 +424,9 @@ function walkDevicesForCapture(api, basePath, numDevices, errors) {
             // Check for Rack chains (Instrument Rack, Audio Effect Rack, etc.)
             api.goto(devPath);
             var numChains = 0;
-            try {
+            var canHaveChains = api.get("can_have_chains");
+            if (canHaveChains && canHaveChains[0]) {
                 numChains = api.getcount("chains");
-            } catch (e) {
-                // Not a Rack device — no chains, that's fine
-                numChains = 0;
             }
 
             if (numChains > 0) {
@@ -786,14 +670,14 @@ function initDiffTable() {
     if (!ui.diffTable) return;
     var cb = ui.diffTable;
 
-    // Set column count and headers
+    // Set column count and individual widths
     cb.message("cols", 6);
-    cb.message("colwidth", 0, 30);   // Change type
-    cb.message("colwidth", 1, 80);   // Track
-    cb.message("colwidth", 2, 80);   // Device
-    cb.message("colwidth", 3, 90);   // Parameter
-    cb.message("colwidth", 4, 60);   // Before
-    cb.message("colwidth", 5, 60);   // After
+    cb.message("setcolwidth", 0, 30);   // Change type
+    cb.message("setcolwidth", 1, 80);   // Track
+    cb.message("setcolwidth", 2, 80);   // Device
+    cb.message("setcolwidth", 3, 100);  // Parameter
+    cb.message("setcolwidth", 4, 65);   // Before
+    cb.message("setcolwidth", 5, 65);   // After
 
     // Set headers (row 0)
     cb.message("set", 0, 0, "");
@@ -841,20 +725,32 @@ function displayDiff(diffResults) {
 function updateMenus() {
     updateMenu(ui.menuA, snapshotNames);
     updateMenu(ui.menuB, snapshotNames);
+
+    // Auto-select: A = first (oldest), B = last (newest)
+    if (snapshotNames.length >= 2) {
+        selectedA = snapshotNames[0];
+        selectedB = snapshotNames[snapshotNames.length - 1];
+        if (ui.menuA) ui.menuA.message("_parameter_value", 0);
+        if (ui.menuB) ui.menuB.message("_parameter_value", snapshotNames.length - 1);
+    } else if (snapshotNames.length === 1) {
+        selectedA = snapshotNames[0];
+        selectedB = null;
+        if (ui.menuA) ui.menuA.message("_parameter_value", 0);
+    }
 }
 
 function updateMenu(menuObj, names) {
     if (!menuObj) return;
 
-    // Clear existing items
-    menuObj.message("clear");
-
+    // live.menu uses _parameter_range to set items (not clear/append like umenu)
     if (names.length === 0) {
-        menuObj.message("append", "(no snapshots)");
+        menuObj.message("_parameter_range", "(no snapshots)");
     } else {
+        var args = ["_parameter_range"];
         for (var i = 0; i < names.length; i++) {
-            menuObj.message("append", names[i]);
+            args.push(names[i]);
         }
+        menuObj.message.apply(menuObj, args);
     }
 }
 
@@ -864,6 +760,55 @@ function updateStatus(text) {
     }
     // Always log to console as well
     post("MixDiff: " + text + "\n");
+}
+
+// ============================================================
+// EXPAND / COLLAPSE UI
+// ============================================================
+
+var COMPACT_HEIGHT = 169;
+var EXPANDED_HEIGHT = 350;
+var DEVICE_WIDTH = 500;
+var isExpanded = false;
+
+function toggleExpand() {
+    if (isExpanded) {
+        collapseUI();
+    } else {
+        expandUI();
+    }
+}
+
+function expandUI() {
+    isExpanded = true;
+    // Resize patcher presentation
+    this.patcher.message("presentation_size", DEVICE_WIDTH, EXPANDED_HEIGHT);
+    // Expand diff table
+    this.patcher.message("script", "sendbox", "diffTable",
+        "presentation_rect", 5, 30, 490, 280);
+    // Move status text
+    this.patcher.message("script", "sendbox", "statusText",
+        "presentation_rect", 5, 318, 490, 17);
+    // Update button text
+    if (ui.btnExpand) {
+        ui.btnExpand.message("set", "▲");
+    }
+}
+
+function collapseUI() {
+    isExpanded = false;
+    // Resize patcher presentation
+    this.patcher.message("presentation_size", DEVICE_WIDTH, COMPACT_HEIGHT);
+    // Shrink diff table
+    this.patcher.message("script", "sendbox", "diffTable",
+        "presentation_rect", 5, 30, 490, 110);
+    // Move status text
+    this.patcher.message("script", "sendbox", "statusText",
+        "presentation_rect", 5, 148, 490, 17);
+    // Update button text
+    if (ui.btnExpand) {
+        ui.btnExpand.message("set", "▼");
+    }
 }
 
 // ============================================================
@@ -900,6 +845,12 @@ function anything() {
             if (args.length > 0 && args[0] >= 0 && args[0] < snapshotNames.length) {
                 selectedB = snapshotNames[args[0]];
                 post("MixDiff: Selected B = '" + selectedB + "'\n");
+            }
+            break;
+
+        case "expand":
+            if (args.length > 0 && args[0] === 1) {
+                toggleExpand();
             }
             break;
 
