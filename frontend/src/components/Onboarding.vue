@@ -1,8 +1,8 @@
 <template>
-  <v-card class="onboarding-card mx-auto" elevation="4" max-width="900" color="#E9F5DB">
-    <v-card-title class="pa-4 text-center" style="background-color: #E9F5DB;">
+  <v-card class="onboarding-card mx-auto" elevation="4" max-width="900" color="#faf3dd">
+    <v-card-title class="pa-4 text-center" style="background-color: #faf3dd;">
       <div>
-        <h1 class="text-h4 mb-1 font-weight-bold" style="color: #2d5016; font-family: var(--font-display);">The Number</h1>
+        <h1 class="text-h4 mb-1 font-weight-bold" style="color: #4a7c59; font-family: var(--font-display);">The Number</h1>
         
       </div>
     </v-card-title>
@@ -1090,7 +1090,7 @@ async function completeOnboarding() {
   display: flex;
   justify-content: center;
   gap: 12px;
-  background-color: #E9F5DB;
+  background-color: #faf3dd;
 }
 
 .progress-dot {
@@ -1102,7 +1102,7 @@ async function completeOnboarding() {
 }
 
 .progress-dot.active {
-  background-color: #2d5016;
+  background-color: #4a7c59;
 }
 
 .progress-dot.current {

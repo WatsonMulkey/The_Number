@@ -10,13 +10,13 @@
       <v-card-title
         id="auth-modal-title"
         class="text-h5 pa-6 text-center"
-        style="background-color: #E9F5DB;"
+        style="background-color: #faf3dd;"
       >
         <div>
           <v-icon size="48" color="primary" class="mb-2" aria-hidden="true">
             mdi-account-circle
           </v-icon>
-          <div style="color: #2d5016;">{{ modalTitle }}</div>
+          <div style="color: #4a7c59;">{{ modalTitle }}</div>
         </div>
       </v-card-title>
 

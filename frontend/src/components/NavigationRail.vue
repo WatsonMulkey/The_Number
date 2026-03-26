@@ -284,15 +284,15 @@ async function handleAuthSuccess() {
 }
 
 .floating-item:hover {
-  background-color: rgba(233, 245, 219, 0.2) !important;
+  background-color: rgba(250, 243, 221, 0.4) !important;
   color: var(--color-soft-charcoal) !important;
 }
 
-/* Active navigation item - subtle sage green accent */
+/* Active navigation item - warm cream accent */
 .floating-item.v-list-item--active {
   background-color: var(--color-sage-green) !important;
-  color: var(--color-soft-charcoal) !important;
-  font-weight: 600;
+  color: var(--color-green) !important;
+  font-weight: 700;
 }
 
 /* FOIL Engineering link styling */
@@ -312,9 +312,9 @@ async function handleAuthSuccess() {
   left: 0;
   right: 0;
   z-index: 1000;
-  background-color: white !important;
-  border-top: 1px solid var(--color-sage-green);
-  box-shadow: 0 -2px 8px rgba(135, 152, 106, 0.1);
+  background-color: var(--color-warm-white) !important;
+  border-top: 1px solid rgba(74, 124, 89, 0.1);
+  box-shadow: 0 -2px 8px rgba(74, 124, 89, 0.08);
   height: 56px; /* Base height, will be adjusted with safe-area */
 }
 
@@ -327,9 +327,9 @@ async function handleAuthSuccess() {
 }
 
 .mobile-nav :deep(.v-btn--active) {
-  color: var(--color-success) !important;
-  background-color: rgba(233, 245, 219, 0.3) !important;
-  font-weight: 600;
+  color: var(--color-green) !important;
+  background-color: rgba(250, 243, 221, 0.5) !important;
+  font-weight: 700;
 }
 
 .mobile-nav :deep(.v-icon) {
@@ -350,9 +350,9 @@ async function handleAuthSuccess() {
 }
 
 .avatar-button {
-  background-color: white !important;
+  background-color: var(--color-warm-white) !important;
   border: 3px solid var(--color-sage-green) !important;
-  box-shadow: 0 4px 12px rgba(135, 152, 106, 0.15);
+  box-shadow: 0 4px 12px rgba(74, 124, 89, 0.12);
   transition: all var(--transition-base) var(--transition-ease);
 }
 
@@ -363,8 +363,8 @@ async function handleAuthSuccess() {
 }
 
 .avatar-button:hover {
-  border-color: var(--color-success) !important;
-  box-shadow: 0 6px 16px rgba(135, 152, 106, 0.25);
+  border-color: var(--color-green) !important;
+  box-shadow: 0 6px 16px rgba(74, 124, 89, 0.2);
 }
 
 .user-avatar {

@@ -144,10 +144,10 @@ const showTomorrowPreview = computed(() => {
   margin: 0 auto;
   background: linear-gradient(135deg,
     var(--color-sage-green) 0%,
-    rgba(233, 245, 219, 0.85) 100%);
+    rgba(250, 243, 221, 0.85) 100%);
   border-radius: 24px;
   padding: var(--spacing-xl) !important;
-  box-shadow: 0 8px 32px rgba(135, 152, 106, 0.15);
+  box-shadow: 0 8px 32px rgba(74, 124, 89, 0.15);
   border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
@@ -180,7 +180,7 @@ const showTomorrowPreview = computed(() => {
 /* Today's spending card styling */
 :deep(.v-card) {
   background-color: white;
-  border: 1px solid rgba(233, 245, 219, 0.4);
+  border: 1px solid rgba(250, 243, 221, 0.4);
   border-radius: 12px;
 }
 
@@ -189,7 +189,7 @@ const showTomorrowPreview = computed(() => {
 }
 
 :deep(.v-progress-linear.bg-success) {
-  background-color: rgba(135, 152, 106, 0.2) !important;
+  background-color: rgba(74, 124, 89, 0.2) !important;
 }
 
 :deep(.v-progress-linear__determinate) {

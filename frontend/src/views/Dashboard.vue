@@ -3,7 +3,7 @@
     <!-- Pool Contribution Prompt Dialog -->
     <v-dialog v-model="showPoolPrompt" max-width="400" persistent>
       <v-card>
-        <v-card-title class="text-center pa-4" style="background-color: #E9F5DB;">
+        <v-card-title class="text-center pa-4" style="background-color: #faf3dd;">
           <v-icon color="success" size="large" class="mr-2">mdi-party-popper</v-icon>
           Congratulations!
         </v-card-title>
@@ -539,7 +539,7 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
   margin-bottom: var(--spacing-lg);
   background: linear-gradient(135deg,
     var(--color-sage-green) 0%,
-    rgba(233, 245, 219, 0.7) 100%);
+    rgba(250, 243, 221, 0.7) 100%);
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(74, 95, 122, 0.08);
 }
@@ -587,9 +587,9 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
   padding: var(--spacing-md) !important; /* Mobile padding */
   background: linear-gradient(135deg,
     var(--color-sage-green) 0%,
-    rgba(233, 245, 219, 0.85) 100%);
+    rgba(250, 243, 221, 0.85) 100%);
   border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(135, 152, 106, 0.15);
+  box-shadow: 0 8px 32px rgba(74, 124, 89, 0.15);
   border: 2px solid rgba(255, 255, 255, 0.3);
   min-height: 450px;
 }
@@ -605,7 +605,7 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
   justify-content: space-between;
   align-items: center;
   padding: var(--spacing-sm) 0;
-  border-bottom: 1px solid rgba(135, 152, 106, 0.1);
+  border-bottom: 1px solid rgba(74, 124, 89, 0.1);
 }
 
 .detail-item:last-child {
@@ -632,9 +632,9 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
   padding: var(--spacing-md) !important; /* Mobile padding */
   background: linear-gradient(135deg,
     var(--color-sage-green) 0%,
-    rgba(233, 245, 219, 0.85) 100%);
+    rgba(250, 243, 221, 0.85) 100%);
   border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(135, 152, 106, 0.15);
+  box-shadow: 0 8px 32px rgba(74, 124, 89, 0.15);
   border: 2px solid rgba(255, 255, 255, 0.3);
   min-height: 450px;
 }
@@ -678,22 +678,22 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
   margin: 0 auto;
   padding: var(--spacing-md) !important; /* Consistent mobile padding */
   background-color: white;
-  border: 1px solid rgba(233, 245, 219, 0.3);
+  border: 1px solid rgba(250, 243, 221, 0.3);
   border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(135, 152, 106, 0.12);
+  box-shadow: 0 4px 16px rgba(74, 124, 89, 0.12);
 }
 
 /* Card styling to match brand */
 :deep(.v-card) {
   background-color: white;
-  border: 1px solid rgba(233, 245, 219, 0.3);
+  border: 1px solid rgba(250, 243, 221, 0.3);
   border-radius: 12px;
   transition: all var(--transition-base) var(--transition-ease);
 }
 
 :deep(.v-card:hover) {
   border-color: var(--color-sage-green);
-  box-shadow: 0 8px 24px rgba(135, 152, 106, 0.12);
+  box-shadow: 0 8px 24px rgba(74, 124, 89, 0.12);
 }
 
 :deep(.v-card-title) {
@@ -753,9 +753,9 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
   margin: 0 auto;
   background: linear-gradient(135deg,
     var(--color-sage-green) 0%,
-    rgba(233, 245, 219, 0.85) 100%) !important;
+    rgba(250, 243, 221, 0.85) 100%) !important;
   border-radius: 24px !important;
-  box-shadow: 0 8px 32px rgba(135, 152, 106, 0.15);
+  box-shadow: 0 8px 32px rgba(74, 124, 89, 0.15);
   border: 2px solid rgba(255, 255, 255, 0.3) !important;
   min-height: 300px;
   display: flex;
@@ -771,8 +771,8 @@ watch(() => authStore.isAuthenticated, (isAuthenticated, wasAuthenticated) => {
 .badge-prompt {
   max-width: 600px;
   margin: 0 auto;
-  background-color: rgba(233, 245, 219, 0.6) !important;
-  border: 1px solid rgba(135, 152, 106, 0.2) !important;
+  background-color: rgba(250, 243, 221, 0.6) !important;
+  border: 1px solid rgba(74, 124, 89, 0.2) !important;
   border-radius: 12px !important;
 }
 </style>

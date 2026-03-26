@@ -491,14 +491,14 @@ h1 {
 /* Card styling */
 :deep(.v-card) {
   background-color: white;
-  border: 1px solid rgba(233, 245, 219, 0.3);
+  border: 1px solid rgba(250, 243, 221, 0.3);
   border-radius: 12px;
   transition: all var(--transition-base) var(--transition-ease);
 }
 
 :deep(.v-card:hover) {
   border-color: var(--color-sage-green);
-  box-shadow: 0 8px 24px rgba(135, 152, 106, 0.12);
+  box-shadow: 0 8px 24px rgba(74, 124, 89, 0.12);
 }
 
 :deep(.v-card-title) {

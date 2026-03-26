@@ -64,7 +64,7 @@ function handleReset() {
 
 <style scoped>
 .error-boundary {
-  background-color: rgba(135, 152, 106, 0.83);
+  background-color: rgba(74, 124, 89, 0.83);
   min-height: 100vh;
 }
 </style>

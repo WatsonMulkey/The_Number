@@ -20,19 +20,19 @@ export default createVuetify({
       theNumberTheme: {
         dark: false,
         colors: {
-          primary: '#6b7a52', // Sage green from design (darkened for WCAG AA contrast)
-          secondary: '#625B71',
-          background: 'rgba(135, 152, 106, 0.83)',
+          primary: '#4a7c59', // Forest green (rebrand)
+          secondary: '#8fb996',
+          background: '#fdfcf0', // Warm cream
           surface: '#FFFFFF',
-          'on-background': '#1C1B1F',
-          'on-surface': '#1C1B1F',
+          'on-background': '#2d3436',
+          'on-surface': '#2d3436',
           'on-primary': '#FFFFFF',
-          'primary-container': '#EADDFF',
-          'on-primary-container': '#4F378A',
-          'secondary-container': '#E8DEF8',
-          'on-secondary-container': '#4A4459',
-          'surface-variant': '#E7E0EC',
-          'on-surface-variant': '#49454F',
+          'primary-container': '#faf3dd', // Warm cream accent
+          'on-primary-container': '#4a7c59',
+          'secondary-container': '#faf3dd',
+          'on-secondary-container': '#4a7c59',
+          'surface-variant': '#faf3dd',
+          'on-surface-variant': '#4a4f52',
         },
       },
     },

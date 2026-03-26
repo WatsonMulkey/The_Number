@@ -30,8 +30,7 @@ const isLanding = computed(() => route.name === 'landing')
 
 <style>
 /* The Number Brand Guidelines - Typography */
-@import url('https://fonts.googleapis.com/css2?family=Scope+One&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap');
 
 /* ================================
    THE NUMBER DESIGN SYSTEM
@@ -39,10 +38,11 @@ const isLanding = computed(() => route.name === 'landing')
    ================================ */
 
 :root {
-  /* Primary Colors - The Number */
-  --color-sage-green: #E9F5DB;
-  --color-warm-white: #FAFAF8;
-  --color-soft-charcoal: #3a3d42;
+  /* Primary Colors - The Number (Rebrand: forest green + warm cream) */
+  --color-sage-green: #faf3dd;       /* Warm cream accent (was #E9F5DB) */
+  --color-warm-white: #fdfcf0;       /* Warm cream background (was #FAFAF8) */
+  --color-soft-charcoal: #2d3436;    /* Dark text base (was #3a3d42) */
+  --color-green: #4a7c59;            /* Forest green — primary brand color */
 
   /* FOIL Accents (5% usage) */
   --color-slate: #4a5f7a;
@@ -50,15 +50,15 @@ const isLanding = computed(() => route.name === 'landing')
   --color-terracotta: #c96a5a;
 
   /* Functional Colors */
-  --color-success: #6b7a52;
+  --color-success: #4a7c59;          /* Forest green (was #6b7a52) */
   --color-error: #c96a5a;
-  --color-text-primary: #2b2e33;
-  --color-text-secondary: #3a3d42;  /* WCAG fix: Changed from #5a5d62 for 6.8:1 contrast on sage green */
-  --color-text-muted: #5a5d62;      /* WCAG fix: Promoted from #8a8d92 */
+  --color-text-primary: #2d3436;     /* (was #2b2e33) */
+  --color-text-secondary: #4a4f52;   /* WCAG AA on #fdfcf0 (was #3a3d42) */
+  --color-text-muted: #6b6e70;       /* (was #5a5d62) */
 
-  /* Typography */
-  --font-display: 'Scope One', Georgia, serif;
-  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* Typography — Nunito replaces Scope One + Inter */
+  --font-display: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-ui: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   /* Spacing */
   --spacing-xs: 8px;
@@ -79,20 +79,19 @@ const isLanding = computed(() => route.name === 'landing')
   font-family: var(--font-ui);
 }
 
-/* ONLY use display font for h1 - everything else uses Inter */
+/* Nunito for everything */
 h1 {
   font-family: var(--font-display) !important;
   font-weight: 400;
-  color: var(--color-text-primary);
+  color: var(--color-green);
 }
 
 h2, h3, h4, h5, h6 {
   font-family: var(--font-ui) !important;
-  font-weight: 600;
-  color: var(--color-text-primary);
+  font-weight: 700;
+  color: var(--color-green);
 }
 
-/* Body text uses Inter for clarity */
 body, p, span, div, button, input, textarea, select {
   font-family: var(--font-ui);
 }

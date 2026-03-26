@@ -223,7 +223,7 @@ async function handleAuthSuccess() {
   font-family: var(--font-display) !important;
   font-size: 3.5rem;
   font-weight: 400;
-  color: var(--color-text-primary);
+  color: var(--color-green);
   margin-bottom: var(--spacing-sm);
   line-height: 1.1;
 }
@@ -250,18 +250,19 @@ async function handleAuthSuccess() {
 }
 
 .hero-cta {
-  background-color: var(--color-success) !important;
+  background-color: var(--color-green) !important;
   color: white !important;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  padding: 12px 40px !important;
-  border-radius: 12px !important;
+  font-weight: 700;
+  letter-spacing: 0;
+  padding: 16px 40px !important;
+  border-radius: 40px !important;
   text-transform: none !important;
   font-size: 1.1rem !important;
+  box-shadow: 0px 20px 25px -5px rgba(74, 124, 89, 0.2), 0px 8px 10px -6px rgba(74, 124, 89, 0.2);
 }
 
 .hero-cta:hover {
-  background-color: var(--color-soft-charcoal) !important;
+  background-color: #3d6a4b !important;
 }
 
 .hero-trust {
@@ -283,9 +284,9 @@ async function handleAuthSuccess() {
 .section-title {
   font-family: var(--font-ui) !important;
   font-size: 1.75rem;
-  font-weight: 600;
+  font-weight: 400;
   text-align: center;
-  color: var(--color-text-primary);
+  color: var(--color-green);
   margin-bottom: var(--spacing-lg);
 }
 
@@ -306,18 +307,19 @@ async function handleAuthSuccess() {
 .step-icon {
   width: 72px;
   height: 72px;
-  border-radius: 50%;
+  border-radius: 40px;
   background-color: var(--color-sage-green);
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto var(--spacing-sm);
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
 }
 
 .step-title {
   font-size: 1rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
+  font-weight: 700;
+  color: var(--color-green);
   margin-bottom: var(--spacing-xs);
 }
 
@@ -343,14 +345,15 @@ async function handleAuthSuccess() {
 
 .feature-card {
   background: var(--color-warm-white);
-  border: 1px solid var(--color-sage-green);
-  border-radius: 16px;
+  border: 1px solid rgba(74, 124, 89, 0.05);
+  border-radius: 40px;
   padding: var(--spacing-md);
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
   transition: box-shadow var(--transition-base) var(--transition-ease);
 }
 
 .feature-card:hover {
-  box-shadow: 0 4px 16px rgba(135, 152, 106, 0.15);
+  box-shadow: 0 4px 16px rgba(74, 124, 89, 0.15);
 }
 
 .feature-icon {
@@ -359,8 +362,8 @@ async function handleAuthSuccess() {
 
 .feature-title {
   font-size: 1rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
+  font-weight: 700;
+  color: var(--color-green);
   margin-bottom: var(--spacing-xs);
 }
 
@@ -381,7 +384,7 @@ async function handleAuthSuccess() {
   font-family: var(--font-display) !important;
   font-size: 2rem;
   font-weight: 400;
-  color: var(--color-text-primary);
+  color: var(--color-green);
   margin-bottom: var(--spacing-md);
 }
 
@@ -392,8 +395,8 @@ async function handleAuthSuccess() {
 }
 
 .login-link {
-  color: var(--color-success);
-  font-weight: 600;
+  color: var(--color-green);
+  font-weight: 700;
   text-decoration: none;
 }
 
@@ -412,16 +415,17 @@ async function handleAuthSuccess() {
 }
 
 .faq-panels .v-expansion-panel {
-  background: var(--color-warm-white);
-  border: 1px solid var(--color-sage-green);
+  background: white;
+  border: none;
   margin-bottom: var(--spacing-xs);
-  border-radius: 12px !important;
+  border-radius: 40px !important;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
 }
 
 .faq-panels .v-expansion-panel-title {
-  font-weight: 600;
+  font-weight: 700;
   font-size: 1rem;
-  color: var(--color-text-primary);
+  color: var(--color-green);
 }
 
 .faq-panels .v-expansion-panel-text {

@@ -9,7 +9,7 @@
       <v-card-title
         id="add-pool-modal-title"
         class="text-h5 pa-4 text-center"
-        style="background-color: #E9F5DB;"
+        style="background-color: #faf3dd;"
       >
         <v-icon size="32" color="primary" class="mr-2">mdi-piggy-bank</v-icon>
         Add to Pool
