@@ -490,7 +490,8 @@ class EncryptedDatabase:
             raise ValueError("Description too long (max 200 characters)")
 
         if date is None:
-            date = datetime.now()
+            from zoneinfo import ZoneInfo
+            date = datetime.now(ZoneInfo("UTC"))
 
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()

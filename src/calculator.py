@@ -217,6 +217,7 @@ class BudgetCalculator:
             return {
                 "total_money": total_money,
                 "total_expenses": total_expenses,
+                "remaining_money": remaining_money,
                 "daily_limit": daily_limit_option_b,
                 "target_end_date": target_end_date.isoformat(),
                 "days_remaining": days_until_target,
@@ -249,6 +250,7 @@ class BudgetCalculator:
             return {
                 "total_money": total_money,
                 "total_expenses": total_expenses,
+                "remaining_money": total_money,
                 "daily_limit": daily_spending_limit,
                 "end_date": end_date.isoformat(),
                 "days_remaining": days_it_will_last,
@@ -272,9 +274,11 @@ class BudgetCalculator:
                 daily_limit = 0
                 end_date = None
 
+            remaining_money = total_money - (daily_limit * days_remaining) if days_remaining != float('inf') else total_money
             return {
                 "total_money": total_money,
                 "total_expenses": total_expenses,
+                "remaining_money": remaining_money,
                 "months_remaining": months_remaining,
                 "days_remaining": days_remaining,
                 "daily_limit": daily_limit,

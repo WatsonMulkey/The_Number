@@ -72,7 +72,8 @@ export const useAuthStore = defineStore('auth', () => {
         username,
         password,
         email,
-        invite_code: inviteCode
+        invite_code: inviteCode,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
       })
 
       token.value = response.data.access_token
@@ -102,7 +103,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await axios.post<AuthResponse>(`${API_URL}/api/auth/login`, {
         username,
-        password
+        password,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
       })
 
       token.value = response.data.access_token

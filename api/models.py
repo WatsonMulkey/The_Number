@@ -177,6 +177,7 @@ class UserRegister(BaseModel):
     password: str = Field(..., min_length=6, max_length=72, description="Password (6-72 characters)")
     email: Optional[str] = Field(None, max_length=100, description="Email (optional)")
     invite_code: Optional[str] = Field(None, max_length=50, description="Beta invite code")
+    timezone: Optional[str] = Field(None, max_length=50, description="IANA timezone (e.g. America/New_York)")
 
     class Config:
         json_schema_extra = {
@@ -192,6 +193,7 @@ class UserLogin(BaseModel):
     """Request model for user login."""
     username: str = Field(..., description="Username")
     password: str = Field(..., description="Password")
+    timezone: Optional[str] = Field(None, max_length=50, description="IANA timezone (e.g. America/New_York)")
 
     class Config:
         json_schema_extra = {

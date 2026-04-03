@@ -304,6 +304,11 @@ async def get_the_number(
         days_remaining = result.get("days_remaining")
         remaining_money = result.get("remaining_money", 0)
 
+        # Defensive fallback: if remaining_money wasn't returned but we have a valid
+        # daily limit and days remaining, reconstruct it to prevent pool math corruption (FOI-103)
+        if remaining_money == 0 and base_daily_limit > 0 and days_remaining and days_remaining > 0:
+            remaining_money = base_daily_limit * days_remaining
+
         # If pool is enabled and has balance, factor it into the daily budget
         the_number = base_daily_limit
         if pool_enabled and pool_balance > 0 and days_remaining and days_remaining > 0:
@@ -996,6 +1001,12 @@ async def register(
             email=user_data.email
         )
 
+        # Store user timezone if provided (auto-detected by frontend)
+        if user_data.timezone:
+            from api.utils.dates import validate_timezone
+            validated_tz = validate_timezone(user_data.timezone)
+            db.set_setting("user_timezone", validated_tz, user_id)
+
         # Get created user
         user = db.get_user_by_id(user_id)
 
@@ -1057,6 +1068,12 @@ async def login(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid username or password"
             )
+
+        # Update user timezone on each login (auto-detected by frontend)
+        if credentials.timezone:
+            from api.utils.dates import validate_timezone
+            validated_tz = validate_timezone(credentials.timezone)
+            db.set_setting("user_timezone", validated_tz, user["id"])
 
         # Create access token
         access_token = create_access_token(data={"user_id": user["id"]})

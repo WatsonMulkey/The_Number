@@ -145,9 +145,15 @@ const headers = [
 ]
 
 const todayTotal = computed(() => {
-  const today = new Date().toISOString().split('T')[0]
+  const now = new Date()
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
   return budgetStore.transactions
-    .filter((txn: Transaction) => txn.date.startsWith(today))
+    .filter((txn: Transaction) => {
+      // Convert stored UTC timestamp to local date for comparison
+      const txnLocal = new Date(txn.date)
+      const txnDate = `${txnLocal.getFullYear()}-${String(txnLocal.getMonth() + 1).padStart(2, '0')}-${String(txnLocal.getDate()).padStart(2, '0')}`
+      return txnDate === today
+    })
     .reduce((sum: number, txn: Transaction) => {
       // Income subtracts from spending, expenses add
       const amount = txn.category === 'income' ? -txn.amount : txn.amount
