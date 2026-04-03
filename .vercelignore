@@ -1,0 +1,38 @@
+# The Number deploys only the frontend/ directory (configured in Vercel).
+# Exclude all other monorepo projects and large directories to stay under
+# Vercel's 100 MB file size limit.
+
+# Sub-projects (separate repos or unrelated to The Number)
+rag-vault/
+hedonist-lyric-video/
+monomythism-website/
+buyer-mode/
+foil-industries-v2/
+resume-tailor/
+duster/
+duster-analysis/
+blind-listen/
+sample-vault/
+audio-scribe/
+mp3-to-midi/
+mixdiff/
+speedreader/
+site-assessor/
+web/
+temp-bmad/
+workflow init/
+
+# Build artifacts and caches
+__pycache__/
+*.pyc
+.pytest_cache/
+backups/
+output/
+
+# Dev tooling
+.claude/
+.agents/
+.zencoder/
+.hermes-orientation.md
+.hermes-tasks/
+node_modules/

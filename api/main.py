@@ -304,9 +304,9 @@ async def get_the_number(
         days_remaining = result.get("days_remaining")
         remaining_money = result.get("remaining_money", 0)
 
-        # Defensive fallback: if remaining_money wasn't returned but we have a valid
-        # daily limit and days remaining, reconstruct it to prevent pool math corruption (FOI-103)
-        if remaining_money == 0 and base_daily_limit > 0 and days_remaining and days_remaining > 0:
+        # Defensive fallback: if remaining_money is absent from the result dict,
+        # reconstruct it to prevent pool math corruption (FOI-103)
+        if "remaining_money" not in result and base_daily_limit > 0 and days_remaining and days_remaining > 0:
             remaining_money = base_daily_limit * days_remaining
 
         # If pool is enabled and has balance, factor it into the daily budget

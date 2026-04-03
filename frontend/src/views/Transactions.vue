@@ -149,8 +149,9 @@ const todayTotal = computed(() => {
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
   return budgetStore.transactions
     .filter((txn: Transaction) => {
-      // Convert stored UTC timestamp to local date for comparison
-      const txnLocal = new Date(txn.date)
+      // Normalize old naive timestamps (no offset) to UTC before parsing
+      const dateStr = txn.date.includes('+') || txn.date.endsWith('Z') ? txn.date : txn.date + '+00:00'
+      const txnLocal = new Date(dateStr)
       const txnDate = `${txnLocal.getFullYear()}-${String(txnLocal.getMonth() + 1).padStart(2, '0')}-${String(txnLocal.getDate()).padStart(2, '0')}`
       return txnDate === today
     })
@@ -170,7 +171,9 @@ const allTimeTotal = computed(() => {
 })
 
 function formatDate(dateString: string) {
-  return format(new Date(dateString), 'MMM d, yyyy h:mm a')
+  // Normalize old naive timestamps (no offset) to UTC before parsing
+  const normalized = dateString.includes('+') || dateString.endsWith('Z') ? dateString : dateString + '+00:00'
+  return format(new Date(normalized), 'MMM d, yyyy h:mm a')
 }
 
 function closeDialog() {

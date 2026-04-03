@@ -179,11 +179,13 @@ class BudgetCalculator:
             return {
                 "total_money": total_money,
                 "total_expenses": total_expenses,
+                "remaining_money": 0,
                 "months_remaining": 0,
                 "days_remaining": 0,
                 "daily_limit": 0,
                 "out_of_money": True,
-                "mode": "fixed_pool"
+                "mode": "fixed_pool",
+                "calculation_mode": "zero_balance"
             }
 
         # Option B: Calculate daily budget to last until target date
@@ -274,7 +276,7 @@ class BudgetCalculator:
                 daily_limit = 0
                 end_date = None
 
-            remaining_money = total_money - (daily_limit * days_remaining) if days_remaining != float('inf') else total_money
+            remaining_money = total_money
             return {
                 "total_money": total_money,
                 "total_expenses": total_expenses,

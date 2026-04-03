@@ -498,7 +498,7 @@ class EncryptedDatabase:
             cursor.execute("""
                 INSERT INTO transactions (user_id, date, amount, description, category, created_at)
                 VALUES (?, ?, ?, ?, ?, ?)
-            """, (user_id, date.isoformat(), amount, description, category, datetime.now().isoformat()))
+            """, (user_id, date.isoformat(), amount, description, category, datetime.now(ZoneInfo("UTC")).isoformat()))
             conn.commit()
             return cursor.lastrowid
 
