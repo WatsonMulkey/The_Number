@@ -1006,6 +1006,7 @@ async def register(
             from api.utils.dates import validate_timezone
             validated_tz = validate_timezone(user_data.timezone)
             db.set_setting("user_timezone", validated_tz, user_id)
+            db.set_setting("timezone_source", "auto", user_id)
 
         # Get created user
         user = db.get_user_by_id(user_id)
@@ -1069,11 +1070,14 @@ async def login(
                 detail="Invalid username or password"
             )
 
-        # Update user timezone on each login (auto-detected by frontend)
+        # Update user timezone on login only if source is auto-detected (not manually set)
         if credentials.timezone:
-            from api.utils.dates import validate_timezone
-            validated_tz = validate_timezone(credentials.timezone)
-            db.set_setting("user_timezone", validated_tz, user["id"])
+            tz_source = db.get_setting("timezone_source", user["id"])
+            if tz_source != "manual":
+                from api.utils.dates import validate_timezone
+                validated_tz = validate_timezone(credentials.timezone)
+                db.set_setting("user_timezone", validated_tz, user["id"])
+                db.set_setting("timezone_source", "auto", user["id"])
 
         # Create access token
         access_token = create_access_token(data={"user_id": user["id"]})

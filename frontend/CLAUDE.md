@@ -58,7 +58,11 @@ npm run type-check  # TypeScript check
 - QA phase active, debug logging enabled
 - TypeScript strict mode enabled
 
+## Security
+- **Axios pinned to 1.14.0** (2026-03-31): Supply chain attack hit axios npm — versions 1.14.1 and 0.30.4 contained a RAT via malicious `plain-crypto-js` dependency. Do NOT upgrade axios without verifying the version is safe. Avoid `^` range — use exact pin.
+
 ## Do NOT
 - Deploy from `frontend/` directory (Vercel root is configured as `frontend`)
 - Hardcode API URLs (use `getApiBaseUrl()`)
 - Remove debug console.logs during QA phase
+- Upgrade axios without checking for supply chain compromise (see Security section)
