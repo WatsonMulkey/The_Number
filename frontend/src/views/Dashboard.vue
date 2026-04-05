@@ -96,7 +96,7 @@
                 class="d-inline-flex justify-center mb-4"
                 @update:model-value="togglePoolEnabled"
               />
-              <div v-if="budgetStore.budgetNumber.mode === 'paycheck'">
+              <div>
                 <v-btn
                   variant="outlined"
                   size="small"

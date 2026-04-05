@@ -11,6 +11,7 @@ import os
 import re
 from datetime import datetime
 from typing import List, Dict, Optional, Any
+from zoneinfo import ZoneInfo
 from cryptography.fernet import Fernet
 from pathlib import Path
 
@@ -159,7 +160,7 @@ class EncryptedDatabase:
                 migrate_fn(cursor)
                 cursor.execute(
                     "INSERT INTO schema_version (version, applied_at, description) VALUES (?, ?, ?)",
-                    (version, datetime.now().isoformat(), description)
+                    (version, datetime.now(ZoneInfo("UTC")).isoformat(), description)
                 )
 
     @staticmethod
@@ -265,7 +266,7 @@ class EncryptedDatabase:
             user_id: User ID this setting belongs to
         """
         encrypted_value = self._encrypt(json.dumps(value))
-        now = datetime.now().isoformat()
+        now = datetime.now(ZoneInfo("UTC")).isoformat()
 
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
@@ -330,7 +331,7 @@ class EncryptedDatabase:
         if frequency not in ("weekly", "monthly"):
             raise ValueError("Frequency must be 'weekly' or 'monthly'")
 
-        now = datetime.now().isoformat()
+        now = datetime.now(ZoneInfo("UTC")).isoformat()
 
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
@@ -435,7 +436,7 @@ class EncryptedDatabase:
             return
 
         updates.append("updated_at = ?")
-        params.append(datetime.now().isoformat())
+        params.append(datetime.now(ZoneInfo("UTC")).isoformat())
         params.append(expense_id)
         params.append(user_id)
 
@@ -490,7 +491,6 @@ class EncryptedDatabase:
             raise ValueError("Description too long (max 200 characters)")
 
         if date is None:
-            from zoneinfo import ZoneInfo
             date = datetime.now(ZoneInfo("UTC"))
 
         with sqlite3.connect(self.db_path) as conn:
@@ -660,7 +660,7 @@ class EncryptedDatabase:
 
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
-            now = datetime.now().isoformat()
+            now = datetime.now(ZoneInfo("UTC")).isoformat()
 
             try:
                 cursor.execute("""

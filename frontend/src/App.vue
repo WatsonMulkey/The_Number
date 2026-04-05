@@ -54,7 +54,7 @@ const isLanding = computed(() => route.name === 'landing')
   --color-error: #c96a5a;
   --color-text-primary: #2d3436;     /* (was #2b2e33) */
   --color-text-secondary: #4a4f52;   /* WCAG AA on #fdfcf0 (was #3a3d42) */
-  --color-text-muted: #6b6e70;       /* (was #5a5d62) */
+  --color-text-muted: #5a5d60;       /* Darkened for WCAG AA on #fdfcf0 (was #6b6e70) */
 
   /* Typography — Nunito replaces Scope One + Inter */
   --font-display: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -72,6 +72,11 @@ const isLanding = computed(() => route.name === 'landing')
   --transition-base: 250ms;
   --transition-slow: 370ms;
   --transition-ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* WCAG AA contrast fix: Vuetify's default 0.6 opacity fails on warm cream bg */
+.v-application {
+  --v-medium-emphasis-opacity: 0.75;
 }
 
 /* Typography Hierarchy - Simplified */

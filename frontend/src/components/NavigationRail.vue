@@ -8,6 +8,8 @@
     color="transparent"
     elevation="0"
     class="desktop-nav"
+    tag="nav"
+    aria-label="Main navigation"
   >
     <v-list density="compact" nav class="transparent-nav">
       <!-- Back to FOIL Engineering link -->
@@ -72,6 +74,8 @@
     grow
     class="mobile-nav safe-area-bottom"
     color="primary"
+    tag="nav"
+    aria-label="Main navigation"
   >
     <v-btn
       value="dashboard"
@@ -288,6 +292,12 @@ async function handleAuthSuccess() {
   color: var(--color-soft-charcoal) !important;
 }
 
+.floating-item:focus-visible {
+  outline: 2px solid var(--color-green) !important;
+  outline-offset: 2px;
+  background-color: rgba(250, 243, 221, 0.4) !important;
+}
+
 /* Active navigation item - warm cream accent */
 .floating-item.v-list-item--active {
   background-color: var(--color-sage-green) !important;
@@ -332,6 +342,12 @@ async function handleAuthSuccess() {
   font-weight: 700;
 }
 
+.mobile-nav :deep(.v-btn:focus-visible) {
+  outline: 2px solid var(--color-green) !important;
+  outline-offset: -2px;
+  background-color: rgba(250, 243, 221, 0.3) !important;
+}
+
 .mobile-nav :deep(.v-icon) {
   margin-bottom: 2px;
 }
@@ -365,6 +381,12 @@ async function handleAuthSuccess() {
 .avatar-button:hover {
   border-color: var(--color-green) !important;
   box-shadow: 0 6px 16px rgba(74, 124, 89, 0.2);
+}
+
+.avatar-button:focus-visible {
+  outline: 2px solid var(--color-green) !important;
+  outline-offset: 2px;
+  border-color: var(--color-green) !important;
 }
 
 .user-avatar {
