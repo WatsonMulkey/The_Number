@@ -8,7 +8,6 @@
     color="transparent"
     elevation="0"
     class="desktop-nav"
-    tag="nav"
     aria-label="Main navigation"
   >
     <v-list density="compact" nav class="transparent-nav">
@@ -68,14 +67,12 @@
   </v-navigation-drawer>
 
   <!-- Mobile: Bottom Navigation (<768px) - Hidden during onboarding and landing page -->
+  <nav v-else-if="!isOnboarding && !isLanding" aria-label="Main navigation">
   <v-bottom-navigation
-    v-else-if="!isOnboarding && !isLanding"
     v-model="activeNav"
     grow
     class="mobile-nav safe-area-bottom"
     color="primary"
-    tag="nav"
-    aria-label="Main navigation"
   >
     <v-btn
       value="dashboard"
@@ -113,6 +110,7 @@
       <span>Settings</span>
     </v-btn>
   </v-bottom-navigation>
+  </nav>
 
   <!-- Avatar Menu (all screen sizes, repositioned for mobile) - Hidden on landing page -->
   <div v-if="!isLanding" :class="['avatar-container', { 'avatar-mobile': isMobile }]">
