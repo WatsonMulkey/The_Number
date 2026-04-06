@@ -69,7 +69,7 @@
   <!-- Mobile: Bottom Navigation (<768px) - Hidden during onboarding and landing page -->
   <nav v-else-if="!isOnboarding && !isLanding" aria-label="Main navigation">
   <v-bottom-navigation
-    v-model="activeNav"
+    :model-value="activeNav"
     grow
     class="mobile-nav safe-area-bottom"
     color="primary"
