@@ -230,11 +230,13 @@ async def get_the_number(
                         )
                         cycle_days = pay_frequency
 
-                        # Get transactions during that cycle
+                        # Get transactions during that cycle (UTC-aware boundaries)
+                        from api.utils.dates import date_to_utc
+                        from datetime import time as dt_time
                         transactions_total = db.get_transactions_sum_for_period(
                             user_id,
-                            datetime.combine(previous_cycle_start, datetime.min.time()),
-                            datetime.combine(next_payday, datetime.min.time())
+                            date_to_utc(previous_cycle_start, dt_time.min, user_timezone),
+                            date_to_utc(next_payday, dt_time.min, user_timezone)
                         )
 
                         # Calculate what the budget was for that cycle (pro-rate monthly to cycle)
@@ -268,6 +270,29 @@ async def get_the_number(
                 days_until_paycheck=days_until_paycheck,
                 pay_frequency_days=int(pay_frequency)
             )
+
+            # FOI-137: Adjust remaining_money for cycle-to-date spending.
+            # The calculator returns the FULL cycle pro-rated budget. Without this,
+            # the_number rises mid-cycle because full_budget / fewer_days = higher number,
+            # ignoring what was already spent. Subtract prior days' spending so the_number
+            # reflects the actual remaining money divided by actual remaining days.
+            if next_payday_str and days_until_paycheck and days_until_paycheck > 0:
+                from api.utils.dates import date_to_utc
+                from datetime import time as dt_time
+
+                cycle_start_date = next_payday - timedelta(days=int(pay_frequency))
+                _today_spend = db.get_total_spending_today(user_id, user_timezone)
+                # Use UTC-aware boundaries (matches get_total_spending_today's approach)
+                # to avoid timezone mismatch near midnight for non-UTC users
+                _total_cycle = db.get_transactions_sum_for_period(
+                    user_id,
+                    date_to_utc(cycle_start_date, dt_time.min, user_timezone),
+                    date_to_utc(today + timedelta(days=1), dt_time.min, user_timezone)
+                )
+                _prior_days_spending = max(0, _total_cycle - _today_spend)
+                result["remaining_money"] -= _prior_days_spending
+                result["daily_limit"] = max(0, result["remaining_money"] / days_until_paycheck)
+
         else:  # fixed_pool
             total_money = db.get_setting("total_money", user_id)
             target_end_date_str = db.get_setting("target_end_date", user_id)
