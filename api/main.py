@@ -155,6 +155,16 @@ async def health_check():
     }
 
 
+@app.get("/api/version")
+async def get_version():
+    """Return the current API version and deployment info."""
+    from api import __version__
+    return {
+        "version": __version__,
+        "app": "The Number",
+    }
+
+
 # ============================================================================
 # BUDGET & "THE NUMBER" ENDPOINTS
 # ============================================================================

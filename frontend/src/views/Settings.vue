@@ -283,12 +283,17 @@
     >
       {{ errorMessage }}
     </v-snackbar>
+
+    <!-- Version -->
+    <div v-if="appVersion" class="version-tag text-center mt-8 text-medium-emphasis">
+      v{{ appVersion }}
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { budgetApi } from '@/services/api'
+import api, { budgetApi } from '@/services/api'
 import { useBudgetStore } from '@/stores/budget'
 import { useValidation } from '@/composables/useValidation'
 import axios from 'axios'
@@ -471,8 +476,16 @@ async function exportData(format: 'csv' | 'excel') {
   }
 }
 
-onMounted(() => {
+const appVersion = ref<string | null>(null)
+
+onMounted(async () => {
   loadCurrentConfig()
+  try {
+    const { data } = await api.get('/api/version')
+    appVersion.value = data.version
+  } catch {
+    // Version display is non-critical — fail silently
+  }
 })
 </script>
 
