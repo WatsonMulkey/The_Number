@@ -81,6 +81,26 @@ def get_user_day_boundaries_utc(user_timezone: str | None = None) -> Tuple[datet
     return (start_utc, end_utc)
 
 
+def date_to_utc(target_date: date, target_time: time, user_timezone: str | None = None) -> datetime:
+    """
+    Convert a local date + time to a UTC-aware datetime.
+
+    Used to build timezone-correct query boundaries for get_transactions_sum_for_period.
+    Matches the approach in get_user_day_boundaries_utc but for arbitrary dates.
+
+    Args:
+        target_date: The date in user's local timezone
+        target_time: The time component (e.g., time.min for midnight, time.max for end-of-day)
+        user_timezone: User's timezone string
+
+    Returns:
+        UTC-aware datetime
+    """
+    tz = ZoneInfo(validate_timezone(user_timezone))
+    local_dt = datetime.combine(target_date, target_time, tzinfo=tz)
+    return local_dt.astimezone(ZoneInfo("UTC"))
+
+
 def get_user_now_utc(user_timezone: str | None = None) -> datetime:
     """
     Get current UTC datetime (for storing timestamps).
